@@ -1,11 +1,7 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+# .husky/pre-commit
 
-# Lancer le linting du back et du front avant d'accepter le commit
 echo "🔍 Checking Backend code..."
 cd backend && npm run lint && cd ..
 
 echo "🔍 Checking Frontend code..."
 cd frontend && npm run lint && cd ..
-
-# Si ça plante ici, le commit est annulé.
