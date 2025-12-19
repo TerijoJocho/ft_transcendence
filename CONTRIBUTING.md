@@ -242,3 +242,70 @@ Exemple:
 	* TypeScript Strict : Pas de any. Typage fort obligatoire.
 	* Promesses : Toute promesse doit être gérée (await, .then, .catch).
 	* Formatage : Prettier est configuré. Configurez votre VSCode pour "Format On Save".
+
+---
+
+# 🏗 Résumé de l'Architecture & du Workflow (Tech Lead Report)
+
+Nous avons mis en place un environnement de développement **professionnel**, inspiré des standards de l'industrie (CI/CD, Monorepo, Type Safety). L'objectif est de garantir la robustesse du code et de faciliter la collaboration à 5 développeurs.
+
+## 1. Architecture du Code (Le Squelette)
+
+### 📂 Structure Monorepo
+*   **Quoi :** Un seul dépôt Git contenant deux dossiers racines : `/frontend` et `/backend`.
+*   **Pourquoi :** Simplifie la gestion du projet, le déploiement via Docker Compose, et permet de partager facilement les types (Interfaces TypeScript) entre le client et le serveur.
+
+### 🐳 Conteneurisation (Docker)
+*   **Quoi :** Un `docker-compose.yml` orchestre NestJS, React (Vite), PostgreSQL et Redis.
+*   **Pourquoi :** "Reproductibilité". Si ça marche sur mon Docker, ça marche sur le tien et sur le VPS. Fini le *"ça marche chez moi"*.
+
+### ⚡️ Stack Full-TypeScript
+*   **Quoi :** React (Front) + NestJS (Back) en mode Strict.
+*   **Pourquoi :** Cohérence totale. Un seul langage à maîtriser pour l'équipe. Le typage strict évite 80% des bugs "bêtes" (null pointer, undefined) avant même de lancer le code.
+
+---
+
+## 2. Qualité et Automatisation (La "Police" du Code)
+
+Nous avons automatisé les tâches ingrates pour que les développeurs se concentrent sur la logique métier.
+
+### 🛡️ Qualité Locale (Husky & Linting)
+*   **Quoi :** Installation de **Husky** (Git Hooks). Avant chaque commit, il lance **ESLint** (qualité du code) et **Prettier** (formatage).
+*   **Pourquoi :** Il est physiquement impossible de "commit" du code sale ou qui ne respecte pas les normes. Cela évite les débats inutiles sur le style de code (espaces vs tabulations).
+
+### 📝 Convention des Commits (Commitlint)
+*   **Quoi :** Obligation d'écrire des messages clairs : `feat: add chat`, `fix: login bug`.
+*   **Pourquoi :** Génère un historique propre et lisible. Essentiel pour savoir "qui a cassé quoi" ou pour générer des changelogs automatiques.
+
+### 🤖 Sécurité des Dépendances (Dependabot)
+*   **Quoi :** Robot GitHub qui scanne nos librairies (npm packages).
+*   **Pourquoi :** Si une faille de sécurité est découverte dans une librairie, Dependabot crée automatiquement une Pull Request pour la corriger. (Points bonus "Cybersecurity").
+
+---
+
+## 3. Workflow de Collaboration (Les Règles du Jeu)
+
+Pour éviter le chaos d'un travail à 5, nous avons instauré un processus strict.
+
+### 🚫 Protection de la branche `main`
+*   **Quoi :** Interdiction totale de pousser du code directement sur `main`.
+*   **Pourquoi :** La branche principale doit toujours être stable et déployable. Personne ne peut casser la production par erreur.
+
+### 🤝 Pull Requests & Templates
+*   **Quoi :** Utilisation obligatoire des PR avec un modèle pré-rempli (Description, Comment tester, Checklist).
+*   **Pourquoi :** Force le développeur à tester son code et à expliquer sa logique. Facilite le travail de relecture pour le Tech Lead.
+
+### 🧪 Intégration Continue (GitHub Actions)
+*   **Quoi :** À chaque Pull Request, un serveur GitHub télécharge le code, installe les dépendances et tente de compiler le Front et le Back.
+*   **Pourquoi :** C'est le juge impartial. Si Husky a été contourné en local, la CI bloquera la fusion sur GitHub. On ne merge que ce qui compile réellement.
+
+---
+
+## 🎯 Conclusion pour l'équipe
+
+Ce système peut sembler rigide au début, mais il nous offre :
+1.  **La sérénité :** On a moins peur de casser le projet.
+2.  **La rapidité :** On perd moins de temps à debugger des erreurs de syntaxe.
+3.  **L'apprentissage :** On travaille comme dans une vraie startup tech.
+
+**Le projet est prêt. À nous de jouer ! 🚀**
