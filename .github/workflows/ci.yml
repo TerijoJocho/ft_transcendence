@@ -1,0 +1,51 @@
+name: CI - Quality Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    # --- FRONTEND CHECKS ---
+    - name: Install Frontend Dependencies
+      run: |
+        cd frontend
+        npm ci
+
+    - name: Lint Frontend
+      run: |
+        cd frontend
+        npm run lint
+
+    - name: Build Frontend
+      run: |
+        cd frontend
+        npm run build
+
+    # --- BACKEND CHECKS ---
+    - name: Install Backend Dependencies
+      run: |
+        cd backend
+        npm ci
+
+    - name: Lint Backend
+      run: |
+        cd backend
+        npm run lint
+
+    - name: Build Backend
+      run: |
+        cd backend
+        npm run build
