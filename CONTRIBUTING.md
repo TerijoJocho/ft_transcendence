@@ -11,20 +11,115 @@ Ce document détaille comment installer l'environnement de travail, les règles 
 
 Avant de commencer, assurez-vous d'avoir les outils suivants installés sur votre machine (ou session 42) :
 
-*   **Docker & Docker Compose** (Pour lancer l'infrastructure).
-*   **Node.js** (Version 20+ recommandée).
-    1. Vérifie si tu as nvm
-			nvm --version
-	2. Si "command not found", lance cette ligne pour le charger :
-		```bash
-			export NVM_DIR="$HOME/.nvm"
-			[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-		```
-	3. Installe et active la bonne version de Node
-		nvm install --lts
-		nvm use --lts
-	4. Vérifie que node -v t'affiche bien une version v20 ou v22.
-*   **Git** (Configuré avec vos identifiants).
+- **Docker & Docker Compose** (pour lancer l'infrastructure)
+- **Git** (configuré avec vos identifiants)
+- **Node.js** (**version 20 minimum**, gérée via `nvm`)
+
+---
+
+### 📦 Installation de NVM (Node Version Manager)
+
+Nous utilisons **nvm** pour garantir que toute l’équipe utilise exactement la même version de Node.js et éviter les bugs de compatibilité.
+
+#### 1. Vérifier si nvm est déjà installé
+Ouvrez un terminal et lancez :
+```bash
+nvm --version
+```
+Si la commande n'est pas reconnue (command not found), suivez les instructions ci-dessous selon votre système.
+
+---
+
+#### 🍎 macOS (Méthode recommandée avec Homebrew)
+
+1.  **Installer Homebrew** (si ce n'est pas déjà fait) :
+    ```bash
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    ```
+
+2.  **Installer nvm** :
+    ```bash
+    brew install nvm
+    ```
+
+3.  **Créer le dossier nvm** :
+    ```bash
+    mkdir ~/.nvm
+    ```
+
+4.  **Ajouter la configuration à votre shell** :
+    Ouvrez votre fichier de configuration (selon votre shell) :
+
+    *   Pour **zsh** (par défaut sur macOS) :
+        ```bash
+        nano ~/.zshrc
+        ```
+    *   Pour **bash** :
+        ```bash
+        nano ~/.bashrc
+        ```
+
+    Ajoutez ces lignes à la fin du fichier :
+    ```bash
+    export NVM_DIR="$HOME/.nvm"
+    source "$(brew --prefix nvm)/nvm.sh"
+    ```
+    *Sauvegardez avec `Ctrl + O` (Entrée) puis quittez avec `Ctrl + X`.*
+
+5.  **Recharger le shell** :
+    ```bash
+    source ~/.zshrc
+    # ou
+    source ~/.bashrc
+    ```
+
+6.  **Vérifier l’installation** :
+    ```bash
+    nvm --version
+    ```
+
+---
+
+#### 🪟 Windows / 🐧 Linux (WSL recommandé)
+
+> ⚠️ **Attention :** Sur Windows, l’utilisation de **WSL (Ubuntu)** est fortement recommandée pour ce projet. N'utilisez pas l'invite de commande Windows classique.
+
+1.  **Installer nvm via le script officiel** :
+    ```bash
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    ```
+
+2.  **Recharger le shell** :
+    ```bash
+    source ~/.bashrc
+    # ou
+    source ~/.zshrc
+    ```
+
+3.  **Vérifier l’installation** :
+    ```bash
+    nvm --version
+    ```
+
+---
+
+#### 📌 2. Installer la version Node du projet
+
+Une fois nvm installé, placez-vous à la racine du repository et lancez :
+
+```bash
+# Installe la version LTS actuelle (v20)
+nvm install
+
+# Active cette version
+nvm use
+```
+
+**Vérification finale :**
+```bash
+node -v
+```
+✅ La version affichée doit être **v20.x**.
 
 ---
 
