@@ -243,6 +243,26 @@ Exemple:
 	* Promesses : Toute promesse doit être gérée (await, .then, .catch).
 	* Formatage : Prettier est configuré. Configurez votre VSCode pour "Format On Save".
 
+3. Documentations du code (JSDoc)
+    * Toutes les fonctions importantes (logique métier, services, hooks, helpers) 
+        doivent être documentées en utilisant la notation **JSDoc**.
+
+    * La documentation doit préciser :
+        - Le rôle global de la fonction
+        - Les paramètres (`@param`)
+        - La valeur de retour (`@returns`) si applicable
+
+    * Exemple :
+
+        ```js
+        /**
+         * Lance la boucle de jeu et calcule le score final.
+        *
+        * @param {string[]} listePropositions - Liste des mots à traiter
+        * @returns {number} Score final de l'utilisateur
+        */
+        ```
+
 ---
 
 # 🏗 Résumé de l'Architecture & du Workflow (Tech Lead Report)
