@@ -6,7 +6,7 @@ function LoginSection() {
     const   [hasTouched, setTouched] = useState(false);
 
     const   isValidEmail = (email: string) => {
-        let     regex = new RegExp("^[a-z0-9._-]+@[a-z0-9._-]+\.[a-z0-9._-]+$");
+        const     regex = new RegExp("^[a-z0-9._-]+@[a-z0-9._-]+\.[a-z0-9._-]+$");
         if (!regex.test(email))
             return false;
         return true;
