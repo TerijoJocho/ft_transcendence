@@ -8,7 +8,7 @@ function Header({title, links}: HeaderProps) {
         <>
             <div className="w-full flex m-1">
                 <h1>{title}</h1>
-                {links && links.map((e) => <a></a>)}
+                {links && links.map((e) => <a href={e.href}>{e.label}</a>)}
             </div>
         </>
     )
