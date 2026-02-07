@@ -1,33 +1,20 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import TextSection from './TextSection.tsx'
+import LoginSection from './LoginSection.tsx'
+
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <TextSection 
+        title={"ChessWar"}
+        paragraph={"Ceci est la landing page où il y aura un long texte pour remplir le paragraphe. Je ne sis pas quoi dire mais je dis des choses utile ou inutiles. Nous allons faire un jeu de chess pour que le gens se la foutent mdr. J'ai pensé à un nom: ChessWar la guerre des rois ; pas mal hein? Anyway, je pense que j'ai assez ecris, bye !"}
+      />
+      <TextSection 
+        title={""}
+        paragraph={"Connectez-vous vite et découvrez l'art de la GUERRE !"}
+      />
+      <LoginSection />
     </>
   )
 }
