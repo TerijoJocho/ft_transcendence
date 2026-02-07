@@ -41,7 +41,9 @@ function LoginSection() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
             />
-            <button type='submit' disabled={!isValidForm}>Se connecter</button>
+            <button type='submit' disabled={!isValidForm} className="px-6 py-3 bg-blue-600 rounded-lg font-semibold hover:bg-blue-500 transition duration-300 shadow-lg hover:shadow-blue-500/50">
+                Se connecter
+            </button>
         </form>
     );
 }
