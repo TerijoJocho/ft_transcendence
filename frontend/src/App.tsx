@@ -11,16 +11,16 @@ import PrivateRoute from "./auth/PrivateRoute.tsx";
 import PublicRoute from "./auth/PublicRoute.tsx";
 
 function App() {
-  const { login, logout } = useAuth();
-  // Récupère les fonctions login/logout du contexte
+  const { login, clearAuth } = useAuth();
+  // Récupère les fonctions login/clearAuth du contexte
 
   useEffect(() => {
     // Au démarrage de l'app, vérifie qui est connecté
     me()
       .then((user) => login(user)) //si connecté, on lance login() pour enregistrer le user
-      .catch(() => logout()); // si erreur -> pas connecté, on lance logout() pour avoir user === null
-  }, [login, logout]);
-  // Les dépendances assurent que cet effet s'exécute si login/logout changent
+      .catch(() => clearAuth()); // si erreur -> pas connecté, on lance clearAuth() pour avoir user === null
+  }, [login, clearAuth]);
+  // Les dépendances assurent que cet effet s'exécute si login/clearAuth changent
 
   return (
     <Routes>
