@@ -1,28 +1,56 @@
-import './App.css'
-import TextSection from './TextSection.tsx'
-import LoginSection from './LoginSection.tsx'
-import Header from './Header.tsx'
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+
+import { me } from "./api/api.ts"
+import { useAuth } from "./auth/AuthContext.tsx";
+
+import Login from './pages/Login.tsx';
+import SignIn from './pages/SignIn.tsx';
+import Dashboard from "./pages/Dashboard.tsx";
+import PrivateRoute from "./auth/PrivateRoute.tsx";
+import PublicRoute from "./auth/PublicRoute.tsx";
 
 
 function App() {
+  const { login, logout } = useAuth();
+  // Récupère les fonctions login/logout du contexte
+
+  useEffect(() => {
+    // Au démarrage de l'app, vérifie qui est connecté
+    me()
+      .then(user => login(user)) //si connecté, on lance login() pour enregistrer le user
+      .catch(() => logout())// si erreur -> pas connecté, on lance logout() pour avoir user === null
+  }, [login, logout]);
+  // Les dépendances assurent que cet effet s'exécute si login/logout changent
+
   return (
-    <>
-    <div className="h-screen w-full bg-gray-500 text-white flex flex-col items-center justify-center">
-      <Header 
-        title={"ChessWar"}
+    <Routes>
+      {/* Redirection par default */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
+      <Route path="/signup" element={<SignIn/>} />
+
+      <Route 
+        path="/login" 
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        } 
       />
 
-      <TextSection 
-        title={"Bienvenue"}
-        paragraph={"Ceci est la landing page où il y aura un long texte pour remplir le paragraphe. Je ne sis pas quoi dire mais je dis des choses utile ou inutiles. Nous allons faire un jeu de chess pour que le gens se la foutent mdr. J'ai pensé à un nom: ChessWar la guerre des rois ; pas mal hein? Anyway, je pense que j'ai assez ecris, bye !"}
+      <Route 
+        path="/dashboard" 
+        element={
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
+        } 
       />
-      <TextSection 
-        title={""}
-        paragraph={"Connectez-vous vite et découvrez l'art de la GUERRE !"}
-      />
-      <LoginSection />
-    </div>
-    </>
+
+      {/* Fallback si route inconnue */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   )
 }
 
