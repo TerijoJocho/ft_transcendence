@@ -1,22 +1,56 @@
-import './App.css'
-import TextSection from './TextSection.tsx'
-import LoginSection from './LoginSection.tsx'
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
 
+import { me } from "./api/api.ts";
+import { useAuth } from "./auth/useAuth";
+
+import Login from "./pages/Login.tsx";
+import SignIn from "./pages/SignIn.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
+import PrivateRoute from "./auth/PrivateRoute.tsx";
+import PublicRoute from "./auth/PublicRoute.tsx";
 
 function App() {
+  const { login, logout } = useAuth();
+  // Récupère les fonctions login/logout du contexte
+
+  useEffect(() => {
+    // Au démarrage de l'app, vérifie qui est connecté
+    me()
+      .then((user) => login(user)) //si connecté, on lance login() pour enregistrer le user
+      .catch(() => logout()); // si erreur -> pas connecté, on lance logout() pour avoir user === null
+  }, [login, logout]);
+  // Les dépendances assurent que cet effet s'exécute si login/logout changent
+
   return (
-    <>
-      <TextSection 
-        title={"ChessWar"}
-        paragraph={"Ceci est la landing page où il y aura un long texte pour remplir le paragraphe. Je ne sis pas quoi dire mais je dis des choses utile ou inutiles. Nous allons faire un jeu de chess pour que le gens se la foutent mdr. J'ai pensé à un nom: ChessWar la guerre des rois ; pas mal hein? Anyway, je pense que j'ai assez ecris, bye !"}
+    <Routes>
+      {/* Redirection par default */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
+      <Route path="/signup" element={<SignIn />} />
+
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
       />
-      <TextSection 
-        title={""}
-        paragraph={"Connectez-vous vite et découvrez l'art de la GUERRE !"}
+
+      <Route
+        path="/dashboard"
+        element={
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
+        }
       />
-      <LoginSection />
-    </>
-  )
+
+      {/* Fallback si route inconnue */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
