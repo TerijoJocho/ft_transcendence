@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState} from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
 import { register } from "../api/api.ts";
+import { useAuth } from "../auth/useAuth";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -12,6 +13,7 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   //check si la form est valide
   const isValidEmail = (email: string) => {
@@ -25,6 +27,8 @@ export default function SignIn() {
   // requete post pour creer un user
   function submitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setLoading(true);
+    setErrorMessage(null);
 
     register({
       pseudo,
@@ -32,14 +36,20 @@ export default function SignIn() {
       password,
     })
       .then((data) => {
-        console.log("Utilisateur créé: ", data); // Les données JSON analysées par l'appel `donnees.json()`
+        console.log("Utilisateur créé: ", data);
+        // Connecte automatiquement si le backend retourne l'utilisateur
+        // belek supp cette logique 
+        if (data && data.id && data.pseudo) {
+          login({ id: data.id, pseudo: data.pseudo });
+          navigate("/dashboard");
+        } else {
+          // Sinon redirige vers login pour se connecter manuellement
+          navigate("/login");
+        }
       })
       .catch((err) => {
         setErrorMessage(err.message);
-      })
-      .finally(() => {
         setLoading(false);
-        navigate("/login");
       });
   }
 
