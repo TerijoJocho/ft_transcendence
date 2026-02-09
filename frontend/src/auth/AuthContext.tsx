@@ -2,43 +2,23 @@
 //expose login, logout
 //dit si le user est connecté
 
-import { createContext, useContext, useState } from "react";
+import { useState } from "react";
+import { AuthContext, type User } from "./core/authCore";
 
-type User = {
-    id: number;
-    pseudo: string;
-};
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
 
-type AuthContextType = {
-    user: User | null;
-    login: (user: User) => void; //a remplacer par GET /auth/me
-    logout: () => void;
-}
+  function login(user: User) {
+    setUser(user);
+  }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+  function logout() {
+    setUser(null);
+  }
 
-export function AuthProvider({children}: {children: React.ReactNode}) {
-    const [user, setUser] = useState<User | null>(null);
-
-    //a remplacer par un GET /auth/me
-    function login(user: User) {
-        setUser(user);
-    }
-
-    function logout() {
-        setUser(null);
-    }
-
-    return (
-        <AuthContext.Provider value={{user, login, logout}}>
-            {children}
-        </AuthContext.Provider>
-    );
-}
-
-export function useAuth() {
-    const ctx = useContext(AuthContext);
-    if (!ctx)
-        throw new Error("useAuth must be used inside AuthProvider");
-    return ctx;
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
