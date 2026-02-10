@@ -1,35 +1,56 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+
+import { me } from "./api/api.ts";
+import { useAuth } from "./auth/useAuth";
+
+import Login from "./pages/Login.tsx";
+import SignIn from "./pages/SignIn.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
+import PrivateRoute from "./auth/PrivateRoute.tsx";
+import PublicRoute from "./auth/PublicRoute.tsx";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { login, logout } = useAuth();
+  // Récupère les fonctions login/logout du contexte
+
+  useEffect(() => {
+    // Au démarrage de l'app, vérifie qui est connecté
+    me()
+      .then((user) => login(user)) //si connecté, on lance login() pour enregistrer le user
+      .catch(() => logout()); // si erreur -> pas connecté, on lance logout() pour avoir user === null
+  }, [login, logout]);
+  // Les dépendances assurent que cet effet s'exécute si login/logout changent
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Routes>
+      {/* Redirection par default */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
+      <Route path="/signup" element={<SignIn />} />
+
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard"
+        element={
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
+        }
+      />
+
+      {/* Fallback si route inconnue */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
