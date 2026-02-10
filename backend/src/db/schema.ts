@@ -5,13 +5,11 @@ import {
   timestamp,
   varchar,
   integer,
-  primaryKey,
   foreignKey,
   check,
   unique,
   uniqueIndex
 } from "drizzle-orm/pg-core";
-import { InferInsertModel } from "drizzle-orm";
 
 export const gameStatusEnum = pgEnum("game_status_enum", [
   "PENDING",
