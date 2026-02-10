@@ -15,7 +15,7 @@ import {
 	sql,
 	SQLWrapper
 } from 'drizzle-orm';
-import { db } from './index';
+import { db } from './main';
 import { 
 	SelectedFieldsFlat
 } from 'drizzle-orm/pg-core';
@@ -73,7 +73,9 @@ export const updatePlayersBy = async (
 		return updatedValues ? query.returning(updatedValues) : query.returning();
 };
 
-export const deleteAllPlayers = async () => db.delete(playerTable);
+export const deleteAllPlayers = async () => {
+	return db.delete(playerTable);
+};
 
 export const deletePlayersBy = async (
 	operator?: 'and' | 'or',
@@ -98,7 +100,7 @@ export const findAllGames = async (selectedValues?: SelectedFieldsFlat) => {
 	return query;
 }
 
-export const findGameBy = async (
+export const findGamesBy = async (
 	operator?: 'and' | 'or',
 	selectedValues?: SelectedFieldsFlat,
 	...conditions: (SQLWrapper | SQLWrapper[])[]
@@ -115,7 +117,7 @@ export const findGameBy = async (
 		return query;
 };
 
-export const insertGame = async (games: game[], insertedValues?: SelectedFieldsFlat) => {
+export const insertGames = async (games: game[], insertedValues?: SelectedFieldsFlat) => {
 	const query = db.insert(gameTable).values(games);
 	return insertedValues ? query.returning(insertedValues) : query.returning();
 }
@@ -127,7 +129,7 @@ export const updateAllGames = async (updatedGame: Partial<game>, updatedValues?:
 	return query;
 };
 
-export const updateGameBy = async (
+export const updateGamesBy = async (
 	updatedGame: Partial<game>, 
 	operator?: 'and' | 'or',
 	updatedValues ?: SelectedFieldsFlat,
@@ -143,9 +145,11 @@ export const updateGameBy = async (
 		return updatedValues ? query.returning(updatedValues) : query.returning();
 };
 
-export const deleteAllGames = async () => db.delete(gameTable);
+export const deleteAllGames = async () => {
+	return db.delete(gameTable);
+};
 
-export const deleteGameBy = async (
+export const deleteGamesBy = async (
 	operator?: 'and' | 'or',
 	deletedValues ?: SelectedFieldsFlat,
 	...conditions: (SQLWrapper | SQLWrapper[])[]
@@ -168,7 +172,7 @@ export const findAllFriendships = async (selectedValues?: SelectedFieldsFlat) =>
 	return query;
 }
 
-export const findFriendshipBy = async (
+export const findFriendshipsBy = async (
 	operator?: 'and' | 'or',
 	selectedValues?: SelectedFieldsFlat,
 	...conditions: (SQLWrapper | SQLWrapper[])[]
@@ -185,7 +189,7 @@ export const findFriendshipBy = async (
 		return query;
 };
 
-export const insertFriendship = async (friendships: friendship[], insertedValues?: SelectedFieldsFlat) => {
+export const insertFriendships = async (friendships: friendship[], insertedValues?: SelectedFieldsFlat) => {
 	const query = db.insert(friendshipTable).values(friendships);
 	return insertedValues ? query.returning(insertedValues) : query.returning();
 }
@@ -197,7 +201,7 @@ export const updateAllFriendships = async (updatedFriendship: Partial<friendship
 	return query;
 };
 
-export const updateFriendshipBy = async (
+export const updateFriendshipsBy = async (
 	updatedFriendship: Partial<friendship>, 
 	operator?: 'and' | 'or',
 	updatedValues ?: SelectedFieldsFlat,
@@ -213,9 +217,11 @@ export const updateFriendshipBy = async (
 		return updatedValues ? query.returning(updatedValues) : query.returning();
 };
 
-export const deleteAllFriendships = async () => db.delete(friendshipTable);
+export const deleteAllFriendships = async () => {
+	return db.delete(friendshipTable);
+};
 
-export const deleteFriendshipBy = async (
+export const deleteFriendshipsBy = async (
 	operator?: 'and' | 'or',
 	deletedValues ?: SelectedFieldsFlat,
 	...conditions: (SQLWrapper | SQLWrapper[])[]
@@ -231,14 +237,14 @@ export const deleteFriendshipBy = async (
 };
 
 //participation functions
-export const findAllParticipation = async (selectedValues?: SelectedFieldsFlat) => {
+export const findAllParticipations = async (selectedValues?: SelectedFieldsFlat) => {
 	let query = selectedValues ? 
 		db.select(selectedValues).from(participationTable) :
 		db.select().from(participationTable);
 	return query;
 }
 
-export const findParticipationBy = async (
+export const findParticipationsBy = async (
 	operator?: 'and' | 'or',
 	selectedValues?: SelectedFieldsFlat,
 	...conditions: (SQLWrapper | SQLWrapper[])[]
@@ -255,19 +261,19 @@ export const findParticipationBy = async (
 		return query;
 };
 
-export const insertParticipation = async (participations: participation[], insertedValues?: SelectedFieldsFlat) => {
+export const insertParticipations = async (participations: participation[], insertedValues?: SelectedFieldsFlat) => {
 	const query = db.insert(participationTable).values(participations);
 	return insertedValues ? query.returning(insertedValues) : query.returning();
 }
 
-export const updateAllParticipation = async (updatedParticipation: Partial<participation>, updatedValues?: SelectedFieldsFlat) => {
+export const updateAllParticipations = async (updatedParticipation: Partial<participation>, updatedValues?: SelectedFieldsFlat) => {
 	const query = updatedValues ? 
 		db.update(participationTable).set(updatedParticipation).returning(updatedValues) : 
 		db.update(participationTable).set(updatedParticipation).returning();
 	return query;
 };
 
-export const updateParticipationBy = async (
+export const updateParticipationsBy = async (
 	updatedParticipation: Partial<participation>, 
 	operator?: 'and' | 'or',
 	updatedValues ?: SelectedFieldsFlat,
@@ -283,9 +289,11 @@ export const updateParticipationBy = async (
 		return updatedValues ? query.returning(updatedValues) : query.returning();
 };
 
-export const deleteAllParticipation = async () => db.delete(participationTable);
+export const deleteAllParticipations = async () => {
+	return db.delete(participationTable)
+};
 
-export const deleteParticipationBy = async (
+export const deleteParticipationsBy = async (
 	operator?: 'and' | 'or',
 	deletedValues ?: SelectedFieldsFlat,
 	...conditions: (SQLWrapper | SQLWrapper[])[]
@@ -302,18 +310,18 @@ export const deleteParticipationBy = async (
 
 //miscellaneous functions
 // query to calculate all/some players' winrate depending on conditions  (=> [gameName, winrate])
-export const getWinRate = async (
+export const getWinrate = async (
 	operator?: 'and' | 'or',
 	...conditions: (SQLWrapper | SQLWrapper[])[]
 ) => {
 	let query = db.select({
 		playerName: playerTable.gameName,
-		winRate:  sql`(( COUNT(*) FILTER (WHERE player_result = 'WIN') + 0.5 * COUNT(*) FILTER (WHERE player_result = 'DRAW'))
-/ NULLIF(COUNT(*) FILTER (WHERE player_result <> 'PENDING'), 0)::float`
-	})
-	.from(participationTable)
-	.fullJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
-	.groupBy(participationTable.playerId);
+		winrate:  sql`( COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN') + 0.5 * COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW'))
+/ NULLIF(COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING'), 0)::float`
+		})
+		.from(participationTable)
+		.innerJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
+		.groupBy(playerTable.gameName);
 	const flatConditions = conditions.flat() as SQLWrapper[];
 	if (operator === 'or') {
 		query = query.where(or(...flatConditions)) as typeof query;
@@ -330,12 +338,12 @@ export const getAverageWinMoves = async (
 ) => {
 	let query = db.select({
 	playerName: playerTable.gameName,
-	avgWinMoves: sql`AVG(winner_nb_moves)`
+	avgWinMoves: sql`AVG(${gameTable.winnerNbMoves})`
 	})
 	.from(participationTable)
-	.fullJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
-	.fullJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
-	.groupBy(participationTable.playerId)
+	.innerJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
+	.innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+	.groupBy(playerTable.gameName)
 	const flatConditions = conditions.flat() as SQLWrapper[];
 	if (operator === 'or') {
 		query = query.where(and(eq(participationTable.playerResult, 'WIN'), or(...flatConditions))) as typeof query;
@@ -358,9 +366,9 @@ export const getFavouriteGameMode = async (
 	ranking: sql`RANK() OVER (PARTITION BY ${participationTable.playerId} ORDER BY COUNT(*) DESC)`
 	})
 	.from(participationTable)
-	.fullJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
-	.fullJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
-	.groupBy(participationTable.playerId, gameTable.gameMode)
+	.innerJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
+	.innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+	.groupBy(playerTable.gameName, gameTable.gameMode)
 	.as('tmp');
 
 	let query = db.select({
