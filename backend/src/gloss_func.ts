@@ -6,24 +6,21 @@ import {
 	friendship,
 	friendshipTable,
 	participation,
-	participationTable,
-	playerResult
+	participationTable
 } from './db/schema';
 import { 
 	and,
-	eq,
 	or,
-	SelectedFields,
+	eq,
+	sql,
 	SQLWrapper
 } from 'drizzle-orm';
 import { db } from './index';
 import { 
-	PgColumn,
-	PgTable,
 	SelectedFieldsFlat
 } from 'drizzle-orm/pg-core';
 
-
+//player functions
 export const findAllPlayers = async (selectedValues?: SelectedFieldsFlat) => {
 	let query = selectedValues ? 
 		db.select(selectedValues).from(playerTable) :
@@ -78,7 +75,7 @@ export const updatePlayersBy = async (
 
 export const deleteAllPlayers = async () => db.delete(playerTable);
 
-export const deletePlayersBy = (
+export const deletePlayersBy = async (
 	operator?: 'and' | 'or',
 	deletedValues ?: SelectedFieldsFlat,
 	...conditions: (SQLWrapper | SQLWrapper[])[]
@@ -93,21 +90,290 @@ export const deletePlayersBy = (
 		return deletedValues ? query.returning(deletedValues) : query.returning();
 };
 
-// similar functions for game, participation and friendship tables, to be implemented in the future when needed, following player functions as examples
-export const insertGame = async (game: game, returnValue?: any) => 
-	db.insert(gameTable).values(game).returning(returnValue);
-export const updateAllGames = async (updatedGame: Partial<game>) => 
-	db.update(gameTable).set(updatedGame).returning();
-export const updateGameBy = async (column: PgColumn, value: any, updatedGame: Partial<game>) => db.update(gameTable).set(updatedGame).where(eq(column, value)).returning();
-export const findGameBy = async (column: PgColumn, value: any) => db.select().from(gameTable).where(eq(column, value));
-export const findAllGames = async () => db.select().from(gameTable);
-export const deleteGameBy = async (column: PgColumn, value: any) => db.delete(gameTable).where(eq(column, value)).returning();
-export const deleteAllGames = async () => db.delete(gameTable).returning();
+//game functions
+export const findAllGames = async (selectedValues?: SelectedFieldsFlat) => {
+	let query = selectedValues ? 
+		db.select(selectedValues).from(gameTable) :
+		db.select().from(gameTable);
+	return query;
+}
 
-export const insertFriendship = async (friendship: friendship, returnValue: any) => db.insert(friendshipTable).values(friendship).returning(returnValue);
-export const findFriendshipBy = async (column: PgColumn, value: any) => db.select().from(friendshipTable).where(eq(column, value));
-export const findAllFriendships = async () => db.select().from(friendshipTable);
-export const updateAllFriendships = async (updatedFriendship: Partial<friendship>) => db.update(friendshipTable).set(updatedFriendship).returning();
-export const updateFriendshipBy = async (column: PgColumn, value: any, updatedFriendship: Partial<friendship>) => db.update(friendshipTable).set(updatedFriendship).where(eq(column, value)).returning();
-export const deleteAllFriendships = async () => db.delete(friendshipTable).returning();
-export const deleteFriendshipBy = async (column: PgColumn, value: any) => db.delete(friendshipTable).where(eq(column, value)).returning();
+export const findGameBy = async (
+	operator?: 'and' | 'or',
+	selectedValues?: SelectedFieldsFlat,
+	...conditions: (SQLWrapper | SQLWrapper[])[]
+) => {
+		let query = selectedValues 
+			? db.select(selectedValues).from(gameTable)
+			: db.select().from(gameTable);
+		const flatConditions = conditions.flat() as SQLWrapper[];
+			if (operator === 'or') {
+				query = query.where(or(...flatConditions)) as typeof query;
+			} else if (operator === 'and') {
+      			query = query.where(and(...flatConditions)) as typeof query;
+			}
+		return query;
+};
+
+export const insertGame = async (games: game[], insertedValues?: SelectedFieldsFlat) => {
+	const query = db.insert(gameTable).values(games);
+	return insertedValues ? query.returning(insertedValues) : query.returning();
+}
+
+export const updateAllGames = async (updatedGame: Partial<game>, updatedValues?: SelectedFieldsFlat) => {
+	const query = updatedValues ? 
+		db.update(gameTable).set(updatedGame).returning(updatedValues) : 
+		db.update(gameTable).set(updatedGame).returning();
+	return query;
+};
+
+export const updateGameBy = async (
+	updatedGame: Partial<game>, 
+	operator?: 'and' | 'or',
+	updatedValues ?: SelectedFieldsFlat,
+	...conditions: (SQLWrapper | SQLWrapper[])[]
+) => {
+  		let query = db.update(gameTable).set(updatedGame);
+		const flatConditions = conditions.flat() as SQLWrapper[];
+			if (operator === 'or') {
+				query = query.where(or(...flatConditions)) as typeof query;
+			} else if (operator === 'and') {
+      			query = query.where(and(...flatConditions)) as typeof query;
+			}
+		return updatedValues ? query.returning(updatedValues) : query.returning();
+};
+
+export const deleteAllGames = async () => db.delete(gameTable);
+
+export const deleteGameBy = async (
+	operator?: 'and' | 'or',
+	deletedValues ?: SelectedFieldsFlat,
+	...conditions: (SQLWrapper | SQLWrapper[])[]
+) => {
+  		let query = db.delete(gameTable);
+		const flatConditions = conditions.flat() as SQLWrapper[];
+			if (operator === 'or') {
+				query = query.where(or(...flatConditions)) as typeof query;
+			} else if (operator === 'and') {
+      			query = query.where(and(...flatConditions)) as typeof query;
+			}
+		return deletedValues ? query.returning(deletedValues) : query.returning();
+};
+
+//friendship functions
+export const findAllFriendships = async (selectedValues?: SelectedFieldsFlat) => {
+	let query = selectedValues ? 
+		db.select(selectedValues).from(friendshipTable) :
+		db.select().from(friendshipTable);
+	return query;
+}
+
+export const findFriendshipBy = async (
+	operator?: 'and' | 'or',
+	selectedValues?: SelectedFieldsFlat,
+	...conditions: (SQLWrapper | SQLWrapper[])[]
+) => {
+		let query = selectedValues 
+			? db.select(selectedValues).from(friendshipTable)
+			: db.select().from(friendshipTable);
+		const flatConditions = conditions.flat() as SQLWrapper[];
+			if (operator === 'or') {
+				query = query.where(or(...flatConditions)) as typeof query;
+			} else if (operator === 'and') {
+      			query = query.where(and(...flatConditions)) as typeof query;
+			}
+		return query;
+};
+
+export const insertFriendship = async (friendships: friendship[], insertedValues?: SelectedFieldsFlat) => {
+	const query = db.insert(friendshipTable).values(friendships);
+	return insertedValues ? query.returning(insertedValues) : query.returning();
+}
+
+export const updateAllFriendships = async (updatedFriendship: Partial<friendship>, updatedValues?: SelectedFieldsFlat) => {
+	const query = updatedValues ? 
+		db.update(friendshipTable).set(updatedFriendship).returning(updatedValues) : 
+		db.update(friendshipTable).set(updatedFriendship).returning();
+	return query;
+};
+
+export const updateFriendshipBy = async (
+	updatedFriendship: Partial<friendship>, 
+	operator?: 'and' | 'or',
+	updatedValues ?: SelectedFieldsFlat,
+	...conditions: (SQLWrapper | SQLWrapper[])[]
+) => {
+  		let query = db.update(friendshipTable).set(updatedFriendship);
+		const flatConditions = conditions.flat() as SQLWrapper[];
+			if (operator === 'or') {
+				query = query.where(or(...flatConditions)) as typeof query;
+			} else if (operator === 'and') {
+      			query = query.where(and(...flatConditions)) as typeof query;
+			}
+		return updatedValues ? query.returning(updatedValues) : query.returning();
+};
+
+export const deleteAllFriendships = async () => db.delete(friendshipTable);
+
+export const deleteFriendshipBy = async (
+	operator?: 'and' | 'or',
+	deletedValues ?: SelectedFieldsFlat,
+	...conditions: (SQLWrapper | SQLWrapper[])[]
+) => {
+  		let query = db.delete(friendshipTable);
+		const flatConditions = conditions.flat() as SQLWrapper[];
+			if (operator === 'or') {
+				query = query.where(or(...flatConditions)) as typeof query;
+			} else if (operator === 'and') {
+      			query = query.where(and(...flatConditions)) as typeof query;
+			}
+		return deletedValues ? query.returning(deletedValues) : query.returning();
+};
+
+//participation functions
+export const findAllParticipation = async (selectedValues?: SelectedFieldsFlat) => {
+	let query = selectedValues ? 
+		db.select(selectedValues).from(participationTable) :
+		db.select().from(participationTable);
+	return query;
+}
+
+export const findParticipationBy = async (
+	operator?: 'and' | 'or',
+	selectedValues?: SelectedFieldsFlat,
+	...conditions: (SQLWrapper | SQLWrapper[])[]
+) => {
+		let query = selectedValues 
+			? db.select(selectedValues).from(participationTable)
+			: db.select().from(participationTable);
+		const flatConditions = conditions.flat() as SQLWrapper[];
+			if (operator === 'or') {
+				query = query.where(or(...flatConditions)) as typeof query;
+			} else if (operator === 'and') {
+      			query = query.where(and(...flatConditions)) as typeof query;
+			}
+		return query;
+};
+
+export const insertParticipation = async (participations: participation[], insertedValues?: SelectedFieldsFlat) => {
+	const query = db.insert(participationTable).values(participations);
+	return insertedValues ? query.returning(insertedValues) : query.returning();
+}
+
+export const updateAllParticipation = async (updatedParticipation: Partial<participation>, updatedValues?: SelectedFieldsFlat) => {
+	const query = updatedValues ? 
+		db.update(participationTable).set(updatedParticipation).returning(updatedValues) : 
+		db.update(participationTable).set(updatedParticipation).returning();
+	return query;
+};
+
+export const updateParticipationBy = async (
+	updatedParticipation: Partial<participation>, 
+	operator?: 'and' | 'or',
+	updatedValues ?: SelectedFieldsFlat,
+	...conditions: (SQLWrapper | SQLWrapper[])[]
+) => {
+  		let query = db.update(participationTable).set(updatedParticipation);
+		const flatConditions = conditions.flat() as SQLWrapper[];
+			if (operator === 'or') {
+				query = query.where(or(...flatConditions)) as typeof query;
+			} else if (operator === 'and') {
+      			query = query.where(and(...flatConditions)) as typeof query;
+			}
+		return updatedValues ? query.returning(updatedValues) : query.returning();
+};
+
+export const deleteAllParticipation = async () => db.delete(participationTable);
+
+export const deleteParticipationBy = async (
+	operator?: 'and' | 'or',
+	deletedValues ?: SelectedFieldsFlat,
+	...conditions: (SQLWrapper | SQLWrapper[])[]
+) => {
+  		let query = db.delete(participationTable);
+		const flatConditions = conditions.flat() as SQLWrapper[];
+			if (operator === 'or') {
+				query = query.where(or(...flatConditions)) as typeof query;
+			} else if (operator === 'and') {
+      			query = query.where(and(...flatConditions)) as typeof query;
+			}
+		return deletedValues ? query.returning(deletedValues) : query.returning();
+};
+
+//miscellaneous functions
+// query to calculate all/some players' winrate depending on conditions  (=> [gameName, winrate])
+export const getWinRate = async (
+	operator?: 'and' | 'or',
+	...conditions: (SQLWrapper | SQLWrapper[])[]
+) => {
+	let query = db.select({
+		playerName: playerTable.gameName,
+		winRate:  sql`(( COUNT(*) FILTER (WHERE player_result = 'WIN') + 0.5 * COUNT(*) FILTER (WHERE player_result = 'DRAW'))
+/ NULLIF(COUNT(*) FILTER (WHERE player_result <> 'PENDING'), 0)::float`
+	})
+	.from(participationTable)
+	.fullJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
+	.groupBy(participationTable.playerId);
+	const flatConditions = conditions.flat() as SQLWrapper[];
+	if (operator === 'or') {
+		query = query.where(or(...flatConditions)) as typeof query;
+	} else if (operator === 'and') {
+ 		query = query.where(and(...flatConditions)) as typeof query;
+	}
+	return query;
+}
+
+//query to calculate average number of moves to win for all/some players
+export const getAverageWinMoves = async (
+	operator?: 'and' | 'or',
+	...conditions: (SQLWrapper | SQLWrapper[])[]
+) => {
+	let query = db.select({
+	playerName: playerTable.gameName,
+	avgWinMoves: sql`AVG(winner_nb_moves)`
+	})
+	.from(participationTable)
+	.fullJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
+	.fullJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+	.groupBy(participationTable.playerId)
+	const flatConditions = conditions.flat() as SQLWrapper[];
+	if (operator === 'or') {
+		query = query.where(and(eq(participationTable.playerResult, 'WIN'), or(...flatConditions))) as typeof query;
+	} else if (operator === 'and') {
+ 		query = query.where(and(eq(participationTable.playerResult, 'WIN'), and(...flatConditions))) as typeof query;
+	}
+	return query;
+}
+
+//query to find all/some players' favourite game mode
+export const getFavouriteGameMode = async (
+	operator?: 'and' | 'or',
+	...conditions: (SQLWrapper | SQLWrapper[])[]
+) => {
+	const subquery = db.select({
+	playerId: participationTable.playerId,
+	playerName: playerTable.gameName,
+	gameMode: gameTable.gameMode,
+	nbGames: sql`COUNT(*)`,
+	ranking: sql`RANK() OVER (PARTITION BY ${participationTable.playerId} ORDER BY COUNT(*) DESC)`
+	})
+	.from(participationTable)
+	.fullJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
+	.fullJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+	.groupBy(participationTable.playerId, gameTable.gameMode)
+	.as('tmp');
+
+	let query = db.select({
+		playerId: subquery.playerId,
+		playerName: subquery.playerName,
+		gameMode: subquery.gameMode
+	})
+	.from(subquery)
+	const flatConditions = conditions.flat() as SQLWrapper[];
+	if (operator === 'or') {
+		query = query.where(and(eq(subquery.ranking, 1), or(...flatConditions))) as typeof query;
+	} else if (operator === 'and') {
+ 		query = query.where(and(eq(subquery.ranking, 1), and(...flatConditions))) as typeof query;
+	}
+	return query;
+}
