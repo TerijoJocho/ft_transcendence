@@ -1,12 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import dotenv from 'dotenv';
-import { Pool } from 'pg';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import { pool } from './db';
 
 dotenv.config();
-const pool = new Pool({ connectionString: process.env.POSTGRES_URL! });
-export const db = drizzle({ client: pool });
   
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
