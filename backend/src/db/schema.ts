@@ -79,8 +79,8 @@ export type game = typeof gameTable.$inferInsert;
 
 export const participationTable = pgTable("participation", {
   participationId: integer().primaryKey().generatedAlwaysAsIdentity(),
-  playerId: integer().notNull().references(() => playerTable.playerId),
-  gameId: integer().notNull().references(() => gameTable.gameId, {onDelete: 'cascade'}),
+  playerId: integer().notNull(),
+  gameId: integer().notNull(),
   playerResult: playerResultEnum().notNull().default("PENDING"),
   playerColor: playerColorEnum().notNull() },
   (pgTable) => [
@@ -95,8 +95,8 @@ export type participation = typeof participationTable.$inferInsert;
 
 export const friendshipTable = pgTable("friendship", {
   friendshipId: integer().primaryKey().generatedAlwaysAsIdentity(),
-  player1Id: integer(),
-  player2Id: integer(),
+  player1Id: integer().notNull(),
+  player2Id: integer().notNull(),
   friendshipStatus: friendshipStatusEnum().notNull().default("PENDING") },
   (pgTable) => [
     foreignKey({ columns: [pgTable.player1Id], foreignColumns: [playerTable.playerId] }).onDelete('restrict').onUpdate('cascade'),
