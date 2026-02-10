@@ -17,7 +17,17 @@ Avant de commencer, assurez-vous d'avoir les outils suivants installés sur votr
 
 ---
 
-### 📦 Installation de NVM (Node Version Manager)
+## 🚀 2. Installation & Premier Lancement
+
+Suivez ces étapes scrupuleusement pour avoir un environnement fonctionnel.
+
+### Étape 1 : Cloner le projet
+```bash
+git clone <URL_DU_REPO>
+cd ft_transcendence
+```
+
+### Etape 1.5 : Installation de NVM (Node Version Manager)
 
 Nous utilisons **nvm** pour garantir que toute l’équipe utilise exactement la même version de Node.js et éviter les bugs de compatibilité.
 
@@ -120,18 +130,6 @@ nvm use
 node -v
 ```
 ✅ La version affichée doit être **v20.x**.
-
----
-
-## 🚀 2. Installation & Premier Lancement
-
-Suivez ces étapes scrupuleusement pour avoir un environnement fonctionnel.
-
-### Étape 1 : Cloner le projet
-```bash
-git clone <URL_DU_REPO>
-cd ft_transcendence
-```
 
 ### Etape 2: Configration des variables d'environnement
 ```bash
