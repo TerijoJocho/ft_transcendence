@@ -6,19 +6,17 @@ import {
 	friendship,
 	friendshipTable,
 	participation,
-	participationTable
+	participationTable,
 } from './db/schema';
 import { 
 	and,
 	or,
 	eq,
 	sql,
-	SQLWrapper
+	SQLWrapper,
 } from 'drizzle-orm';
-import { db } from './main';
-import { 
-	SelectedFieldsFlat
-} from 'drizzle-orm/pg-core';
+import { db } from './db';
+import { SelectedFieldsFlat } from 'drizzle-orm/pg-core';
 
 //player functions
 export const findAllPlayers = async (selectedValues?: SelectedFieldsFlat) => {
@@ -343,7 +341,7 @@ export const getAverageWinMoves = async (
 	.from(participationTable)
 	.innerJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
 	.innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
-	.groupBy(playerTable.gameName)
+	.groupBy(playerTable.gameName, participationTable.playerId)
 	const flatConditions = conditions.flat() as SQLWrapper[];
 	if (operator === 'or') {
 		query = query.where(and(eq(participationTable.playerResult, 'WIN'), or(...flatConditions))) as typeof query;
@@ -368,7 +366,7 @@ export const getFavouriteGameMode = async (
 	.from(participationTable)
 	.innerJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
 	.innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
-	.groupBy(playerTable.gameName, gameTable.gameMode)
+	.groupBy(playerTable.gameName, gameTable.gameMode, participationTable.playerId)
 	.as('tmp');
 
 	let query = db.select({

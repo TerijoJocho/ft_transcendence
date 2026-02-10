@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql } from 'drizzle-orm';
 import {
   pgTable,
   pgEnum,
@@ -8,29 +8,29 @@ import {
   foreignKey,
   check,
   unique,
-  uniqueIndex
-} from "drizzle-orm/pg-core";
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 
 export const gameStatusEnum = pgEnum("game_status_enum", [
   "PENDING",
   "ONGOING",
   "COMPLETED",
 ]);
-export type gameStatus = "PENDING" | "ONGOING" | "COMPLETED";
+export type gameStatus = 'PENDING' | 'ONGOING' | 'COMPLETED';
 
 export const gameResultEnum = pgEnum("game_result_enum", [
   "WIN",
   "DRAW",
   "PENDING",
 ]);
-export type gameResult = "WIN" | "DRAW" | "PENDING";
+export type gameResult = 'WIN' | 'DRAW' | 'PENDING';
 
 export const gameModeEnum = pgEnum("game_mode_enum", [
   "CLASSIC",
   "BLITZ",
   "BULLET",
 ]);
-export type gameMode = "CLASSIC" | "BLITZ" | "BULLET";
+export type gameMode = 'CLASSIC' | 'BLITZ' | 'BULLET';
 
 export const playerResultEnum = pgEnum("player_result_enum", [
   "PENDING",
@@ -38,19 +38,19 @@ export const playerResultEnum = pgEnum("player_result_enum", [
   "LOSE",
   "DRAW",
 ]);
-export type playerResult = "PENDING" | "WIN" | "LOSE" | "DRAW";
+export type playerResult = 'PENDING' | 'WIN' | 'LOSE' | 'DRAW';
 
 export const playerColorEnum = pgEnum("player_color_enum", [
   "WHITE",
   "BLACK",
 ]);
-export type playerColor = "WHITE" | "BLACK";
+export type playerColor = 'WHITE' | 'BLACK';
 
 export const friendshipStatusEnum = pgEnum("friendship_status_enum", [
   "PENDING",
   "ADDED",
 ]);
-export type friendshipStatus = "PENDING" | "ADDED";
+export type friendshipStatus = 'PENDING' | 'ADDED';
 
 export const playerTable = pgTable("players", {
   playerId: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -58,7 +58,7 @@ export const playerTable = pgTable("players", {
   mailAddress: varchar().notNull().unique(),
   gameName: varchar().notNull().unique(),
   pwd: varchar().notNull(),
-  avatarUrl: varchar().notNull().default("https://test.com")
+  avatarUrl: varchar().notNull().default("https://test.com"),
   }
 );
 export type player = typeof playerTable.$inferInsert;
