@@ -24,9 +24,9 @@ import {
 } from 'drizzle-orm/pg-core';
 
 
-export const findAllPlayers = async (insertedValues?: SelectedFieldsFlat) => {
-	let query = insertedValues ? 
-		db.select(insertedValues).from(playerTable) :
+export const findAllPlayers = async (selectedValues?: SelectedFieldsFlat) => {
+	let query = selectedValues ? 
+		db.select(selectedValues).from(playerTable) :
 		db.select().from(playerTable);
 	return query;
 };
