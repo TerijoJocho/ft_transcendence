@@ -16,7 +16,10 @@ import {
 	SQLWrapper,
 } from 'drizzle-orm';
 import { db } from './db';
-import { SelectedFieldsFlat } from 'drizzle-orm/pg-core';
+import { 
+	SelectedFieldsFlat,
+	PgTable,
+ } from 'drizzle-orm/pg-core';
 
 //player functions
 export const findAllPlayers = async (selectedValues?: SelectedFieldsFlat) => {
@@ -74,6 +77,11 @@ export const updatePlayersBy = async (
 export const deleteAllPlayers = async () => {
 	return db.delete(playerTable);
 };
+
+export const resetTable = async (table: PgTable) => {
+	await db.delete(table);
+	await db.execute(sql`TRUNCATE TABLE ${table} RESTART IDENTITY CASCADE`);
+}
 
 export const deletePlayersBy = async (
 	operator?: 'and' | 'or',
