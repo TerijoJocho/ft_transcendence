@@ -1,6 +1,9 @@
 import { useAuth } from "../auth/useAuth";
 import { useNavigate } from "react-router-dom";
 
+import Header from "../components/Header.jsx";
+
+
 function Dashboard() {
     const {clearAuth} = useAuth();
     const navigate = useNavigate();
@@ -16,10 +19,12 @@ function Dashboard() {
     }
 
     return (
-        <>
-            <h1>Bienvenue sur le dashboard</h1>
+        <div className="bg-red-500">
+            <Header 
+                title="Bienvenue sur ChessWar !"
+            />
             <button onClick={handleLogout}>Se déconnecter</button>
-        </>
+        </div>
     );
 }
 
