@@ -38,16 +38,26 @@ function Login() {
   }
 
   return (
-    <div className="login-container">
-      <form onSubmit={submitForm} onChange={() => setHasTouched(true)}>
-        <h2 className="login-title">Se connecter</h2>
-        <label htmlFor="identifier">Email / Pseudo</label>
+    <div className="glass-container">
+      <h2 className="title-style">Se connecter</h2>
+      <form
+        onSubmit={submitForm}
+        onChange={() => setHasTouched(true)}
+        className="form-container"
+      >
+        <label
+          htmlFor="identifier"
+          className="label-style"
+        >
+          Email / Pseudo
+        </label>
         <input
           name="identifier"
           type="text"
           placeholder="chess-war@gmail.com / ChessUser"
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
+          className="input-style "
         />
         {hasTouched && identifier.length === 0 && (
           <span style={{ color: "red" }}>Champ requis</span>
@@ -60,6 +70,7 @@ function Login() {
           placeholder="i-love-chocolat-123"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="input-style"
         />
         {hasTouched && password.length === 0 && (
           <span style={{ color: "red" }}>Champ requis</span>
@@ -70,14 +81,14 @@ function Login() {
         <button
           type="submit"
           disabled={!isFilledInput || loading}
-          className="px-6 py-3 bg-blue-600 rounded-lg font-semibold hover:bg-blue-500 transition duration-300 shadow-lg hover:shadow-blue-500/50"
+          className="button"
         >
           {loading ? "Connexion..." : "Se connecter"}
         </button>
       </form>
 
-      <p>
-        Pas encore de compte ? <Link to="/signup">Créer un compte</Link>
+      <p className="text-xs font-medium self-center">
+        Pas encore de compte ? <Link to="/signup" className="text-amber-600 hover:underline">Créer un compte</Link>
       </p>
     </div>
   );

@@ -1,3 +1,33 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.glass-container {
+    @apply flex flex-col
+        w-full max-w-md
+        backdrop-blur-sm border border-white/10
+        rounded-xl
+        shadow-2xl
+        p-8
+       text-white
+}
+
+.form-container {
+    @apply flex flex-col gap-4 m-2 text-base
+}
+
+.label-style {
+    @apply tracking-wide text-sm font-medium
+}
+
+.title-style {
+    @apply text-2xl tracking-widest mt-2 mb-8 font-medium
+}
+
+.input-style {
+    @apply rounded-sm p-2
+}
+
+.button {
+    @apply rounded-lg p-3 bg-sky-600 mt-4 mb-4 hover:bg-sky-500
+}
