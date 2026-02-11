@@ -23,6 +23,11 @@ services:
   redis:
     image: redis:7
     container_name: ft_transcendence_redis
+    restart: always
+    environment:
+      REDIS_USER: ${REDIS_USER}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_CACHE: ${REDIS_CACHE}
     ports:
       - "6380:6379"
 
@@ -36,6 +41,7 @@ services:
     container_name: ft_transcendence_backend
     environment:
       POSTGRES_URL: ${POSTGRES_URL}
+      REDIS_URL: ${REDIS_URL}
     ports:
       - "3000:3000"
     volumes:
