@@ -264,6 +264,9 @@ Exemple:
 * npx drizzle-kit generate
 * npx drizzle-kit migrate
 
+## À ne pas oublier
+* copier le example.env dans votre .env local pour que vos tests fonctionnent
+
 ---
 
 # 🏗 Résumé de l'Architecture & du Workflow (Tech Lead Report)
