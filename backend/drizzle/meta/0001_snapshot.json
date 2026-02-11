@@ -1,0 +1,433 @@
+{
+  "id": "820d0175-d26f-4477-afd2-d877c8a4d762",
+  "prevId": "f004ce49-cefe-4a64-98fc-6f0c99487500",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.friendship": {
+      "name": "friendship",
+      "schema": "",
+      "columns": {
+        "friendshipId": {
+          "name": "friendshipId",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "friendship_friendshipId_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "player1Id": {
+          "name": "player1Id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "player2Id": {
+          "name": "player2Id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "friendshipStatus": {
+          "name": "friendshipStatus",
+          "type": "friendship_status_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "friendship_player1Id_players_playerId_fk": {
+          "name": "friendship_player1Id_players_playerId_fk",
+          "tableFrom": "friendship",
+          "tableTo": "players",
+          "columnsFrom": [
+            "player1Id"
+          ],
+          "columnsTo": [
+            "playerId"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        },
+        "friendship_player2Id_players_playerId_fk": {
+          "name": "friendship_player2Id_players_playerId_fk",
+          "tableFrom": "friendship",
+          "tableTo": "players",
+          "columnsFrom": [
+            "player2Id"
+          ],
+          "columnsTo": [
+            "playerId"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "friendship_player1Id_player2Id_unique": {
+          "name": "friendship_player1Id_player2Id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "player1Id",
+            "player2Id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "no_self_friendship": {
+          "name": "no_self_friendship",
+          "value": "\"friendship\".\"player1Id\" <> \"friendship\".\"player2Id\""
+        },
+        "ordered_player_ids": {
+          "name": "ordered_player_ids",
+          "value": "\"friendship\".\"player1Id\" < \"friendship\".\"player2Id\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.games": {
+      "name": "games",
+      "schema": "",
+      "columns": {
+        "gameId": {
+          "name": "gameId",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "games_gameId_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "totalNbMoves": {
+          "name": "totalNbMoves",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "winnerNbMoves": {
+          "name": "winnerNbMoves",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gameDate": {
+          "name": "gameDate",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "gameStatus": {
+          "name": "gameStatus",
+          "type": "game_status_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "gameResult": {
+          "name": "gameResult",
+          "type": "game_result_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "gameMode": {
+          "name": "gameMode",
+          "type": "game_mode_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "checkmate": {
+          "name": "checkmate",
+          "value": "\"games\".\"gameStatus\" <> 'COMPLETED' OR (\"games\".\"totalNbMoves\" IS NOT NULL AND \"games\".\"winnerNbMoves\" IS NOT NULL)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.participation": {
+      "name": "participation",
+      "schema": "",
+      "columns": {
+        "participationId": {
+          "name": "participationId",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "participation_participationId_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "playerId": {
+          "name": "playerId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gameId": {
+          "name": "gameId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "playerResult": {
+          "name": "playerResult",
+          "type": "player_result_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "playerColor": {
+          "name": "playerColor",
+          "type": "player_color_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "one_current_game_only": {
+          "name": "one_current_game_only",
+          "columns": [
+            {
+              "expression": "playerId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"participation\".\"playerResult\" = 'PENDING'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "participation_playerId_players_playerId_fk": {
+          "name": "participation_playerId_players_playerId_fk",
+          "tableFrom": "participation",
+          "tableTo": "players",
+          "columnsFrom": [
+            "playerId"
+          ],
+          "columnsTo": [
+            "playerId"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        },
+        "participation_gameId_games_gameId_fk": {
+          "name": "participation_gameId_games_gameId_fk",
+          "tableFrom": "participation",
+          "tableTo": "games",
+          "columnsFrom": [
+            "gameId"
+          ],
+          "columnsTo": [
+            "gameId"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "participation_playerId_gameId_unique": {
+          "name": "participation_playerId_gameId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "playerId",
+            "gameId"
+          ]
+        },
+        "participation_gameId_playerColor_unique": {
+          "name": "participation_gameId_playerColor_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "gameId",
+            "playerColor"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.players": {
+      "name": "players",
+      "schema": "",
+      "columns": {
+        "playerId": {
+          "name": "playerId",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "players_playerId_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "mailAddress": {
+          "name": "mailAddress",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gameName": {
+          "name": "gameName",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pwd": {
+          "name": "pwd",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "avatarUrl": {
+          "name": "avatarUrl",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'https://test.com'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "players_mailAddress_unique": {
+          "name": "players_mailAddress_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "mailAddress"
+          ]
+        },
+        "players_gameName_unique": {
+          "name": "players_gameName_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "gameName"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.friendship_status_enum": {
+      "name": "friendship_status_enum",
+      "schema": "public",
+      "values": [
+        "PENDING",
+        "ADDED"
+      ]
+    },
+    "public.game_mode_enum": {
+      "name": "game_mode_enum",
+      "schema": "public",
+      "values": [
+        "CLASSIC",
+        "BLITZ",
+        "BULLET"
+      ]
+    },
+    "public.game_result_enum": {
+      "name": "game_result_enum",
+      "schema": "public",
+      "values": [
+        "WIN",
+        "DRAW",
+        "PENDING"
+      ]
+    },
+    "public.game_status_enum": {
+      "name": "game_status_enum",
+      "schema": "public",
+      "values": [
+        "PENDING",
+        "ONGOING",
+        "COMPLETED"
+      ]
+    },
+    "public.player_color_enum": {
+      "name": "player_color_enum",
+      "schema": "public",
+      "values": [
+        "WHITE",
+        "BLACK"
+      ]
+    },
+    "public.player_result_enum": {
+      "name": "player_result_enum",
+      "schema": "public",
+      "values": [
+        "PENDING",
+        "WIN",
+        "LOSE",
+        "DRAW"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
