@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import { register } from "../api/api.ts";
 import { useAuth } from "../auth/useAuth";
 
+
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -54,23 +55,43 @@ export default function SignIn() {
   }
 
   return (
-    <div className="signin-container">
-      <h2 className="signin-title">Inscrivez-vous maintenant !</h2>
-      <form onSubmit={submitForm} onChange={() => setTouched(true)}>
-        <label htmlFor="pseudo">Votre pseudo</label>
+    <div
+      className="
+        flex flex-col
+        w-full max-w-md
+        backdrop-blur-sm border border-white/10
+        rounded-xl
+        shadow-2xl
+        p-8
+       text-white
+      "
+    >
+      <h2 className="text-2xl tracking-widest mt-2 mb-8 font-medium">Inscrivez-vous maintenant !</h2>
+      <form
+        onSubmit={submitForm}
+        onChange={() => setTouched(true)}
+        className="flex flex-col gap-4 m-2 text-base"
+      >
+        <label
+          htmlFor="pseudo"
+          className="tracking-wide text-sm font-medium"
+        >
+            Votre pseudo
+        </label>
         <input
           id="pseudo"
           type="text"
           name="pseudo"
-          placeholder="Terijo"
+          placeholder="King"
           value={pseudo}
           onChange={(e) => setPseudo(e.target.value)}
+          className="rounded-sm p-2 border"
         />
         {hasTouched && pseudo.length === 0 && (
           <span style={{ color: "red" }}>Pseudo requis</span>
         )}
 
-        <label htmlFor="email">Votre email</label>
+        <label htmlFor="email" className="tracking-wide text-sm font-medium">Votre email</label>
         <input
           id="email"
           type="email"
@@ -78,19 +99,21 @@ export default function SignIn() {
           placeholder="chess-war@gmail.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="rounded-sm p-2"
         />
         {hasTouched && !isValidEmail(email) && (
           <span style={{ color: "red" }}>Invalid email.</span>
         )}
 
-        <label htmlFor="password">Votre Mot de passe</label>
+        <label htmlFor="password" className="tracking-wide text-sm font-medium">Votre Mot de passe</label>
         <input
           id="password"
           type="password"
           name="password"
-          placeholder="i-love-chocolat-123"
+          placeholder="********************"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="rounded-sm p-2 text-"
         />
         {hasTouched && password.length === 0 && (
           <span style={{ color: "red" }}>Mot de passe requis</span>
@@ -98,13 +121,17 @@ export default function SignIn() {
 
         {errorMessage && <span style={{ color: "red" }}>{errorMessage}</span>}
 
-        <button type="submit" disabled={!isValidForm || loading}>
+        <button
+          type="submit"
+          disabled={!isValidForm || loading}
+          className="rounded-lg p-3 bg-sky-600 mt-4 mb-4 hover:bg-sky-500"
+        >
           {loading ? "Inscription..." : "S'inscrire"}
         </button>
       </form>
 
-      <p>
-        Vous avez déjà un compte ? <Link to="/login">Connectez-vous</Link>
+      <p className="text-xs font-medium self-center">
+        Vous avez déjà un compte ? <Link to="/login" className="text-amber-600 hover:underline">Connectez-vous</Link>
       </p>
     </div>
   );

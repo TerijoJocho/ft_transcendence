@@ -6,3 +6,6 @@ build
 coverage
 .vscode
 .idea
+
+#Postgres local data
+data/
