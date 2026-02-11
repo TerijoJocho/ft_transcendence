@@ -12,7 +12,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_URL: ${POSTGRES_URL}
     ports:
       - "5433:5432"
     volumes:
@@ -64,5 +63,5 @@ services:
     # Vite nécessite d'exposer l'hôte pour Docker
     command: npm run dev -- --host
 
-volumes:
-  postgres_data:
+# volumes:
+#   ./data:/var/lib/postgresql/data
