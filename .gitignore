@@ -6,3 +6,4 @@ build
 coverage
 .vscode
 .idea
+/data
