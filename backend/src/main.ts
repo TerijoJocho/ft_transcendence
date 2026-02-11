@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import dotenv from 'dotenv';
-import { pool } from './db';
 
 dotenv.config();
   
