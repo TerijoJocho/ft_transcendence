@@ -6,7 +6,7 @@ import { useAuth } from "../auth/useAuth";
 
 
 export default function SignIn() {
-  const [email, setEmail] = useState("");
+  const [mail, setMail] = useState("");
   const [password, setPassword] = useState("");
   const [pseudo, setPseudo] = useState("");
   const [hasTouched, setTouched] = useState(false);
@@ -17,13 +17,13 @@ export default function SignIn() {
   const { login } = useAuth();
 
   //check si la form est valide
-  const isValidEmail = (email: string) => {
+  const isValidMail = (mail: string) => {
     const regex = new RegExp("^[a-z0-9._-]+@[a-z0-9._-]+.[a-z0-9._-]+$");
-    if (!regex.test(email)) return false;
+    if (!regex.test(mail)) return false;
     return true;
   };
-  const isFilledInput = email.length > 0 && password.length > 0;
-  const isValidForm = isFilledInput && isValidEmail(email);
+  const isFilledInput = mail.length > 0 && password.length > 0;
+  const isValidForm = isFilledInput && isValidMail(mail);
 
   // requete post pour creer un user
   function submitForm(e: FormEvent<HTMLFormElement>) {
@@ -33,7 +33,7 @@ export default function SignIn() {
 
     register({
       pseudo,
-      email,
+      mail,
       password,
     })
       .then((data) => {
@@ -56,25 +56,17 @@ export default function SignIn() {
 
   return (
     <div
-      className="
-        flex flex-col
-        w-full max-w-md
-        backdrop-blur-sm border border-white/10
-        rounded-xl
-        shadow-2xl
-        p-8
-       text-white
-      "
+      className="glass-container"
     >
-      <h2 className="text-2xl tracking-widest mt-2 mb-8 font-medium">Inscrivez-vous maintenant !</h2>
+      <h2 className="title-style">Inscrivez-vous maintenant !</h2>
       <form
         onSubmit={submitForm}
         onChange={() => setTouched(true)}
-        className="flex flex-col gap-4 m-2 text-base"
+        className="form-container"
       >
         <label
           htmlFor="pseudo"
-          className="tracking-wide text-sm font-medium"
+          className="label-style"
         >
             Votre pseudo
         </label>
@@ -85,7 +77,7 @@ export default function SignIn() {
           placeholder="King"
           value={pseudo}
           onChange={(e) => setPseudo(e.target.value)}
-          className="rounded-sm p-2 border"
+          className="input-style "
         />
         {hasTouched && pseudo.length === 0 && (
           <span style={{ color: "red" }}>Pseudo requis</span>
@@ -97,11 +89,11 @@ export default function SignIn() {
           type="email"
           name="email"
           placeholder="chess-war@gmail.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="rounded-sm p-2"
+          value={mail}
+          onChange={(e) => setMail(e.target.value)}
+          className="input-style"
         />
-        {hasTouched && !isValidEmail(email) && (
+        {hasTouched && !isValidMail(mail) && (
           <span style={{ color: "red" }}>Invalid email.</span>
         )}
 
@@ -113,7 +105,7 @@ export default function SignIn() {
           placeholder="********************"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="rounded-sm p-2 text-"
+          className="input-style"
         />
         {hasTouched && password.length === 0 && (
           <span style={{ color: "red" }}>Mot de passe requis</span>
@@ -124,7 +116,7 @@ export default function SignIn() {
         <button
           type="submit"
           disabled={!isValidForm || loading}
-          className="rounded-lg p-3 bg-sky-600 mt-4 mb-4 hover:bg-sky-500"
+          className="button"
         >
           {loading ? "Inscription..." : "S'inscrire"}
         </button>

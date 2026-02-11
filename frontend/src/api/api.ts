@@ -18,7 +18,10 @@ async function request(endpoint: string, options: RequestInit = {}) {
 }
 
 //api pour login
-export function login(data: { identifier: string; password: string }) {
+export function login(data: { 
+  identifier: string;
+  password: string
+}) {
   return request("/auth/login", {
     method: "POST",
     body: JSON.stringify(data),
@@ -28,7 +31,7 @@ export function login(data: { identifier: string; password: string }) {
 //api pour s'inscrire
 export function register(data: {
   pseudo: string;
-  email: string;
+  mail: string;
   password: string;
 }) {
   return request("/auth/register", {
