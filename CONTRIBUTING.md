@@ -260,6 +260,9 @@ Exemple:
         * @returns {number} Score final de l'utilisateur
         */
         ```
+## Initialisation / mise à jour des tables dans la base de données
+* npx drizzle-kit generate
+* npx drizzle-kit migrate
 
 ---
 
