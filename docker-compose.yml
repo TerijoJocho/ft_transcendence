@@ -63,5 +63,5 @@ services:
     # Vite nécessite d'exposer l'hôte pour Docker
     command: npm run dev -- --host
 
-volumes:
-  ./data:/var/lib/postgresql/data
+# volumes:
+#   ./data:/var/lib/postgresql/data
