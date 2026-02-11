@@ -260,6 +260,12 @@ Exemple:
         * @returns {number} Score final de l'utilisateur
         */
         ```
+## Initialisation / mise à jour des tables dans la base de données
+* npx drizzle-kit generate
+* npx drizzle-kit migrate
+
+## À ne pas oublier
+* copier le example.env dans votre .env local pour que vos tests fonctionnent
 
 ---
 
