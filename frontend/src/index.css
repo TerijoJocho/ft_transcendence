@@ -25,7 +25,7 @@
 }
 
 .input-style {
-    @apply rounded-sm p-2
+    @apply rounded-sm p-2 text-black
 }
 
 .button {
