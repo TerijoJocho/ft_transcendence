@@ -13,6 +13,14 @@ async function bootstrap() {
     forbidNonWhitelisted: true, // Renvoie une erreur si un champ inconnu est envoyé
   }));
 
+  app.enableCors({
+    origin: ['http://localhost:5173',
+  'http://127.0.0.1:5173'], // frontend
+    credentials: true,               // IMPORTANT pour cookies
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type'],
+  });
+
   await app.listen(process.env.PORT ?? 3000);
 }
 // Au lieu de juste bootstrap();
