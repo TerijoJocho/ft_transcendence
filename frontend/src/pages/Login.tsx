@@ -14,7 +14,7 @@ function Login() {
 
   const isFilledInput = identifier.length > 0 && password.length > 0;
 
-  //envoie les données au backend
+  //requete POST pour se connecter
   function submitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
@@ -25,16 +25,12 @@ function Login() {
     })
       .then((data) => {
         console.log("Utilisateur connecté: ", data);
-        //ajouter:
-        //navigate("/dashboard");
+        navigate("/dashboard");
       })
       .catch((err: Error) => {
         setErrorMessage(err.message);
-      })
-      .finally(() => {
         setLoading(false);
-        navigate("/dashboard");
-      });
+      })
   }
 
   return (
@@ -60,23 +56,28 @@ function Login() {
           className="input-style "
         />
         {hasTouched && identifier.length === 0 && (
-          <span style={{ color: "red" }}>Champ requis</span>
+          <span className="error-style">Champ requis</span>
         )}
 
         <label htmlFor="password">Mot de passe</label>
         <input
           name="password"
           type="password"
-          placeholder="i-love-chocolat-123"
+          placeholder="*****************"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="input-style"
         />
-        {hasTouched && password.length === 0 && (
-          <span style={{ color: "red" }}>Champ requis</span>
-        )}
+        <div className="flex items-center">
 
-        {errorMessage && <span style={{ color: "red" }}>{errorMessage}</span>}
+          {hasTouched && password.length === 0 && (
+            <span className="error-style">Champ requis</span>
+          )}
+          
+          <button className="ml-auto text-xs hover:underline text-sky-400 cursor-pointer">Mot de passe oublié</button>
+        </div>
+
+        {errorMessage && <span className="error-style">{errorMessage}</span>}
 
         <button
           type="submit"
