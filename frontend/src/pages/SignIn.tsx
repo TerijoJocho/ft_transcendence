@@ -2,8 +2,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { register } from "../api/api.ts";
-import { useAuth } from "../auth/useAuth";
-
 
 export default function SignIn() {
   const [mail, setMail] = useState("");
@@ -14,7 +12,6 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   //check si la form est valide
   const isValidMail = (mail: string) => {

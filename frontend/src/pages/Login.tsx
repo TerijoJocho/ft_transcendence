@@ -33,11 +33,6 @@ function Login() {
       })
   }
 
-  //requete pour change de mdp
-  function handleForgotPassword() {
-
-  }
-
   return (
     <div className="glass-container">
       <h2 className="title-style">Se connecter</h2>
