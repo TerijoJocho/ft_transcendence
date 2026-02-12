@@ -33,6 +33,11 @@ function Login() {
       })
   }
 
+  //requete pour change de mdp
+  function handleForgotPassword() {
+
+  }
+
   return (
     <div className="glass-container">
       <h2 className="title-style">Se connecter</h2>
@@ -74,7 +79,12 @@ function Login() {
             <span className="error-style">Champ requis</span>
           )}
           
-          <button className="ml-auto text-xs hover:underline text-sky-400 cursor-pointer">Mot de passe oublié</button>
+          <Link
+            to="/forgot-password"
+            className="ml-auto text-xs hover:underline text-sky-400 cursor-pointer"
+          >
+            Mot de passe oublié
+          </Link>
         </div>
 
         {errorMessage && <span className="error-style">{errorMessage}</span>}
