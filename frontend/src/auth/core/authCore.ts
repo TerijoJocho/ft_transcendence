@@ -11,4 +11,5 @@ export type AuthContextType = {
   clearAuth: () => void;
 };
 
+//Contexte React global qui va stocker l'utilisateur courant
 export const AuthContext = createContext<AuthContextType | null>(null);
