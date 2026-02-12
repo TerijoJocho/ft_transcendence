@@ -1,4 +1,4 @@
-import {type User } from "../auth/core/authCore.ts"
+import type { User } from "../auth/core/authCore.ts";
 const API_URL = "http://localhost:3000";
 
 //debut des api
