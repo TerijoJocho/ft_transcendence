@@ -30,6 +30,8 @@
 
 .button {
     @apply rounded-lg p-3 bg-sky-600 mt-4 mb-4 hover:bg-sky-500 cursor-pointer
+        disabled:cursor-not-allowed
+        disabled:opacity-50
 }
 
 .error-style {

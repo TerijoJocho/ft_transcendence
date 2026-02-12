@@ -1,5 +1,6 @@
 import { createContext } from "react";
 
+//peut-etre rajouter le token dans le type à terme ??
 export type User = {
   id: number;
   pseudo: string;
