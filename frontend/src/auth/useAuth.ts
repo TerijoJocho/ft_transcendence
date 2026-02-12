@@ -6,7 +6,7 @@ export function useAuth() {
   //lit le contexte
   const ctx = useContext(AuthContext);
 
-  //si on appel useAuth en dehors de AuthProvider on renvoie une erreur
+  //si on appelle useAuth en dehors de AuthProvider on renvoie une erreur
   if (!ctx)
     throw new Error("useAuth must be used inside AuthProvider");
   
