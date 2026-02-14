@@ -25,9 +25,8 @@ services:
     container_name: ft_transcendence_redis
     restart: always
     environment:
-      REDIS_USER: ${REDIS_USER}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_CACHE: ${REDIS_CACHE}
+    command: redis-server --requirepass mypasswordcache #make config file to not hardcode password into docker compose file
     ports:
       - "6380:6379"
 
