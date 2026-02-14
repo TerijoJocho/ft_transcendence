@@ -1,9 +1,11 @@
 import { Injectable, Post } from '@nestjs/common';
-import { player, playerTable } from 'src/db/schema';
-import { insertPlayers } from '../gloss_func';
+import { player, playerTable } from 'src/shared/db/schema';
+import { UtilsService } from 'src/shared/services/utils.func.service';
 
 @Injectable()
 export class SigninService {
+  constructor(private readonly utils: UtilsService) {}
+
   @Post()
   registerPlayers(mailAddress: string, gameName: string, pwd: string) {
     const currentPlayers: player = {
@@ -11,7 +13,7 @@ export class SigninService {
       mailAddress: mailAddress,
       pwd: pwd,
     };
-    return insertPlayers([currentPlayers], {
+    return this.utils.insertPlayers([currentPlayers], {
       id: playerTable.playerId,
       gameName: playerTable.gameName,
     });
