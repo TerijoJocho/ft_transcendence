@@ -1,6 +1,6 @@
 import { Injectable, Post } from '@nestjs/common';
 import { player, playerTable } from 'src/db/schema';
-import { insertPlayers } from '../gloss_func';
+import { insertPlayers } from '../../gloss_func';
 
 @Injectable()
 export class SigninService {
