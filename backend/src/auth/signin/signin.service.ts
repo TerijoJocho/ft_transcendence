@@ -1,6 +1,6 @@
 import { Injectable, Post } from '@nestjs/common';
-import { player, playerTable } from 'src/shared/db/schema';
-import { UtilsService } from 'src/shared/services/utils.func.service';
+import { player, playerTable } from '../../shared/db/schema';
+import { UtilsService } from '../../shared/services/utils.func.service';
 
 @Injectable()
 export class SigninService {
