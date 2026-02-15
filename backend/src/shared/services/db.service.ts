@@ -1,6 +1,5 @@
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { createClient } from 'redis';
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 
 @Injectable()
@@ -12,7 +11,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     this.pool = new Pool({ connectionString: process.env.POSTGRES_URL! });
     this.db = drizzle({ client: this.pool });
   }
-
   async onModuleDestroy() {
     await this.pool.end();
   }
