@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body, #root {
+  height: 100%;
+}
+
 .glass-container {
     @apply flex flex-col
         w-full max-w-md
@@ -33,5 +37,15 @@
 }
 
 .global-hover {
-    @apply hover:text-violet-400
+    @apply p-2 border border-transparent rounded-md
+           hover:text-violet-400
+           hover:border-violet-400
+           transition-all duration-200;
+}
+
+.warning-hover {
+    @apply p-2 border border-transparent rounded-md
+           hover:text-red-500
+           hover:border-red-500
+           transition-all duration-200;
 }

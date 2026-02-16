@@ -1,13 +1,13 @@
 import Header from "../components/Header.js";
 
-function Dashboard() {
+function Game() {
     return (
         <div className="text-white border min-w-max">
             <Header 
-                title="♔ Bienvenue sur ChessWar ! ♔"
+                title="Démarrez une partie !"
             />
         </div>
     );
 }
 
-export default Dashboard
+export default Game
