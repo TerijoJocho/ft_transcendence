@@ -1,4 +1,4 @@
-import Header from "../components/Header.js";
+import Header from "../components/Header.tsx";
 
 function Tournament() {
     return (

@@ -1,4 +1,4 @@
-import Header from "../components/Header.js";
+import Header from "../components/Header.tsx";
 
 function Friends() {
     return (
@@ -10,4 +10,4 @@ function Friends() {
     );
 }
 
-export default Friends
+export default Friends;
