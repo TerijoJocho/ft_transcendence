@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000";
+const API_URL = "https://localhost";
 
 //debut des api
 async function request(endpoint: string, options: RequestInit = {}) {
