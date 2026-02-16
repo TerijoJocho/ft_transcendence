@@ -39,7 +39,7 @@ function Login() {
 
   return (
     <div className="glass-container">
-      <h2 className="title-style">Se connecter</h2>
+      <h2 className="title-style mt-2 mb-8">Se connecter</h2>
       <form
         onSubmit={submitForm}
         onChange={() => setHasTouched(true)}
