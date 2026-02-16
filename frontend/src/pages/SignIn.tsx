@@ -2,8 +2,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { register } from "../api/api.ts";
-import { useAuth } from "../auth/useAuth";
-
 
 export default function SignIn() {
   const [mail, setMail] = useState("");
@@ -14,7 +12,6 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   //check si la form est valide
   const isValidMail = (mail: string) => {
@@ -38,15 +35,7 @@ export default function SignIn() {
     })
       .then((data) => {
         console.log("Utilisateur créé: ", data);
-        // Connecte automatiquement si le backend retourne l'utilisateur
-        // belek supp cette logique 
-        if (data && data.id && data.pseudo) {
-          login({ id: data.id, pseudo: data.pseudo });
-          navigate("/dashboard");
-        } else {
-          // Sinon redirige vers login pour se connecter manuellement
-          navigate("/login");
-        }
+        navigate("/login");
       })
       .catch((err) => {
         setErrorMessage(err.message);
@@ -80,7 +69,7 @@ export default function SignIn() {
           className="input-style "
         />
         {hasTouched && pseudo.length === 0 && (
-          <span style={{ color: "red" }}>Pseudo requis</span>
+          <span className="error-style">Pseudo requis</span>
         )}
 
         <label htmlFor="email" className="tracking-wide text-sm font-medium">Votre email</label>
@@ -94,7 +83,7 @@ export default function SignIn() {
           className="input-style"
         />
         {hasTouched && !isValidMail(mail) && (
-          <span style={{ color: "red" }}>Invalid email.</span>
+          <span className="error-style">Email invalide</span>
         )}
 
         <label htmlFor="password" className="tracking-wide text-sm font-medium">Votre Mot de passe</label>
@@ -108,10 +97,10 @@ export default function SignIn() {
           className="input-style"
         />
         {hasTouched && password.length === 0 && (
-          <span style={{ color: "red" }}>Mot de passe requis</span>
+          <span className="error-style">Mot de passe requis</span>
         )}
 
-        {errorMessage && <span style={{ color: "red" }}>{errorMessage}</span>}
+        {errorMessage && <span className="error-style">{errorMessage}</span>}
 
         <button
           type="submit"

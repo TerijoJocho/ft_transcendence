@@ -19,11 +19,11 @@ import Profil from "./pages/Profil.tsx";
 import Friends from "./pages/Friends.tsx";
 
 function App() {
+  // on récupère les fonctions login/clearAuth du contexte
   const { login, clearAuth } = useAuth();
-  // Récupère les fonctions login/clearAuth du contexte
 
   useEffect(() => {
-    // Au démarrage de l'app, vérifie qui est connecté
+    // au démarrage de l'app, vérifie qui est connecté en appelant me()
     me()
       .then((user) => login(user)) //si connecté, on lance login() pour enregistrer le user
       .catch(() => clearAuth()); // si erreur -> pas connecté, on lance clearAuth() pour avoir user === null
