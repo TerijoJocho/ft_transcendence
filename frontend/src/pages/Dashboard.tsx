@@ -1,4 +1,4 @@
-import Header from "../components/Header.js";
+import Header from "../components/Header.tsx";
 
 function Dashboard() {
     return (
@@ -10,4 +10,4 @@ function Dashboard() {
     );
 }
 
-export default Dashboard
+export default Dashboard;

@@ -7,16 +7,16 @@ import { useAuth } from "./auth/useAuth";
 import PrivateRoute from "./auth/PrivateRoute.tsx";
 import PublicRoute from "./auth/PublicRoute.tsx";
 import PrivateLayout from "./PrivateLayout.tsx";
-import PublicLayout from "./PublicLayout.tsx"
+import PublicLayout from "./PublicLayout.tsx";
 
 import Login from "./pages/Login.tsx";
 import SignIn from "./pages/SignIn.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Game from "./pages/Game.tsx";
-import Tournament from "./pages/Tounament.tsx";
+import Tournament from "./pages/Tournament.tsx";
 import Chat from "./pages/Chat.tsx";
-import Profil from "./pages/Profil.tsx"
-import Friends from "./pages/Friends.tsx"
+import Profil from "./pages/Profil.tsx";
+import Friends from "./pages/Friends.tsx";
 
 function App() {
   const { login, clearAuth } = useAuth();

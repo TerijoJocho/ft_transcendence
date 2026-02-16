@@ -1,4 +1,4 @@
-import Header from "../components/Header.js";
+import Header from "../components/Header.tsx";
 
 function Profil() {
     return (
@@ -10,4 +10,4 @@ function Profil() {
     );
 }
 
-export default Profil
+export default Profil;

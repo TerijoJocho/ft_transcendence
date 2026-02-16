@@ -1,19 +1,19 @@
-import { faHouse, faGamepad, faChess } from '@fortawesome/free-solid-svg-icons'
-import { faMessage } from '@fortawesome/free-regular-svg-icons'
+import { faHouse, faGamepad, faChess } from '@fortawesome/free-solid-svg-icons';
+import { faMessage } from '@fortawesome/free-regular-svg-icons';
 
 const sideBarData = [
     {
-        icon:faHouse,
+        icon: faHouse,
         text: "Home",
         path: "/dashboard",
     },
     {
-        icon:faGamepad,
+        icon: faGamepad,
         text: "Jouer",
         path: "/game",
     },
     {
-        icon:faChess,
+        icon: faChess,
         text: "Tournoi",
         path: "/tournament",
     },

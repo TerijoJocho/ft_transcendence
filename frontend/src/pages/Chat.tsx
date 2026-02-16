@@ -1,4 +1,4 @@
-import Header from "../components/Header.js";
+import Header from "../components/Header.tsx";
 
 function Chat() {
     return (
@@ -10,4 +10,4 @@ function Chat() {
     );
 }
 
-export default Chat
+export default Chat;

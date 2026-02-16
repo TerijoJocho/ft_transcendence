@@ -1,4 +1,4 @@
-import Header from "../components/Header.js";
+import Header from "../components/Header.tsx";
 
 function Game() {
     return (
@@ -10,4 +10,4 @@ function Game() {
     );
 }
 
-export default Game
+export default Game;
