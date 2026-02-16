@@ -1,6 +1,7 @@
 import { useAuth } from "../auth/useAuth";
 import { useNavigate } from "react-router-dom";
 
+import SideBar from "../components/SideBar.js";
 import Header from "../components/Header.jsx";
 
 
@@ -19,11 +20,20 @@ function Dashboard() {
     }
 
     return (
-        <div className="bg-red-500">
-            <Header 
-                title="Bienvenue sur ChessWar !"
-            />
-            <button onClick={handleLogout}>Se déconnecter</button>
+        <div
+            className="
+                border
+                text-white
+                grid grid-flow-col grid-rows-2 gap-4
+            "
+        >
+            {/* <Header 
+                title="♔ Bienvenue sur ChessWar ! ♔"
+            /> */}
+            {/* à gerer dans le menu deroulant plutot */}
+            {/* <button onClick={handleLogout}>Se déconnecter</button> */}
+            <SideBar />
+
         </div>
     );
 }

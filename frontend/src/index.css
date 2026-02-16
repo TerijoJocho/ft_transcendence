@@ -21,7 +21,7 @@
 }
 
 .title-style {
-    @apply text-2xl tracking-widest mt-2 mb-8 font-medium
+    @apply text-2xl tracking-widest font-medium
 }
 
 .input-style {
@@ -30,4 +30,8 @@
 
 .button {
     @apply rounded-lg p-3 bg-sky-600 mt-4 mb-4 hover:bg-sky-500
+}
+
+.global-hover {
+    @apply hover:text-violet-400
 }
