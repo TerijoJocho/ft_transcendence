@@ -57,10 +57,9 @@ describe('RedisService', () => {
 
     it('should handle connection errors', async () => {
       const error = new Error('Connection failed');
-      mockRedisClient.connect.mockImplementationOnce(async () => {
+      mockRedisClient.connect.mockImplementationOnce(() => {
         throw error;
       });
-
       await expect(service.onModuleInit()).rejects.toThrow('Connection failed');
     });
   });
@@ -74,7 +73,7 @@ describe('RedisService', () => {
 
     it('should handle quit errors', async () => {
       const error = new Error('Quit failed');
-      mockRedisClient.quit.mockImplementationOnce(async () => {
+      mockRedisClient.quit.mockImplementationOnce(() => {
         throw error;
       });
 
