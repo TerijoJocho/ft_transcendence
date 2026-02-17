@@ -10,20 +10,28 @@ jest.mock('redis', () => ({
 
 describe('RedisService', () => {
   let service: RedisService;
-  let mockRedisClient: any;
+  let mockRedisClient: {
+    connect: jest.Mock;
+    quit: jest.Mock;
+    disconnect: jest.Mock;
+    isOpen: boolean;
+    isReady: boolean;
+  };
 
   beforeEach(async () => {
     // Create mock Redis client with all necessary methods
     mockRedisClient = {
-      connect: jest.fn().mockResolvedValue(undefined),
-      quit: jest.fn().mockResolvedValue(undefined),
-      disconnect: jest.fn().mockResolvedValue(undefined),
+      connect: jest.fn(async () => undefined),
+      quit: jest.fn(async () => undefined),
+      disconnect: jest.fn(async () => undefined),
       isOpen: true,
       isReady: true,
     };
 
     // Mock createClient to return our mock client
-    (createClient as jest.Mock).mockReturnValue(mockRedisClient);
+    (createClient as jest.MockedFunction<typeof createClient>).mockReturnValue(
+      mockRedisClient as unknown as ReturnType<typeof createClient>,
+    );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [RedisService],
@@ -49,7 +57,9 @@ describe('RedisService', () => {
 
     it('should handle connection errors', async () => {
       const error = new Error('Connection failed');
-      mockRedisClient.connect.mockRejectedValueOnce(error);
+      mockRedisClient.connect.mockImplementationOnce(async () => {
+        throw error;
+      });
 
       await expect(service.onModuleInit()).rejects.toThrow('Connection failed');
     });
@@ -64,7 +74,9 @@ describe('RedisService', () => {
 
     it('should handle quit errors', async () => {
       const error = new Error('Quit failed');
-      mockRedisClient.quit.mockRejectedValueOnce(error);
+      mockRedisClient.quit.mockImplementationOnce(async () => {
+        throw error;
+      });
 
       await expect(service.onModuleDestroy()).rejects.toThrow('Quit failed');
     });
