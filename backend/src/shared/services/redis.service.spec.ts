@@ -21,9 +21,9 @@ describe('RedisService', () => {
   beforeEach(async () => { 
     // Create mock Redis client with all necessary methods
     mockRedisClient = {
-      connect: jest.fn(async () => await undefined),
-      quit: jest.fn(async () => await undefined),
-      disconnect: jest.fn(async () => await undefined),
+      connect: jest.fn(),
+      quit: jest.fn(),
+      disconnect: jest.fn(),
       isOpen: true,
       isReady: true,
     };
