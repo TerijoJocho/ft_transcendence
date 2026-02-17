@@ -7,7 +7,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   private pool: Pool;
   public db: ReturnType<typeof drizzle>;
 
-  async onModuleInit() {
+  onModuleInit() {
     this.pool = new Pool({ connectionString: process.env.POSTGRES_URL! });
     this.db = drizzle({ client: this.pool });
   }
