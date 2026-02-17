@@ -1,5 +1,6 @@
-//stocke user
-//expose login, logout
+//composant qui fourni le context Auth a toute l'app
+//contient l'etat user
+//expose login, clearAuth
 //dit si le user est connecté
 
 import { useState } from "react";
