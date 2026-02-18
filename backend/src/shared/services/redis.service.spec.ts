@@ -1,10 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from './redis.service';
-import { createClient } from 'redis';
 import { jest } from '@jest/globals';
 
-// Mock the redis module
-jest.mock('redis', () => ({
+// Mock @keyv/redis module
+jest.mock('@keyv/redis', () => ({
   createClient: jest.fn(),
 }));
 
@@ -12,26 +11,19 @@ describe('RedisService', () => {
   let service: RedisService;
   let mockRedisClient: {
     connect: jest.Mock;
-    quit: jest.Mock;
-    disconnect: jest.Mock;
-    isOpen: boolean;
-    isReady: boolean;
+    destroy: jest.Mock;
   };
 
   beforeEach(async () => { 
     // Create mock Redis client with all necessary methods
     mockRedisClient = {
       connect: jest.fn(),
-      quit: jest.fn(),
-      disconnect: jest.fn(),
-      isOpen: true,
-      isReady: true,
+      destroy: jest.fn(),
     };
 
-    // Mock createClient to return our mock client
-    (createClient as jest.MockedFunction<typeof createClient>).mockReturnValue(
-      mockRedisClient as unknown as ReturnType<typeof createClient>,
-    );
+    // Get the mocked createClient and make it return our mock
+    const { createClient } = require('@keyv/redis');
+    createClient.mockReturnValue(mockRedisClient);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [RedisService],
@@ -65,19 +57,19 @@ describe('RedisService', () => {
   });
 
   describe('onModuleDestroy', () => {
-    it('should quit Redis connection on module destruction', async () => {
-      await service.onModuleDestroy();
+    it('should destroy Redis connection on module destruction', () => {
+      service.onModuleDestroy();
 
-      expect(mockRedisClient.quit).toHaveBeenCalledTimes(1);
+      expect(mockRedisClient.destroy).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle quit errors', async () => {
-      const error = new Error('Quit failed');
-      mockRedisClient.quit.mockImplementationOnce(() => {
+    it('should handle destroy errors', () => {
+      const error = new Error('Destroy failed');
+      mockRedisClient.destroy.mockImplementationOnce(() => {
         throw error;
       });
 
-      await expect(service.onModuleDestroy()).rejects.toThrow('Quit failed');
+      expect(() => service.onModuleDestroy()).toThrow('Destroy failed');
     });
   });
 
@@ -98,6 +90,7 @@ describe('RedisService', () => {
 
   describe('Redis client creation', () => {
     it('should create Redis client with correct URL from environment', () => {
+      const { createClient } = require('@keyv/redis');
       expect(createClient).toHaveBeenCalledWith({
         url: process.env.REDIS_URL,
       });
@@ -112,8 +105,8 @@ describe('RedisService', () => {
       const client = service.getClient();
       expect(client).toBe(mockRedisClient);
 
-      await service.onModuleDestroy();
-      expect(mockRedisClient.quit).toHaveBeenCalled();
+      service.onModuleDestroy();
+      expect(mockRedisClient.destroy).toHaveBeenCalled();
     });
   });
 });
