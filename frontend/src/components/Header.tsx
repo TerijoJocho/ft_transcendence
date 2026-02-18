@@ -1,16 +1,14 @@
 interface HeaderProps {
     title: string;
-    links?: {label: string, href: string}[];
 }
 
-function Header({title, links}: HeaderProps) {
+function Header({title}: HeaderProps) {
     return(
-        <>
-            <div className="w-full flex m-1">
+        <header>
+            <div className="w-full p-6 title-style">
                 <h1>{title}</h1>
-                {links && links.map((e) => <a href={e.href}>{e.label}</a>)}
             </div>
-        </>
+        </header>
     )
 
 }

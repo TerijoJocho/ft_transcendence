@@ -4,11 +4,19 @@ import { useEffect } from "react";
 import { me } from "./api/api.ts";
 import { useAuth } from "./auth/useAuth";
 
+import PrivateRoute from "./auth/PrivateRoute.tsx";
+import PublicRoute from "./auth/PublicRoute.tsx";
+import PrivateLayout from "./PrivateLayout.tsx";
+import PublicLayout from "./PublicLayout.tsx";
+
 import Login from "./pages/Login.tsx";
 import SignIn from "./pages/SignIn.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
-import PrivateRoute from "./auth/PrivateRoute.tsx";
-import PublicRoute from "./auth/PublicRoute.tsx";
+import Game from "./pages/Game.tsx";
+import Tournament from "./pages/Tournament.tsx";
+import Chat from "./pages/Chat.tsx";
+import Profil from "./pages/Profil.tsx";
+import Friends from "./pages/Friends.tsx";
 
 function App() {
   // on récupère les fonctions login/clearAuth du contexte
@@ -27,35 +35,40 @@ function App() {
       className="
         min-h-screen
         bg-[linear-gradient(90deg,#121216_0%,#121216_7.692%,#16171a_calc(7.692%+1px),#16171a_15.385%,#1a1b1f_calc(15.385%+1px),#1a1b1f_23.077%,#1f2023_calc(23.077%+1px),#1f2023_30.769%,#232427_calc(30.769%+1px),#232427_38.462%,#27282b_calc(38.462%+1px),#27282b_46.154%,#2b2c2f_calc(46.154%+1px),#2b2c2f_53.846%,#2f3033_calc(53.846%+1px),#2f3033_61.538%,#323337_calc(61.538%+1px),#323337_69.231%,#36373a_calc(69.231%+1px),#36373a_76.923%,#38393d_calc(76.923%+1px),#38393d_84.615%,#3b3c40_calc(84.615%+1px),#3b3c40_92.308%,#3d3e42_calc(92.308%+1px)_100%)]
-        flex justify-center items-center
+        flex
         "
     >
       <Routes>
-        {/* Redirection par default */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-
-        <Route path="/signup" element={<SignIn />} />
-
+        {/* Routes publiques */}
         <Route
-          path="/login"
           element={
             <PublicRoute>
-              <Login />
+              <PublicLayout />
             </PublicRoute>
           }
-        />
+        >
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignIn />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Route>
 
+        {/* Routes privées */}
         <Route
-          path="/dashboard"
           element={
             <PrivateRoute>
-              <Dashboard />
+              <PrivateLayout />
             </PrivateRoute>
           }
-        />
-
-        {/* Fallback si route inconnue */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        >
+          {/* redirection /dashboard */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/game" element={<Game />} />
+          <Route path="/tournament" element={<Tournament />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/profil" element={<Profil />} />
+          <Route path="/friends" element={<Friends />} />
+        </Route>
       </Routes>
     </div>
   );
