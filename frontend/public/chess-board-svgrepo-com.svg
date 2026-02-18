@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+	 viewBox="0 0 512 512" xml:space="preserve">
+<circle style="fill:#88C5CC;" cx="256" cy="256" r="256"/>
+<path style="fill:#99602E;" d="M124,184v291.368c11.44,6.9,23.484,12.884,36,17.952V188h342.8c-3.412-12.404-7.728-24.424-12.884-36
+	H156C138.4,152,124,166.4,124,184z"/>
+<path style="fill:#805026;" d="M160,493.32c2.656,1.076,5.3,2.164,8,3.152V484v-48v-48v-48v-48v-48v-48h48h48h48h48h48h48h48h0.86
+	c-0.644-2.684-1.332-5.348-2.06-8H160V493.32z"/>
+<g>
+	<path style="fill:#242424;" d="M504,244h7.696c-0.76-16.46-3.112-32.496-6.84-48H504V244z"/>
+	<rect x="168" y="340" style="fill:#242424;" width="48" height="48"/>
+	<rect x="216" y="388" style="fill:#242424;" width="48" height="48"/>
+	<rect x="264" y="436" style="fill:#242424;" width="48" height="48"/>
+	<rect x="312" y="388" style="fill:#242424;" width="48" height="48"/>
+	<path style="fill:#242424;" d="M504,319.72c2.32-9.052,4.104-18.312,5.428-27.72H504V319.72z"/>
+	<path style="fill:#242424;" d="M408,388v48h29.992c6.36-6.432,12.356-13.216,18.008-20.288V388H408z"/>
+	<rect x="312" y="292" style="fill:#242424;" width="48" height="48"/>
+	<rect x="360" y="244" style="fill:#242424;" width="48" height="48"/>
+	<rect x="168" y="436" style="fill:#242424;" width="48" height="48"/>
+	<rect x="216" y="292" style="fill:#242424;" width="48" height="48"/>
+	<path style="fill:#242424;" d="M360,436v48h12.368c12.5-6.392,24.428-13.744,35.632-22.028V436H360z"/>
+	<rect x="264" y="244" style="fill:#242424;" width="48" height="48"/>
+	<path style="fill:#242424;" d="M456,388h19.368c9.076-15.052,16.604-31.136,22.46-48H456V388z"/>
+	<rect x="312" y="196" style="fill:#242424;" width="48" height="48"/>
+	<rect x="216" y="196" style="fill:#242424;" width="48" height="48"/>
+	<path style="fill:#242424;" d="M216,244h-48v48h48V244z M192,284c-8.836,0-16-7.164-16-16s7.164-16,16-16s16,7.164,16,16
+		S200.836,284,192,284z"/>
+	<rect x="408" y="196" style="fill:#242424;" width="48" height="48"/>
+	<path style="fill:#242424;" d="M312,484v21.78c16.676-3.724,32.728-9.068,48-15.868V484H312z"/>
+	<rect x="408" y="292" style="fill:#242424;" width="48" height="48"/>
+	<rect x="360" y="340" style="fill:#242424;" width="48" height="48"/>
+	<path style="fill:#242424;" d="M216,484v24.868c13.036,2.044,26.388,3.132,40,3.132c2.684,0,5.336-0.12,8-0.204V484H216z"/>
+	<path style="fill:#242424;" d="M264,340v48h48v-48H264z M288,380c-8.836,0-16-7.164-16-16s7.164-16,16-16s16,7.164,16,16
+		S296.836,380,288,380z"/>
+	<rect x="456" y="244" style="fill:#242424;" width="48" height="48"/>
+</g>
+<g>
+	<path style="fill:#F5F5F5;" d="M216,196h-48v48h48V196z M192,236c-8.836,0-16-7.164-16-16s7.164-16,16-16s16,7.164,16,16
+		S200.836,236,192,236z"/>
+	<path style="fill:#F5F5F5;" d="M312,244v-48h-48v48H312z M288,204c8.836,0,16,7.164,16,16s-7.164,16-16,16s-16-7.164-16-16
+		S279.164,204,288,204z"/>
+	<rect x="360" y="196" style="fill:#F5F5F5;" width="48" height="48"/>
+	<rect x="456" y="196" style="fill:#F5F5F5;" width="48" height="48"/>
+	<rect x="216" y="244" style="fill:#F5F5F5;" width="48" height="48"/>
+	<rect x="312" y="244" style="fill:#F5F5F5;" width="48" height="48"/>
+	<rect x="408" y="244" style="fill:#F5F5F5;" width="48" height="48"/>
+	<path style="fill:#F5F5F5;" d="M504,292h5.428c1.656-11.768,2.572-23.776,2.572-36c0-4.024-0.12-8.02-0.304-12H504V292z"/>
+	<path style="fill:#F5F5F5;" d="M216,292h-48v48h48V292z M192,332c-8.836,0-16-7.164-16-16s7.164-16,16-16s16,7.164,16,16
+		S200.836,332,192,332z"/>
+	<rect x="264" y="292" style="fill:#F5F5F5;" width="48" height="48"/>
+	<rect x="360" y="292" style="fill:#F5F5F5;" width="48" height="48"/>
+	<path style="fill:#F5F5F5;" d="M456,292v48h41.828c2.308-6.648,4.408-13.396,6.172-20.28V292H456z"/>
+	<rect x="216" y="340" style="fill:#F5F5F5;" width="48" height="48"/>
+	<rect x="312" y="340" style="fill:#F5F5F5;" width="48" height="48"/>
+	<rect x="408" y="340" style="fill:#F5F5F5;" width="48" height="48"/>
+	<rect x="168" y="388" style="fill:#F5F5F5;" width="48" height="48"/>
+	<rect x="264" y="388" style="fill:#F5F5F5;" width="48" height="48"/>
+	<rect x="360" y="388" style="fill:#F5F5F5;" width="48" height="48"/>
+	<path style="fill:#F5F5F5;" d="M456,415.712c7.032-8.792,13.528-18.028,19.368-27.712H456V415.712z"/>
+	<rect x="216" y="436" style="fill:#F5F5F5;" width="48" height="48"/>
+	<rect x="312" y="436" style="fill:#F5F5F5;" width="48" height="48"/>
+	<path style="fill:#F5F5F5;" d="M408,461.972c10.66-7.88,20.688-16.568,29.992-25.972H408V461.972z"/>
+	<path style="fill:#F5F5F5;" d="M168,484v12.472c15.36,5.624,31.42,9.796,48,12.396V484H168z"/>
+	<path style="fill:#F5F5F5;" d="M264,484v27.796c16.44-0.504,32.484-2.552,48-6.016V484H264z"/>
+	<path style="fill:#F5F5F5;" d="M360,489.916c4.184-1.864,8.304-3.836,12.368-5.916H360V489.916z"/>
+</g>
+<path style="fill:#FFD464;" d="M192,204c-8.836,0-16,7.164-16,16s7.164,16,16,16s16-7.164,16-16S200.836,204,192,204z M192,228
+	c-4.42,0-8-3.58-8-8s3.58-8,8-8s8,3.58,8,8S196.42,228,192,228z"/>
+<circle style="fill:#CC584C;" cx="192" cy="220" r="8"/>
+<path style="fill:#FFD464;" d="M288,348c-8.836,0-16,7.164-16,16s7.164,16,16,16s16-7.164,16-16S296.836,348,288,348z M288,372
+	c-4.42,0-8-3.58-8-8s3.58-8,8-8s8,3.58,8,8S292.42,372,288,372z"/>
+<circle style="fill:#CC584C;" cx="288" cy="364" r="8"/>
+<path style="fill:#FFD464;" d="M192,300c-8.836,0-16,7.164-16,16s7.164,16,16,16s16-7.164,16-16S200.836,300,192,300z M192,324
+	c-4.42,0-8-3.58-8-8s3.58-8,8-8s8,3.58,8,8S196.42,324,192,324z"/>
+<circle style="fill:#CC584C;" cx="192" cy="316" r="8"/>
+<path style="fill:#FFD464;" d="M192,252c-8.836,0-16,7.164-16,16s7.164,16,16,16s16-7.164,16-16S200.836,252,192,252z M192,276
+	c-4.42,0-8-3.58-8-8s3.58-8,8-8s8,3.58,8,8S196.42,276,192,276z"/>
+<circle style="fill:#CC584C;" cx="192" cy="268" r="8"/>
+<path style="fill:#FFD464;" d="M288,236c8.836,0,16-7.164,16-16s-7.164-16-16-16s-16,7.164-16,16S279.164,236,288,236z M288,212
+	c4.42,0,8,3.58,8,8s-3.58,8-8,8s-8-3.58-8-8S283.58,212,288,212z"/>
+<circle style="fill:#CC584C;" cx="288" cy="220" r="8"/>
+</svg>
