@@ -1,4 +1,3 @@
-
 interface HeaderProps {
     title: string;
 }
