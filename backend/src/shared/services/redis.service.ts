@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { createClient } from 'redis';
+import { createClient } from '@keyv/redis';
 import { OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-  private client = createClient({ url: process.env.REDIS_URL! });
-
+  private redis = createClient({ url: process.env.REDIS_URL! });
+  
   async onModuleInit() {
-    await this.client.connect();
+    await this.redis.connect();
   }
-  async onModuleDestroy() {
-    await this.client.quit();
+  onModuleDestroy() {
+    this.redis.destroy();
   }
   getClient() {
-    return this.client;
+    return this.redis;
   }
 }
