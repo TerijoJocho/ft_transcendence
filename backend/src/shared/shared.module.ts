@@ -3,7 +3,7 @@ import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 import { RedisService } from './services/redis.service';
 import { DatabaseService } from './services/db.service';
 import { UtilsService } from './services/utils.func.service';
-import { APP_PIPE } from '@nestjs/core/constants';
+import { APP_PIPE } from '@nestjs/core';
 
 @Global()
 @Module({
