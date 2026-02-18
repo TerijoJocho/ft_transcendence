@@ -19,7 +19,7 @@ const sideBarData = [
     },
     {
         icon: faMessage,
-        text: "Message",
+        text: "Chat",
         path: "/chat",
     }
 ];
