@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from './redis.service';
+import { createClient } from '@keyv/redis';
 import { jest } from '@jest/globals';
 
 // Mock @keyv/redis module
@@ -21,9 +22,8 @@ describe('RedisService', () => {
       destroy: jest.fn(),
     };
 
-    // Get the mocked createClient and make it return our mock
-    const { createClient } = require('@keyv/redis');
-    createClient.mockReturnValue(mockRedisClient);
+    // Configure the mocked createClient to return our mock
+    (createClient as jest.Mock).mockReturnValue(mockRedisClient);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [RedisService],
@@ -90,7 +90,6 @@ describe('RedisService', () => {
 
   describe('Redis client creation', () => {
     it('should create Redis client with correct URL from environment', () => {
-      const { createClient } = require('@keyv/redis');
       expect(createClient).toHaveBeenCalledWith({
         url: process.env.REDIS_URL,
       });
