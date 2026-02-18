@@ -49,3 +49,7 @@ html, body, #root {
            hover:border-red-500
            transition-all duration-200;
 }
+
+.error-style {
+    @apply text-sm text-red-500
+}
