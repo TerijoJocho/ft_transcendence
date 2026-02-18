@@ -41,7 +41,7 @@ function Login() {
 
   return (
     <div className="glass-container">
-      <h2 className="title-style">Se connecter</h2>
+      <h2 className="title-style mt-2 mb-8">Se connecter</h2>
       <form
         onSubmit={submitForm}
         onChange={() => setHasTouched(true)}
@@ -56,7 +56,7 @@ function Login() {
           placeholder="chess-war@gmail.com / ChessUser"
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
-          className="input-style "
+          className="input-style"
         />
         {hasTouched && identifier.length === 0 && (
           <span className="error-style">Champ requis</span>
