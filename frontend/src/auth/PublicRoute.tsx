@@ -7,7 +7,8 @@ export default function PublicRoute({ children }: { children: JSX.Element }) {
 
   // Si DÉJÀ connecté, va au dashboard
   // Sinon (pas connecté), affiche la page publique (login/signup)
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) 
+    return <Navigate to="/dashboard" replace />;
 
   return children;
 }
