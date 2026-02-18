@@ -56,7 +56,7 @@ function Login() {
           placeholder="chess-war@gmail.com / ChessUser"
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
-          className="input-style "
+          className="input-style"
         />
         {hasTouched && identifier.length === 0 && (
           <span className="error-style">Champ requis</span>
