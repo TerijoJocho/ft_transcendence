@@ -48,6 +48,27 @@ services:
     command: npm run start:dev
 
   # -----------------------------
+  # Vault Hashicorp
+  # -----------------------------
+
+  vault :
+    build:
+      context: ./backend/vault
+      dockerfile: Dockerfile
+    container_name: ft_transcendence_vault
+    expose:
+      - "8200"
+    # environment:
+    #   -
+    cap_add:
+      - IPC_LOCK  # 🔑 INDISPENSABLE : Empêche la RAM d'être copiée sur le disque
+    # depends_on:
+    #   - postgres
+    #   - backend
+    volumes:
+      - ./backend/vault/secret:/secret/data
+
+  # -----------------------------
   # Frontend (React + Vite)
   # -----------------------------
   frontend:
