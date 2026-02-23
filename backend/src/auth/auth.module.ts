@@ -7,4 +7,4 @@ import { SigninService } from './signin/signin.service';
   controllers: [AuthController],
   providers: [SigninService],
 })
-export class AuthModule { }
+export class AuthModule {}
