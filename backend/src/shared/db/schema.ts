@@ -57,7 +57,8 @@ export const playerTable = pgTable('players', {
   pwd: varchar().notNull(),
   avatarUrl: varchar().notNull().default('https://test.com'),
 });
-export type player = typeof playerTable.$inferInsert;
+export type playerInsert = typeof playerTable.$inferInsert;
+export type playerSelect = typeof playerTable.$inferSelect;
 
 export const gameTable = pgTable(
   'games',
@@ -77,7 +78,8 @@ export const gameTable = pgTable(
     ),
   ],
 );
-export type game = typeof gameTable.$inferInsert;
+export type gameInsert = typeof gameTable.$inferInsert;
+export type gameSelect = typeof gameTable.$inferSelect;
 
 export const participationTable = pgTable(
   'participation',
@@ -108,7 +110,8 @@ export const participationTable = pgTable(
       .where(sql`${pgTable.playerResult} = 'PENDING'`),
   ],
 );
-export type participation = typeof participationTable.$inferInsert;
+export type participationInsert = typeof participationTable.$inferInsert;
+export type participationSelect = typeof participationTable.$inferSelect;
 
 export const friendshipTable = pgTable(
   'friendship',
@@ -142,4 +145,5 @@ export const friendshipTable = pgTable(
     ),
   ],
 );
-export type friendship = typeof friendshipTable.$inferInsert;
+export type friendshipInsert = typeof friendshipTable.$inferInsert;
+export type friendshipSelect = typeof friendshipTable.$inferSelect;
