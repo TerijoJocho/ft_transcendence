@@ -1,11 +1,11 @@
 import {
-  player,
+  playerInsert,
   playerTable,
-  game,
+  gameInsert,
   gameTable,
-  friendship,
+  friendshipInsert,
   friendshipTable,
-  participation,
+  participationInsert,
   participationTable,
 } from '../db/schema';
 import { and, or, eq, sql, SQLWrapper } from 'drizzle-orm';
@@ -42,7 +42,7 @@ findPlayersBy = async (
 };
 
 insertPlayers = async (
-  players: player[],
+  players: playerInsert[],
   insertedValues?: SelectedFieldsFlat,
 ) => {
   const query = this.Database.getDb().insert(playerTable).values(players);
@@ -50,7 +50,7 @@ insertPlayers = async (
 };
 
 updateAllPlayers = async (
-  updatedPlayer: Partial<player>,
+  updatedPlayer: Partial<playerInsert>,
   updatedValues?: SelectedFieldsFlat,
 ) => {
   const query = updatedValues
@@ -60,7 +60,7 @@ updateAllPlayers = async (
 };
 
 updatePlayersBy = async (
-  updatedPlayer: Partial<player>,
+  updatedPlayer: Partial<playerInsert>,
   operator?: 'and' | 'or',
   updatedValues?: SelectedFieldsFlat,
   ...conditions: (SQLWrapper | SQLWrapper[])[]
@@ -125,7 +125,7 @@ findGamesBy = async (
 };
 
 insertGames = async (
-  games: game[],
+  games: gameInsert[],
   insertedValues?: SelectedFieldsFlat,
 ) => {
   const query = this.Database.getDb().insert(gameTable).values(games);
@@ -133,7 +133,7 @@ insertGames = async (
 };
 
 updateAllGames = async (
-  updatedGame: Partial<game>,
+  updatedGame: Partial<gameInsert>,
   updatedValues?: SelectedFieldsFlat,
 ) => {
   const query = updatedValues
@@ -143,7 +143,7 @@ updateAllGames = async (
 };
 
 updateGamesBy = async (
-  updatedGame: Partial<game>,
+  updatedGame: Partial<gameInsert>,
   operator?: 'and' | 'or',
   updatedValues?: SelectedFieldsFlat,
   ...conditions: (SQLWrapper | SQLWrapper[])[]
@@ -205,7 +205,7 @@ findFriendshipsBy = async (
 };
 
 insertFriendships = async (
-  friendships: friendship[],
+  friendships: friendshipInsert[],
   insertedValues?: SelectedFieldsFlat,
 ) => {
   const query = this.Database.getDb().insert(friendshipTable).values(friendships);
@@ -213,7 +213,7 @@ insertFriendships = async (
 };
 
 updateAllFriendships = async (
-  updatedFriendship: Partial<friendship>,
+  updatedFriendship: Partial<friendshipInsert>,
   updatedValues?: SelectedFieldsFlat,
 ) => {
   const query = updatedValues
@@ -223,7 +223,7 @@ updateAllFriendships = async (
 };
 
 updateFriendshipsBy = async (
-  updatedFriendship: Partial<friendship>,
+  updatedFriendship: Partial<friendshipInsert>,
   operator?: 'and' | 'or',
   updatedValues?: SelectedFieldsFlat,
   ...conditions: (SQLWrapper | SQLWrapper[])[]
@@ -285,7 +285,7 @@ findParticipationsBy = async (
 };
 
 insertParticipations = async (
-  participations: participation[],
+  participations: participationInsert[],
   insertedValues?: SelectedFieldsFlat,
 ) => {
   const query = this.Database.getDb().insert(participationTable).values(participations);
@@ -293,7 +293,7 @@ insertParticipations = async (
 };
 
 updateAllParticipations = async (
-  updatedParticipation: Partial<participation>,
+  updatedParticipation: Partial<participationInsert>,
   updatedValues?: SelectedFieldsFlat,
 ) => {
   const query = updatedValues
@@ -306,7 +306,7 @@ updateAllParticipations = async (
 };
 
 updateParticipationsBy = async (
-  updatedParticipation: Partial<participation>,
+  updatedParticipation: Partial<participationInsert>,
   operator?: 'and' | 'or',
   updatedValues?: SelectedFieldsFlat,
   ...conditions: (SQLWrapper | SQLWrapper[])[]
