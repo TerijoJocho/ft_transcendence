@@ -1,5 +1,5 @@
 import HeaderPlayerInfos from "../components/HeaderPlayerInfos.tsx";
-import StatsCards from "../components/statsCards.tsx";
+import StatsCards from "../components/StatsCards.tsx";
 import EloGraph from "../components/EloGraph.tsx";
 import LastMatches from "../components/LastMatches.tsx";
 import TournamentHistory from "../components/TournamentHistory.tsx";
