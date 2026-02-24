@@ -54,3 +54,13 @@ export function logout() {
     method: "POST",
   });
 }
+
+//permet de changer la valeur du status du user
+export function changeStatus(data: {
+  status: string;
+}) {
+  return request("user/status", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  })
+}
