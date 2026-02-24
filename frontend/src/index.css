@@ -58,3 +58,7 @@ html, body, #root {
     @apply bg-black/5 backdrop-blur-sm border border-black/5 rounded-2xl shadow-xl p-4
             hover:border-[#141301]
 }
+
+.stat-style {
+    @apply flex flex-col items-center justify-between border border-violet-300 rounded-lg w-fit p-3 hover:bg-violet-200
+}
