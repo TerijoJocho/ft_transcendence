@@ -29,12 +29,6 @@ const statusData = [
         label: "Déconnecté(e)",
         style: "border border-transparent text-red-400 text-xs bg-red-200 rounded-md px-2 hover:border hover:border-red-400",
     },
-    // {
-    //     id: 6,
-    //     value: "LOADING",
-    //     label: "Chargement...",
-    //     style: "border border-transparent text-slate-400 text-xs bg-slate-200 rounded-md px-2 hover:border hover:border-slate-400",
-    // },
 ];
 
 export default statusData;

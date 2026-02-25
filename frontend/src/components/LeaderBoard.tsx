@@ -80,7 +80,7 @@ export default function LeaderBoard() {
 
   return (
     <section className="grid-style col-span-2 row-span-1">
-      <h3>LeaderBorad</h3>
+      <h3>LeaderBoard</h3>
       <div className="border rounded-md m-2 p-1 bg-violet-100">
         <div className="grid grid-cols-3 gap-4 border-b-2 border-black m-1 p-2 font-semibold">
                     <p>Joueur</p>

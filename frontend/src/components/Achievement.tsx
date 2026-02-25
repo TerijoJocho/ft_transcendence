@@ -15,7 +15,7 @@ export default function Achievement() {
     },
     {
       id: 4,
-      achievement: "Give th dev some tips",
+      achievement: "Give the dev some tips",
     },
     {
       id: 5,

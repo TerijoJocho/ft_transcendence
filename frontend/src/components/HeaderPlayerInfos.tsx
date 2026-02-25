@@ -12,7 +12,7 @@ export default function HeaderPlayerInfos() {
     const [user, setUser] = useState<User | null>(null);
     const [isOpen, setIsOpen] = useState<boolean>(false);
 
-    //feth le user au mount du composant
+    //fetch le user au mount du composant
     //renvoie surement le userName: string, userAvatar: img (?), userStatus: ONLINE et les tokens, 
     useEffect(() => {
         async function fetchUser() {
@@ -33,14 +33,14 @@ export default function HeaderPlayerInfos() {
     //ferme le menu quand on clique en dehors
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
-            if (dropDownWrapper.current && !dropDownWrapper.current.contains(event.target))
+            if (dropDownWrapper.current && !dropDownWrapper.current.contains(event.target as Node))
                 setIsOpen(false);
         }
         
         document.addEventListener('mousedown', handleClickOutside);
 
         return (() => {
-            document.addEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside);
         })
     }, []);
 
@@ -61,11 +61,18 @@ export default function HeaderPlayerInfos() {
         setIsOpen(prev => !prev);
         //fetch pour PATCH le status du user dans le backend
         async function patchStatus() {
-            const response = await api.changeStatus({status: value});
-            setUser(prev => ({
-                ...prev,
-                status: response.newStatus,
-            }));
+            try {
+                const response = await api.changeStatus({status: value});
+                setUser(prev => {
+                    if (!prev) return prev;
+                    return ({
+                        ...prev,
+                        status: response.newStatus,
+                    });
+                });
+            } catch (error) {
+                console.error("Failed to change user status:", error);
+            }
         };
         patchStatus();
     }

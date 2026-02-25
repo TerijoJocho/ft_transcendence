@@ -59,7 +59,7 @@ export function logout() {
 export function changeStatus(data: {
   status: string;
 }) {
-  return request("user/status", {
+  return request("/user/status", {
     method: "PATCH",
     body: JSON.stringify(data),
   })
