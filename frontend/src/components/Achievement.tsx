@@ -23,8 +23,8 @@ export default function Achievement() {
     },
   ];
 
-  //fetch all user tournament history
-  //display historyArr
+  // TODO: replace testArr with fetched user achievements
+  // display achievements list
   const displayData = testArr.map((data) => {
     return (
       <li

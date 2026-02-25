@@ -1,3 +1,5 @@
+import formatDate from "../utils/date";
+
 export default function LastMatches() {
     //test
     const testArr = [
@@ -67,19 +69,8 @@ export default function LastMatches() {
         },
     ];
 
-    function formatDate(strDate: string) {
-        const date = new Date(strDate);
-        return (
-            new Intl.DateTimeFormat('fr-FR', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            }).format(date)
-        );
-    }
-
-    //fetch all user tournament history
-    //display historyArr
+    // fetch all user match history (last matches)
+    // display match history items
     const displayData = testArr.map((data) => {
         return (
             <li key={data.id} className="grid grid-cols-5 gap-4 p-2 border border-transparent hover:border-violet-400 bg-violet-200 rounded-md m-1 items-center sticky">
