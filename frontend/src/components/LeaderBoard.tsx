@@ -63,16 +63,6 @@ export default function LeaderBoard() {
         },
     ];
 
-
-  function formatDate(strDate) {
-    const date = new Date(strDate);
-    return new Intl.DateTimeFormat("fr-FR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).format(date);
-  }
-
   //fetch all user tournament history
   //display historyArr
   const displayData = testArr.map((data) => {

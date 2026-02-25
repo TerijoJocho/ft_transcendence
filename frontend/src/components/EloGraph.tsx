@@ -20,7 +20,7 @@ ChartJS.register(
   Legend
 );
 
-export const options = {
+const options = {
   responsive: true,
   maintainAspectRatio: false,
   scales: {
@@ -42,7 +42,7 @@ export const options = {
 
 const labels = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
-export const data = {
+const data = {
   labels,
   datasets: [
     {
