@@ -67,7 +67,7 @@ export default function LastMatches() {
         },
     ];
 
-    function formatDate(strDate) {
+    function formatDate(strDate: string) {
         const date = new Date(strDate);
         return (
             new Intl.DateTimeFormat('fr-FR', {

@@ -33,7 +33,7 @@ export default function TournamentHistory() {
     },
   ];
 
-  function formatDate(strDate) {
+  function formatDate(strDate: string) {
     const date = new Date(strDate);
     return new Intl.DateTimeFormat("fr-FR", {
       day: "numeric",
