@@ -63,8 +63,8 @@ export default function LeaderBoard() {
         },
     ];
 
-  //fetch all user tournament history
-  //display historyArr
+  // TODO: fetch leaderboard data for all users
+  // Map leaderboard data to list items for display
   const displayData = testArr.map((data) => {
     return (
       <li

@@ -1,3 +1,5 @@
+import formatDate from "../utils/date";
+
 export default function TournamentHistory() {
   //test
   const testArr = [
@@ -32,15 +34,6 @@ export default function TournamentHistory() {
       result: "win",
     },
   ];
-
-  function formatDate(strDate: string) {
-    const date = new Date(strDate);
-    return new Intl.DateTimeFormat("fr-FR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).format(date);
-  }
 
   //fetch all user tournament history
   //display historyArr

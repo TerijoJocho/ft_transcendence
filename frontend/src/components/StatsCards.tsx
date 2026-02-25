@@ -22,7 +22,7 @@ export default function StatsCards() {
                 <p>12</p>
             </article>
             <article className="stat-style">
-                <h3>Total lose</h3>
+                <h3>Total losses</h3>
                 <p>65</p>
             </article>
             <article className="stat-style">
