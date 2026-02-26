@@ -21,6 +21,22 @@ export default function Achievement() {
       id: 5,
       achievement: "Lose for the first time",
     },
+    {
+      id: 6,
+      achievement: "Lose for the first time",
+    },
+    {
+      id: 7,
+      achievement: "Lose for the first time",
+    },
+    {
+      id: 8,
+      achievement: "Lose for the first time",
+    },
+    {
+      id: 9,
+      achievement: "Lose for the first time",
+    },
   ];
 
   // TODO: replace testArr with fetched user achievements
@@ -40,7 +56,7 @@ export default function Achievement() {
     <section className="grid-style col-span-1 row-span-1">
       <h3>Réalisations</h3>
       <div className="border rounded-md m-2 p-1 bg-violet-100">
-        <ul className="max-h-36 overflow-scroll">{displayData}</ul>
+        <ul className="max-h-48 overflow-scroll">{displayData}</ul>
       </div>
     </section>
   );
