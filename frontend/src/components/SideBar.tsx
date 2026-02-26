@@ -6,7 +6,7 @@ import {
     faBars,
     faCircleUser,
 } from '@fortawesome/free-solid-svg-icons';
-import sideBarData from '../data/sideBarData';
+import {sideBarData, friendsData} from '../data/sideBarData';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from "../auth/useAuth";
@@ -77,12 +77,18 @@ export default function SideBar() {
                                 </Link>
                                 Amis connectés
                             </h2>
-                            <div className="max-h-52 overflow-y-auto space-y-6 p-2">
-                            {[...Array(20)].map((_, i) => (
-                                <div key={i} className="text-sm">
-                                Ami {i + 1}
-                                </div>
-                            ))}
+                            <div className="max-h-52 overflow-y-auto space-y-6 p-2">                            
+                            {
+                                friendsData.map((friend) => (
+                                    <div key={friend.id} className='flex items-center text-md justify-between'>
+                                        <div className='self-start'>
+                                            <FontAwesomeIcon icon={friend.avatar} />
+                                            {friend.pseudo}
+                                        </div>
+                                        <div className='h-2 w-2 rounded-full border bg-green-400 '></div>
+                                    </div>
+                                ))
+                            }
                             </div>
                         </>
                     }
