@@ -9,8 +9,8 @@ export class AuthController {
   @Post('register')
   register(@Body() bodyDto: SigninDto) {
     return this.signinService.registerPlayers(
-      bodyDto.pseudo,
       bodyDto.mail,
+      bodyDto.pseudo,
       bodyDto.password,
     );
   }

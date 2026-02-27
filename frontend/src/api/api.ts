@@ -1,4 +1,6 @@
 const API_URL = "https://localhost";
+import type { User } from "../auth/core/authCore.ts";
+// const API_URL = "http://localhost:3000";
 
 //debut des api
 async function request(endpoint: string, options: RequestInit = {}) {
@@ -21,7 +23,7 @@ async function request(endpoint: string, options: RequestInit = {}) {
 export function login(data: { 
   identifier: string;
   password: string
-}) {
+}) : Promise<User> {
   return request("/auth/login", {
     method: "POST",
     body: JSON.stringify(data),
@@ -41,7 +43,7 @@ export function register(data: {
 }
 
 //api pour savoir si le user est connecté
-export function me() {
+export function me() : Promise<User> {
   return request("/auth/me", {
     method: "GET",
   });
