@@ -42,9 +42,9 @@ services:
     container_name: ft_transcendence_backend
     environment:
       POSTGRES_URL: ${POSTGRES_URL}
+      REDIS_URL: ${REDIS_URL}
     expose:
         - "3000"
-      REDIS_URL: ${REDIS_URL}
 #     ports:
 #       - "3000:3000"
     volumes:
