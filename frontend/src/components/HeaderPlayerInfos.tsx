@@ -97,24 +97,23 @@ export default function HeaderPlayerInfos() {
 
                 <p className='text-xs self-end'>{`Elo: ${user.elo}`}</p>
 
+                <button onClick={() => setIsOpen(prev => !prev)} className={`${currentUserStatus.style} max-w-fit self-end`}>
+                    {currentUserStatus.label}
+                </button>
                 
-                {isOpen ? 
+                {isOpen && 
                     <nav 
                         ref={dropDownWrapper}
                         className='
                             flex flex-col gap-2 
-                            absolute right-2 top-11 
+                            absolute right-0 top-full mt-1
                             bg-black/5 backdrop-blur-sm border border-black/5
                             rounded-2xl shadow-xl
                             p-2 z-50
                         '
                         >
                         {displayStatus}
-                    </nav>
-                    :
-                    <button onClick={() => setIsOpen(prev => !prev)} className={`${currentUserStatus.style} max-w-fit self-end`}>
-                        {currentUserStatus.label}
-                    </button>
+                    </nav>                    
                 }
             </div>
             {
