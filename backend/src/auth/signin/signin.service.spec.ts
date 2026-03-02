@@ -47,7 +47,7 @@ describe('SigninService', () => {
       {
         id: playerTable.playerId,
         gameName: playerTable.gameName,
-      }
+      },
     );
   });
 
@@ -60,7 +60,7 @@ describe('SigninService', () => {
     (utilsService.insertPlayers as jest.Mock).mockResolvedValue(insertResult);
 
     await expect(
-      service.registerPlayers(mailAddress, gameName, pwd)
+      service.registerPlayers(mailAddress, gameName, pwd),
     ).resolves.toBe(insertResult);
   });
 });
