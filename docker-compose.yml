@@ -61,12 +61,8 @@ services:
       dockerfile: Dockerfile
     container_name: ft_transcendence_frontend
     ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/usr/src/app
-      - /usr/src/app/node_modules
-    # Vite nécessite d'exposer l'hôte pour Docker
-    command: npm run dev -- --host
+      - "80:80"
+    restart: always
 
 # volumes:
 #   ./data:/var/lib/postgresql/data
