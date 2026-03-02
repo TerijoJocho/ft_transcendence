@@ -1,9 +1,2 @@
-import { Module } from '@nestjs/common';
-import { LoginService } from './login.service';
-import { LoginController } from './login.controller';
-
-@Module({
-  controllers: [LoginController],
-  providers: [LoginService],
-})
-export class LoginModule {}
+// Login module scaffolding has been removed because it was unused and not wired into the application.
+// Reintroduce a NestJS module here when login endpoints are implemented and imported by AuthModule/AppModule.
