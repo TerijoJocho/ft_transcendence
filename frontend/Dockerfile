@@ -1,21 +1,45 @@
-# On utilise la même base Node
-FROM node:22-alpine
+# ---------- Stage 1 : Build ----------
+FROM node:20-alpine AS builder
 
-# Dossier de travail
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Copie des dépendances
+# Copier les dépendances
 COPY package*.json ./
-
-# Installation
 RUN npm install
 
-# Copie du code source
+# Copier le reste du code
 COPY . .
 
-# Port par défaut de Vite
-EXPOSE 5173
+# Build Vite
+RUN npm run build
 
-# Lancement du serveur de dev
-# --host est OBLIGATOIRE pour que Docker expose le port vers l'extérieur
-CMD ["npm", "run", "dev", "--", "--host"]
+# ---------- Stage 2 : Production ----------
+FROM nginx:alpine
+
+# Supprimer la config par défaut de nginx
+RUN rm -rf /usr/share/nginx/html/*
+
+# Créer la configuration Nginx pour une SPA
+RUN echo 'server { \
+    listen 80; \
+    server_name localhost; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+    \
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ { \
+        expires 1y; \
+        add_header Cache-Control "public, immutable"; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
+
+# Copier le build généré par Vite
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Exposer le port 80
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
