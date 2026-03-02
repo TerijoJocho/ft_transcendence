@@ -1,4 +1,6 @@
-FROM owasp/modsecurity-crs:nginx-alpine
+FROM owasp/modsecurity-crs@sha256:34e0b3c7165b5ac46d8bcb944786d649d312ac4d5998b2070719705dbf084d60
+# image épinglée sur un digest immuable afin de réduire le risque lié au tag mutable
+# mettre à jour explicitement en tirant la nouvelle version et en remplaçant le digest
 # ou :nginx tout court (vérifie si c'est alpine avec 'cat /etc/os-release')
 
 USER root
