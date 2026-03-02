@@ -5,9 +5,8 @@ FROM owasp/modsecurity-crs@sha256:34e0b3c7165b5ac46d8bcb944786d649d312ac4d5998b2
 
 USER root
 
-# 1. Installation des outils
-RUN apk update && apk add --no-cache openssl curl vim
-RUN apk update && apk upgrade
+# 1. Installation des outils nécessaires à l'exécution
+RUN apk add --no-cache openssl
 
 COPY conf/default.conf /etc/nginx/conf.d/default.conf
 COPY conf/default.conf /etc/nginx/templates/conf.d/default.conf.template
