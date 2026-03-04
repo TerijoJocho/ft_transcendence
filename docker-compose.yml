@@ -12,6 +12,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST} 
+      POSTGRES_PORT: ${POSTGRES_PORT} 
     ports:
       - "5433:5432"
     volumes:
@@ -41,16 +43,39 @@ services:
     environment:
       POSTGRES_URL: ${POSTGRES_URL}
       REDIS_URL: ${REDIS_URL}
-    ports:
-      - "3000:3000"
+    expose:
+        - "3000"
+#     ports:
+#       - "3000:3000"
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
     depends_on:
       - postgres
-      - redis
+      # - redis
     # Command pour le dev (hot reload)
     command: npm run start:dev
+
+  # -----------------------------
+  # Nginx (WAP)
+  # -----------------------------
+
+  nginx:
+    build:
+      context: ./backend/WAP
+      dockerfile: Dockerfile
+    container_name: ft_transcendence_wap
+    environment:
+      - PARANOIA=2
+      - ANOMALY_INBOUND=5
+      - DISABLE_DEFAULT_CONF=1
+    ports:
+      - "443:443"
+    depends_on:
+      - postgres
+      # - backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # -----------------------------
   # Frontend (React + Vite)
