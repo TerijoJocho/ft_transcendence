@@ -14,7 +14,7 @@ async function request(endpoint: string, options: RequestInit = {}, isRetry = fa
 
   if (response.status === 401 && !isRetry)
   {
-    const refresh = await fetch(`/api/auth/refresh`, {
+    const refresh = await fetch(`${API_URL}/api/auth/refresh`, {
       method: "POST",
       credentials: "include",
     });

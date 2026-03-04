@@ -1,4 +1,4 @@
-import formatDate from "../utils/date";
+import formatDate from "../utils/date.ts";
 
 export default function TournamentHistory() {
   //test
@@ -41,7 +41,7 @@ export default function TournamentHistory() {
     return (
       <li
         key={data.id}
-        className="grid grid-cols-3 gap-4 p-2 border border-transparent hover:border-violet-400 bg-violet-200 rounded-md m-1 items-center sticky"
+        className="grid grid-cols-3 gap-4 p-2 border border-transparent hover:border-violet-400 bg-violet-200 rounded-md m-1 items-center"
       >
         <p className="text-base">{data.tournamentTitle}</p>
         <p className="text-sm text-center">{formatDate(data.date)}</p>
