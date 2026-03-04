@@ -1,12 +1,12 @@
 function formatDate(strDate: string) {
-        const date = new Date(strDate);
-        return (
-            new Intl.DateTimeFormat('fr-FR', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            }).format(date)
-        );
-    }
+    const [year, month, day] = strDate.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+
+    return new Intl.DateTimeFormat("fr-FR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    }).format(date);
+}
 
 export default formatDate;

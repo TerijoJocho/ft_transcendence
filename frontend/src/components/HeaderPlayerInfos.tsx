@@ -8,7 +8,7 @@ import statusData from "../data/statusData.ts";
 import type {User} from "../auth/core/authCore.ts"
 
 export default function HeaderPlayerInfos() {
-    const dropDownWrapper = useRef(null);
+    const dropDownWrapper = useRef<HTMLDivElement | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -97,24 +97,25 @@ export default function HeaderPlayerInfos() {
 
                 <p className='text-xs self-end'>{`Elo: ${user.elo}`}</p>
 
-                <button onClick={() => setIsOpen(prev => !prev)} className={`${currentUserStatus.style} max-w-fit self-end`}>
-                    {currentUserStatus.label}
-                </button>
-                
-                {isOpen && 
-                    <nav 
-                        ref={dropDownWrapper}
-                        className='
-                            flex flex-col gap-2 
-                            absolute right-0 top-full mt-1
-                            bg-black/5 backdrop-blur-sm border border-black/5
-                            rounded-2xl shadow-xl
-                            p-2 z-50
-                        '
-                        >
-                        {displayStatus}
-                    </nav>                    
-                }
+                <div ref={dropDownWrapper} className='self-end'>
+                    <button onClick={() => setIsOpen(prev => !prev)} className={`${currentUserStatus.style} max-w-fit self-end`}>
+                        {currentUserStatus.label}
+                    </button>
+                    
+                    {isOpen && 
+                        <nav                             
+                            className='
+                                flex flex-col gap-2 
+                                absolute right-0 top-full mt-1
+                                bg-black/5 backdrop-blur-sm border border-black/5
+                                rounded-2xl shadow-xl
+                                p-2 z-50
+                            '
+                            >
+                            {displayStatus}
+                        </nav>                    
+                    }
+                </div>
             </div>
             {
                 user.avatar ? 
