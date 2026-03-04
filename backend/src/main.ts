@@ -7,13 +7,19 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, 
     { cors: { 
-        origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // frontend
+        origin: [
+          'https://localhost',
+          'https://127.0.0.1',
+          'http://localhost:5173',
+          'http://127.0.0.1:5173',
+        ],
         credentials: true, // IMPORTANT pour cookies
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type'],} 
     }
   );
-  await app.listen(process.env.PORT ?? 3000);
+  const port = Number(process.env.PORT || 3000);
+  await app.listen(port, '0.0.0.0');
 }
 bootstrap().catch((err) => {
   console.error('Error during bootstrap:', err);

@@ -14,7 +14,7 @@ async function request(endpoint: string, options: RequestInit = {}, isRetry = fa
 
   if (response.status === 401 && !isRetry)
   {
-    const refresh = await fetch(`${API_URL}/auth/refresh`, {
+    const refresh = await fetch(`/api/auth/refresh`, {
       method: "POST",
       credentials: "include",
     });
@@ -35,7 +35,7 @@ export function login(data: {
   identifier: string;
   password: string
 }) : Promise<User> {
-  return request("/auth/login", {
+  return request("/api/auth/login", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -47,7 +47,7 @@ export function register(data: {
   mail: string;
   password: string;
 }) {
-  return request("/auth/register", {
+  return request("/api/auth/register", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -55,14 +55,14 @@ export function register(data: {
 
 //api pour savoir si le user est connecté
 export function me() : Promise<User> {
-  return request("/auth/me", {
+  return request("/api/auth/me", {
     method: "GET",
   });
 }
 
 //pour supp les token (access et refresh)
 export function logout() {
-  return request("/auth/logout", {
+  return request("/api/auth/logout", {
     method: "POST",
   });
 }
@@ -71,7 +71,7 @@ export function logout() {
 export function changeStatus(data: {
   status: string;
 }) {
-  return request("/user/status", {
+  return request("/api/user/status", {
     method: "PATCH",
     body: JSON.stringify(data),
   })
