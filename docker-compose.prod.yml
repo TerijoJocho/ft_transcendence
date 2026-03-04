@@ -1,0 +1,69 @@
+# cmd pour lancer en prod: docker compose -f docker-compose.prod.yml up -d --build
+services:
+  postgres:
+    image: postgres:15
+    container_name: ft_transcendence_db_prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks: [internal]
+    # Pas de ports exposés
+
+  redis:
+    image: redis:7
+    container_name: ft_transcendence_redis_prod
+    restart: always
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    networks: [internal]
+    # Pas de ports exposés
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: ft_transcendence_backend_prod
+    restart: always
+    environment:
+      NODE_ENV: production
+      POSTGRES_URL: ${POSTGRES_URL}
+      REDIS_URL: ${REDIS_URL}
+    networks: [internal]
+    depends_on:
+      - postgres
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ft_transcendence_frontend_prod
+    restart: always
+    networks: [internal]
+
+  nginx:
+    build:
+      context: ./backend/WAP
+      dockerfile: Dockerfile
+    container_name: ft_transcendence_wap_prod
+    restart: always
+    environment:
+      - PARANOIA=2
+      - ANOMALY_INBOUND=5
+    ports:
+      - "443:443"
+      - "80:80"
+    networks: [internal]
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  postgres_data:
+
+networks:
+  internal:
+    driver: bridge

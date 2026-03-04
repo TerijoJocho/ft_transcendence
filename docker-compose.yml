@@ -1,5 +1,4 @@
-# version: '3.8'
-
+# cmd pour lancer en dev: docker compose --profile dev up -d
 services:
   # -----------------------------
   # Base de données (PostgreSQL)
@@ -15,9 +14,24 @@ services:
       POSTGRES_HOST: ${POSTGRES_HOST} 
       POSTGRES_PORT: ${POSTGRES_PORT} 
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - ./data:/var/lib/postgresql/data
+    networks: [internal]
+
+  # -----------------------------
+  # Accès à la db en dev (adminer)
+  # -----------------------------
+  adminer:
+    image: adminer:latest
+    container_name: ft_transcendence_adminer
+    restart: unless-stopped
+    profiles: ["dev"]
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      - postgres
+    networks: [internal]
 
   # -----------------------------
   # Cache & Temps réel (Redis)
@@ -29,8 +43,9 @@ services:
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:
-      - "6380:6379"
+      - "127.0.0.1:6380:6379"
     command: [ "redis-server", "--requirepass", "${REDIS_PASSWORD}" ]
+    networks: [internal]
 
   # -----------------------------
   # Backend (NestJS)
@@ -43,39 +58,15 @@ services:
     environment:
       POSTGRES_URL: ${POSTGRES_URL}
       REDIS_URL: ${REDIS_URL}
-    expose:
-        - "3000"
-#     ports:
-#       - "3000:3000"
     volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
+      - ./backend:/app
+      - /app/node_modules
     depends_on:
       - postgres
-      # - redis
+      - redis
+    networks: [internal]
     # Command pour le dev (hot reload)
     command: npm run start:dev
-
-  # -----------------------------
-  # Nginx (WAP)
-  # -----------------------------
-
-  nginx:
-    build:
-      context: ./backend/WAP
-      dockerfile: Dockerfile
-    container_name: ft_transcendence_wap
-    environment:
-      - PARANOIA=2
-      - ANOMALY_INBOUND=5
-      - DISABLE_DEFAULT_CONF=1
-    ports:
-      - "443:443"
-    depends_on:
-      - postgres
-      # - backend
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   # -----------------------------
   # Frontend (React + Vite)
@@ -85,9 +76,41 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: ft_transcendence_frontend
-    ports:
-      - "80:80"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     restart: always
+    depends_on:
+      - backend
+    networks: [internal]
+
+  # -----------------------------
+  # Nginx (WAP)
+  # -----------------------------
+  nginx:
+    build:
+      context: ./backend/WAP
+      dockerfile: Dockerfile
+    container_name: ft_transcendence_wap
+    environment:
+      - PARANOIA=1
+      - ANOMALY_INBOUND=10
+      - DISABLE_DEFAULT_CONF=1
+    ports:
+      - "443:443"
+      - "80:80"
+    depends_on:
+      - postgres
+      - redis
+      - backend
+      - frontend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks: [internal]
 
 # volumes:
 #   ./data:/var/lib/postgresql/data
+
+networks:
+  internal:
+    driver: bridge
