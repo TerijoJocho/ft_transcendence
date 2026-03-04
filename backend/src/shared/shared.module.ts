@@ -7,7 +7,7 @@ import { APP_PIPE } from '@nestjs/core';
 
 @Global()
 @Module({
-  imports:[
+  imports: [
     CacheModule.registerAsync({
       inject: [RedisService],
       useFactory: (redisService: RedisService) => ({
@@ -17,8 +17,12 @@ import { APP_PIPE } from '@nestjs/core';
       }),
     }),
   ],
-  exports:[DatabaseService, RedisService, CacheInterceptor, UtilsService],
-  providers:[DatabaseService, RedisService, CacheInterceptor, UtilsService,
+  exports: [DatabaseService, RedisService, CacheInterceptor, UtilsService],
+  providers: [
+    DatabaseService,
+    RedisService,
+    CacheInterceptor,
+    UtilsService,
     {
       provide: APP_PIPE,
       useFactory: () =>
@@ -26,7 +30,7 @@ import { APP_PIPE } from '@nestjs/core';
           whitelist: true,
           forbidNonWhitelisted: true,
         }),
-    }, 
+    },
   ],
 })
 export class SharedModule {}
