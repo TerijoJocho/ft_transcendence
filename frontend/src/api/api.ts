@@ -1,5 +1,6 @@
+const API_URL = "https://localhost";
 import type { User } from "../auth/core/authCore.ts";
-const API_URL = "http://localhost:3000";
+// const API_URL = "http://localhost:3000";
 
 //debut des api
 async function request(endpoint: string, options: RequestInit = {}, isRetry = false) {
