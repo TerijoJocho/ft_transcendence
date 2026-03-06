@@ -15,7 +15,7 @@ describe('RedisService', () => {
     destroy: jest.Mock;
   };
 
-  beforeEach(async () => { 
+  beforeEach(async () => {
     // Create mock Redis client with all necessary methods
     mockRedisClient = {
       connect: jest.fn(),

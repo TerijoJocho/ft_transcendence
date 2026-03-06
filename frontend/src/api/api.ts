@@ -3,7 +3,7 @@ import type { User } from "../auth/core/authCore.ts";
 // const API_URL = "http://localhost:3000";
 
 //debut des api
-async function request(endpoint: string, options: RequestInit = {}) {
+async function request(endpoint: string, options: RequestInit = {}, isRetry = false) {
   const response = await fetch(`${API_URL}${endpoint}`, {
     credentials: "include",
     headers: {
@@ -11,6 +11,17 @@ async function request(endpoint: string, options: RequestInit = {}) {
     },
     ...options,
   });
+
+  if (response.status === 401 && !isRetry)
+  {
+    const refresh = await fetch(`${API_URL}/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+    });
+    if (!refresh.ok)
+      throw new Error("Session expired");
+    return request(endpoint, options, true);
+  }
 
   const data = await response.json().catch(() => null);
 
@@ -54,4 +65,14 @@ export function logout() {
   return request("/auth/logout", {
     method: "POST",
   });
+}
+
+//permet de changer la valeur du status du user
+export function changeStatus(data: {
+  status: string;
+}) {
+  return request("/user/status", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  })
 }
