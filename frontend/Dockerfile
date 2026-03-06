@@ -1,21 +1,16 @@
-# On utilise la même base Node
-FROM node:22-alpine
+FROM node:20-alpine
 
-# Dossier de travail
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Copie des dépendances
+# Copier les dépendances
 COPY package*.json ./
-
-# Installation
 RUN npm install
 
-# Copie du code source
+# Copier le reste du code
 COPY . .
 
-# Port par défaut de Vite
+# Exposer le port du dev server Vite
 EXPOSE 5173
 
-# Lancement du serveur de dev
-# --host est OBLIGATOIRE pour que Docker expose le port vers l'extérieur
-CMD ["npm", "run", "dev", "--", "--host"]
+# Lancer en mode dev avec hot-reload
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

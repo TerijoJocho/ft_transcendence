@@ -73,7 +73,7 @@ export default function LastMatches() {
     // display match history items
     const displayData = testArr.map((data) => {
         return (
-            <li key={data.id} className="grid grid-cols-5 gap-4 p-2 border border-transparent hover:border-violet-400 bg-violet-200 rounded-md m-1 items-center sticky">
+            <li key={data.id} className="grid grid-cols-5 gap-4 p-2 border border-transparent hover:border-violet-400 bg-violet-200 rounded-md m-1 items-center">
                 <p className="truncate ">{data.opponent}</p>
                 <p className="text-sm text-center whitespace-nowrap overflow-scroll">{formatDate(data.date)}</p>
                 <p className="text-center ">{data.result}</p>
