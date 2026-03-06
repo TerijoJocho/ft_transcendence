@@ -4,8 +4,9 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { SharedModule } from './shared/shared.module';
 
-@Module({ 
-imports: [SharedModule, AuthModule], 
-controllers: [AppController], 
-providers: [AppService], 
-}) export class AppModule {}
+@Module({
+  imports: [SharedModule, AuthModule],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}

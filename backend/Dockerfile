@@ -1,8 +1,8 @@
 # On part d'une version légère de Node (Alpine Linux)
-FROM node:22-alpine
+FROM node:20-alpine
 
 # Création du dossier de travail dans le conteneur
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Copie des fichiers de dépendances (package.json et lockfile)
 COPY package*.json ./

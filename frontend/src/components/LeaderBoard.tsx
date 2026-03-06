@@ -69,7 +69,7 @@ export default function LeaderBoard() {
     return (
       <li
         key={data.id}
-        className="grid grid-cols-3 gap-4 p-2 border border-transparent hover:border-violet-400 bg-violet-200 rounded-md m-1 items-center sticky"
+        className="grid grid-cols-3 gap-4 p-2 border border-transparent hover:border-violet-400 bg-violet-200 rounded-md m-1 items-center"
       >
         <p>{data.opponent}</p>
         <p className="text-center">{data.rank}</p>
