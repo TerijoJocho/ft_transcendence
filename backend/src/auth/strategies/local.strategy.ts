@@ -9,13 +9,13 @@ import { responseLoginDto } from '../dto/response-login.dto';
 export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
 	constructor(private authService: AuthService) {
 		super({
-			usernameField: 'identifier',
+			usernameField: 'username',
 			passwordField: 'password'
 		});
 	}
 
-	async validate(identifier: string, password: string): Promise<responseLoginDto> {
-		const user = await this.authService.verifyUser(identifier, password) as playerSelect;
+	async validate(username: string, password: string): Promise<responseLoginDto> {
+		const user = await this.authService.verifyUser(username, password) as playerSelect;
 		return { playerId: user.playerId, identifier: user.gameName } as responseLoginDto;
 	}
 }
