@@ -18,7 +18,7 @@ export class AuthController {
   async login(
     @CurrentUser() user: responseLoginDto,
     @Res({ passthrough: true }) response: Response) {
-	    await this.authService.login(user, response);
+	    await this.authService.logIn(user, response);
   }
 
   @Post('refresh')
@@ -37,9 +37,11 @@ export class AuthController {
       await this.authService.logOut(user, response);
   }
   
-  @UseGuards(PassportJwtGuard)
+  //test route
   @Get('me')
-  async getUserInfo(@Request() request) {
-	  return request.user;
+  @UseGuards(PassportJwtGuard)
+  async getUserInfo(
+    @CurrentUser() user: logoutDto) {
+	    return user;
   }
 }
