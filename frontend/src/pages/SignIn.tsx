@@ -104,7 +104,9 @@ export default function SignIn() {
 
         <button
           type="submit"
-          className={(!isValidForm) ? "disabled_button" : "button" }
+          className={(!isValidForm || loading) ? "disabled-button" : "button" }
+          disabled={(!isValidForm || loading)}
+          aria-disabled={(!isValidForm || loading)}
         >
           {loading ? "Inscription..." : "S'inscrire"}
         </button>

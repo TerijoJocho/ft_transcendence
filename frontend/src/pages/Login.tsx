@@ -89,7 +89,9 @@ function Login() {
 
         <button
           type="submit"
-          className={(!isFilledInput || loading) ? "disabled_button" : "button" }
+          className={(!isFilledInput || loading) ? "disabled-button" : "button" }
+          disabled={(!isFilledInput || loading)}
+          aria-disabled={(!isFilledInput || loading)}
         >
           {loading ? "Connexion..." : "Se connecter"}
         </button>
