@@ -1,6 +1,6 @@
 import { SigninService }  from './signin.service';
 import { Body, Controller, Post } from '@nestjs/common';
-import { SigninDto } from './Signin.dto';
+import { SigninDto } from './signin.dto';
 
 @Controller('signin')
 export class SigninController {
