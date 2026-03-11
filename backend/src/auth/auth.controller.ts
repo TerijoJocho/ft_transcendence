@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { SigninService } from './signin/signin.service';
 import { SigninDto } from './signin/signin.dto';
 import { UserService } from './userService/user.service';
@@ -7,7 +7,6 @@ import { UserService } from './userService/user.service';
 export class AuthController {
   constructor(
     private signinService: SigninService,
-    private authService: AuthService,
     private userService: UserService,
   ) {}
 
@@ -25,10 +24,10 @@ export class AuthController {
     return { message: 'Authenticated user data would be here' };
   }
 
-  @Post('logout')
-  logout() {
-    this.userService.logout();
-    return { message: 'User logged out successfully' };
+  @Post('delete/:id') // penser a verifier que c'est bien le user qui veut supprimer son compte
+  async deleteUser(@Param('id', ParseIntPipe) playerId: number) {
+    await this.userService.deleteUserbyId(playerId);
+    return { message: 'User deleted successfully' };
   }
 
   @Post('update')
