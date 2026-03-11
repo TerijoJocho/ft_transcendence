@@ -13,56 +13,62 @@ import { logoutDto } from './dto/logout.dto';
 export class AuthService {
 	private readonly logger =  new Logger (AuthService.name);
 	constructor (
-		private readonly utilsService: UtilsService, 
+		private readonly utilsService: UtilsService,
 		private readonly jwtService: JwtService,
 		private readonly redisService: RedisService,
 	) {}
 
-	async login(user: responseLoginDto, response: Response) {
-		const redisClient = this.redisService.getClient();
-		const accessExpirationMs = parseInt(process.env.JWT_ACCESS_TOKEN_EXPIRATION_MS);
-    	const refreshExpirationMs = parseInt(process.env.JWT_REFRESH_TOKEN_EXPIRATION_MS);
-		const expiresAccessToken = new Date(Date.now() + accessExpirationMs);
-		const expiresRefreshToken = new Date(Date.now() + refreshExpirationMs);
-	
-		const tokenPayload = { 
-			sub: user.playerId, 
-			pseudo: user.identifier,
-		};
+	async logIn(user: responseLoginDto, response: Response) {
+		try {
+			const redisClient = this.redisService.getClient();
+			const accessExpirationMs = parseInt(process.env.JWT_ACCESS_TOKEN_EXPIRATION_MS);
+    		const refreshExpirationMs = parseInt(process.env.JWT_REFRESH_TOKEN_EXPIRATION_MS);
+			const expiresAccessToken = new Date(Date.now() + accessExpirationMs);
+			const expiresRefreshToken = new Date(Date.now() + refreshExpirationMs);
+			
+			const tokenPayload = { 
+				sub: user.playerId, 
+				pseudo: user.identifier,
+			};
 
-		const accessToken = this.jwtService.sign(tokenPayload, 
-			{
-				secret: process.env.JWT_ACCESS_TOKEN_SECRET,
-				expiresIn: accessExpirationMs,
-			} as JwtSignOptions
-		);
+			const accessToken = this.jwtService.sign(tokenPayload, 
+				{
+					secret: process.env.JWT_ACCESS_TOKEN_SECRET,
+					expiresIn: accessExpirationMs,
+				} as JwtSignOptions
+			);
 
-		const refreshToken = this.jwtService.sign(tokenPayload, 
-			{
-				secret: process.env.JWT_REFRESH_TOKEN_SECRET,
-				expiresIn: refreshExpirationMs,
-			} as JwtSignOptions
-		);
+			const refreshToken = this.jwtService.sign(tokenPayload, 
+				{
+					secret: process.env.JWT_REFRESH_TOKEN_SECRET,
+					expiresIn: refreshExpirationMs,
+				} as JwtSignOptions
+			);
 
-		await redisClient.set('refreshToken:' + user.playerId, refreshToken, { EX: refreshExpirationMs / 1000 });
+			await redisClient.set('refreshToken:' + user.playerId, refreshToken, { EX: refreshExpirationMs / 1000 });
 
-		response.cookie('Access', accessToken, 
-			{
-        		httpOnly: true,
-        		secure: process.env.NODE_ENV === 'production',
-       			expires: expiresAccessToken,
-    		}
-		);
+			response.cookie('Access', accessToken, 
+				{
+        			httpOnly: true,
+        			secure: process.env.NODE_ENV === 'production',
+       				expires: expiresAccessToken,
+    			}
+			);
 
-    	response.cookie('Refresh', refreshToken, 
-			{
-        		httpOnly: true,
-        		secure: process.env.NODE_ENV === 'production',
-        		expires: expiresRefreshToken,
-      		}
-		);
+    		response.cookie('Refresh', refreshToken, 
+				{
+        			httpOnly: true,
+        			secure: process.env.NODE_ENV === 'production',
+        			expires: expiresRefreshToken,
+      			}
+			);
 
-		return response.json(user);
+			return response.json(user);
+		}
+		catch (error) {
+			this.logger.error('Login error:', error);
+			throw new UnauthorizedException('Login failed. Please check your credentials and try again.');
+		}
 	}
 
 	async renewAccessToken(user: responseLoginDto, response: Response) {
@@ -88,12 +94,11 @@ export class AuthService {
 				expires: expiresAccessToken,
 			}
 		);
-
 		return response.json(user);
 	}
 
-	async verifyUser(pseudo: string, password: string): Promise<playerSelect> {
-		const user = (await this.utilsService.findPlayersBy('and', undefined, eq(playerTable.gameName, pseudo), eq(playerTable.pwd, password)) as playerSelect[])[0];
+	async verifyUser(username: string, password: string): Promise<playerSelect> {
+		const user = (await this.utilsService.findPlayersBy('and', undefined, eq(playerTable.gameName, username), eq(playerTable.pwd, password)) as playerSelect[])[0];
 		if (!user) {
 			throw new UnauthorizedException('Unvalid credentials.');
 		}
@@ -101,20 +106,23 @@ export class AuthService {
 	}
 
 	async verifyRefreshToken(playerId: number, refreshToken: string): Promise<responseLoginDto> {
-		try {
-			const redisClient = this.redisService.getClient();
-			const storedRefreshToken = await redisClient.get('refreshToken:' + playerId);
-			const decoded = this.jwtService.decode(refreshToken) as { sub: number, pseudo: string };
-			if (!storedRefreshToken 
-				|| storedRefreshToken !== refreshToken 
-				|| !this.jwtService.verify(refreshToken, { secret: process.env.JWT_REFRESH_TOKEN_SECRET })) {
-						throw new UnauthorizedException('Invalid refresh token.');
-			}
-			return { identifier: decoded.pseudo, playerId: playerId } as responseLoginDto;
+		if (!refreshToken) {
+			throw new UnauthorizedException('Refresh token is missing.');
 		}
-		catch (error) {
-			throw new UnauthorizedException('Verify user refresh token error.');
+		const redisClient = this.redisService.getClient();
+		const storedRefreshToken = await redisClient.get('refreshToken:' + playerId);
+		if (!storedRefreshToken)
+			throw new UnauthorizedException('Refresh token not found in cache.');
+		if (storedRefreshToken !== refreshToken) {
+			throw new UnauthorizedException('Refresh token does not match cache.');
 		}
+		const decoded = this.jwtService.verify(refreshToken, {
+			secret: process.env.JWT_REFRESH_TOKEN_SECRET,
+		}) as { sub: number; pseudo: string };
+		if (!decoded?.sub || !decoded?.pseudo || decoded.sub !== playerId) {
+			throw new UnauthorizedException('Invalid refresh token payload.');
+		}
+		return { identifier: decoded.pseudo, playerId: decoded.sub } as responseLoginDto;
 	}
 
 	async logOut (user: logoutDto, response: Response) {
