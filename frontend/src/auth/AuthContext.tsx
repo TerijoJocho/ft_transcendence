@@ -8,20 +8,22 @@ import { AuthContext, type User } from "./core/authCore";
 import * as api from "../api/api.ts"
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [user, setUser] = useState<User | null>(null);
 
   function login(user: User) {
     setUser(user);
+    setIsLoading(false);
   }
 
   async function clearAuth() {
     setUser(null);
-    //requete pour supp le acces token et le refresh token car le user s'est deco??
+    setIsLoading(false);
     return api.logout();
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, clearAuth }}>
+    <AuthContext.Provider value={{ user, login, clearAuth, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

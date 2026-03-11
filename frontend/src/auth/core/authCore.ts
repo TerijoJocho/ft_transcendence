@@ -13,6 +13,7 @@ export type AuthContextType = {
   user: User | null;
   login: (user: User) => void;
   clearAuth: () => void;
+  isLoading: boolean;
 };
 
 //Contexte React global qui va stocker l'utilisateur courant
