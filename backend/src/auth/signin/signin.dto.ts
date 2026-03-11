@@ -16,3 +16,5 @@ export class SigninDto {
   //rajouter l url de l image de profil
   // rajouter npm install class-validator class-transformer dans le repo
 }
+
+
