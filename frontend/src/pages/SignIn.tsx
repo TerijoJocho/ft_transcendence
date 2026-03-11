@@ -104,8 +104,7 @@ export default function SignIn() {
 
         <button
           type="submit"
-          disabled={!isValidForm || loading}
-          className="button"
+          className={(!isFilledInput || loading) ? "disabled_button" : "button" }
         >
           {loading ? "Inscription..." : "S'inscrire"}
         </button>
