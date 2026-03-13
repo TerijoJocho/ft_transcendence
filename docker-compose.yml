@@ -104,8 +104,6 @@ services:
       - redis
       - backend
       - frontend
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks: [internal]
 
 # volumes:
