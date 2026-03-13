@@ -8,16 +8,15 @@ html, body, #root {
 
 .glass-container {
     @apply flex flex-col
-        w-full max-w-md
-        backdrop-blur-sm border border-white/10
-        rounded-xl
-        shadow-2xl
+        w-full 
+        bg-violet-400/5 backdrop-blur-sm border border-violet-400/5
+        rounded-2xl shadow-xl
         p-8
        text-white
 }
 
 .form-container {
-    @apply flex flex-col gap-4 m-2 text-base
+    @apply flex flex-col gap-4 m-2 text-xl
 }
 
 .label-style {
@@ -25,15 +24,19 @@ html, body, #root {
 }
 
 .title-style {
-    @apply text-2xl tracking-widest font-medium
+    @apply text-2xl tracking-widest font-medium mt-2 mb-8
 }
 
 .input-style {
-    @apply rounded-sm p-2 text-black
+    @apply w-full rounded-sm p-2 text-black
 }
 
 .button {
-    @apply rounded-lg p-3 bg-sky-600 mt-4 mb-4 hover:bg-sky-500
+    @apply rounded-lg p-3 bg-violet-600 mt-4 mb-4 hover:bg-violet-500
+}
+
+.disabled-button {
+    @apply rounded-lg p-3 bg-violet-300 mt-4 mb-4 cursor-not-allowed
 }
 
 .global-hover {

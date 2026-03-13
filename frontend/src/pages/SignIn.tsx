@@ -19,7 +19,7 @@ export default function SignIn() {
     if (!regex.test(mail)) return false;
     return true;
   };
-  const isFilledInput = mail.length > 0 && password.length > 0;
+  const isFilledInput: boolean = mail.length > 0 && password.length > 0 && pseudo.length > 0;
   const isValidForm = isFilledInput && isValidMail(mail);
 
   // requete post pour creer un user
@@ -104,8 +104,9 @@ export default function SignIn() {
 
         <button
           type="submit"
-          disabled={!isValidForm || loading}
-          className="button"
+          className={(!isValidForm || loading) ? "disabled-button" : "button" }
+          disabled={(!isValidForm || loading)}
+          aria-disabled={(!isValidForm || loading)}
         >
           {loading ? "Inscription..." : "S'inscrire"}
         </button>
