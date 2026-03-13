@@ -5,14 +5,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AuthService } from '../auth.service';
 import { responseLoginDto } from '../dto/response-login.dto';
 
-type RequestWithCookies = Request & {
-	cookies?: Record<string, string | undefined>;
-};
-
 const extractRefreshToken = (request: Request): string | null => {
-	const cookies = (request as RequestWithCookies).cookies;
-	const refreshToken = cookies?.Refresh;
-	return typeof refreshToken === 'string' ? refreshToken : null;
+	const token = (request as unknown as { cookies?: Record<string, string | undefined> }).cookies?.Refresh;
+	return token ?? null;
 };
 
 @Injectable()

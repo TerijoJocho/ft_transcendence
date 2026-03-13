@@ -8,14 +8,9 @@ import type { playerSelect } from '../../shared/db/schema';
 import { eq } from 'drizzle-orm';
 import { logoutDto } from '../dto/logout.dto';
 
-type RequestWithCookies = Request & {
-	cookies?: Record<string, string | undefined>;
-};
-
 const extractAccessToken = (request: Request): string | null => {
-	const cookies = (request as RequestWithCookies).cookies;
-	const accessToken = cookies?.Access;
-	return typeof accessToken === 'string' ? accessToken : null;
+	const token = (request as unknown as { cookies?: Record<string, string | undefined> }).cookies?.Access;
+	return token ?? null;
 };
 
 @Injectable()
