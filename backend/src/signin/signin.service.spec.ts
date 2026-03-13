@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SigninService } from './signin.service';
-import { UtilsService } from '../../shared/services/utils.func.service';
-import { playerTable } from '../../shared/db/schema';
+import { UtilsService } from '../shared/services/utils.func.service';
+import { playerTable } from '../shared/db/schema';
 
 describe('SigninService', () => {
   let service: SigninService;
@@ -34,7 +34,7 @@ describe('SigninService', () => {
     const gameName = 'player1';
     const pwd = 'secret';
 
-    service.registerPlayers(mailAddress, gameName, pwd);
+	void service.registerPlayers(mailAddress, gameName, pwd);
 
     expect(utilsService.insertPlayers).toHaveBeenCalledWith(
       [
