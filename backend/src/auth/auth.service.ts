@@ -6,8 +6,8 @@ import { eq } from 'drizzle-orm';
 import { UtilsService } from 'src/shared/services/utils.func.service';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { RedisService } from 'src/shared/services/redis.service';
-import { responseLoginDto } from './dto/response-login.dto';
-import { logoutDto } from './dto/logout.dto';
+import { ResponseLoginDto } from './dto/response-login.dto';
+import { LogoutDto } from './dto/logout.dto';
 
 type AuthTokenPayload = {
 	sub: number;
@@ -23,14 +23,16 @@ export class AuthService {
 		private readonly redisService: RedisService,
 	) {}
 
-	async logIn(user: responseLoginDto, response: Response): Promise<Response> {
+	async logIn(user: ResponseLoginDto, response: Response): Promise<Response> {
 		try {
 			const redisClient = this.redisService.getClient();
 			const accessExpirationMs = parseInt(process.env.JWT_ACCESS_TOKEN_EXPIRATION_MS);
     		const refreshExpirationMs = parseInt(process.env.JWT_REFRESH_TOKEN_EXPIRATION_MS);
 			const expiresAccessToken = new Date(Date.now() + accessExpirationMs);
 			const expiresRefreshToken = new Date(Date.now() + refreshExpirationMs);
-			
+			const accessExpirationSec = Math.floor(accessExpirationMs / 1000);
+			const refreshExpirationSec = Math.floor(refreshExpirationMs / 1000);
+
 			const tokenPayload: AuthTokenPayload = {
 				sub: user.playerId, 
 				pseudo: user.identifier,
@@ -39,14 +41,14 @@ export class AuthService {
 			const accessToken: string = this.jwtService.sign(tokenPayload, 
 				{
 					secret: process.env.JWT_ACCESS_TOKEN_SECRET,
-					expiresIn: accessExpirationMs,
+					expiresIn: accessExpirationSec,
 				} as JwtSignOptions
 			);
 
 			const refreshToken: string = this.jwtService.sign(tokenPayload, 
 				{
 					secret: process.env.JWT_REFRESH_TOKEN_SECRET,
-					expiresIn: refreshExpirationMs,
+					expiresIn: refreshExpirationSec,
 				} as JwtSignOptions
 			);
 
@@ -76,7 +78,7 @@ export class AuthService {
 		}
 	}
 
-	renewAccessToken(user: responseLoginDto, response: Response): Response {
+	renewAccessToken(user: ResponseLoginDto, response: Response): Response {
 		const accessExpirationMs = parseInt(process.env.JWT_ACCESS_TOKEN_EXPIRATION_MS);
 		const expiresAccessToken = new Date(Date.now() + accessExpirationMs);
 			
@@ -105,12 +107,12 @@ export class AuthService {
 	async verifyUser(username: string, password: string): Promise<playerSelect> {
 		const user = (await this.utilsService.findPlayersBy('and', undefined, eq(playerTable.gameName, username), eq(playerTable.pwd, password)) as playerSelect[])[0];
 		if (!user) {
-			throw new UnauthorizedException('Unvalid credentials.');
+			throw new UnauthorizedException('Invalid credentials.');
 		}
 		return user;
 	}
 
-	async verifyRefreshToken(playerId: number, refreshToken: string): Promise<responseLoginDto> {
+	async verifyRefreshToken(playerId: number, refreshToken: string): Promise<ResponseLoginDto> {
 		if (!refreshToken) {
 			throw new UnauthorizedException('Refresh token is missing.');
 		}
@@ -130,7 +132,7 @@ export class AuthService {
 		return { identifier: decoded.pseudo, playerId: decoded.sub };
 	}
 
-	async logOut (user: logoutDto, response: Response) {
+	async logOut (user: LogoutDto, response: Response) {
 		await this.redisService.getClient().del('refreshToken:' + user.playerId);
 		response.clearCookie('Access');
 		response.clearCookie('Refresh');
