@@ -38,10 +38,10 @@ export class AuthController {
   }
   
   //test route
-  @Get('me')
-  @UseGuards(PassportJwtGuard)
-  async getUserInfo(
-    @CurrentUser() user: logoutDto) {
-	    return user;
-  }
+  // @Get('me')
+  // @UseGuards(PassportJwtGuard)
+  // getUserInfo(
+  //   @CurrentUser() user: logoutDto) {
+	//     return user;
+  // }
 }
