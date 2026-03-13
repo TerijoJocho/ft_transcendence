@@ -1,5 +1,5 @@
 import { AuthService } from './auth.service';
-import { Controller, Get, HttpCode, HttpStatus, Post, Request, Res, UseGuards } from '@nestjs/common';
+import { Controller, HttpCode, HttpStatus, Post, Request, Res, UseGuards } from '@nestjs/common';
 import { PassportLocalGuard } from './guards/passport-local.guard';
 import { PassportJwtGuard } from './guards/passport-jwt.guard';
 import type { Response } from 'express';
@@ -23,10 +23,10 @@ export class AuthController {
 
   @Post('refresh')
   @UseGuards(PassportJwtRefreshGuard)
-  async refresh(
+  refresh(
     @CurrentUser() user: responseLoginDto,
     @Res({ passthrough: true }) response: Response) {
-      await this.authService.renewAccessToken(user, response);
+      this.authService.renewAccessToken(user, response);
   }
 
   @Post('logout')
@@ -36,12 +36,4 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response) {
       await this.authService.logOut(user, response);
   }
-  
-  //test route
-  // @Get('me')
-  // @UseGuards(PassportJwtGuard)
-  // getUserInfo(
-  //   @CurrentUser() user: logoutDto) {
-	//     return user;
-  // }
 }
