@@ -98,7 +98,7 @@ services:
       - DISABLE_DEFAULT_CONF=1
     ports:
       - "443:443"
-      - "80:80"
+      - "81:80"
     depends_on:
       - postgres
       - redis
