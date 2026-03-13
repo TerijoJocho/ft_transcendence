@@ -9,4 +9,5 @@ import { SigninModule } from './signin/signin.module';
 imports: [SharedModule, AuthModule, SigninModule], 
 controllers: [AppController], 
 providers: [AppService], 
-}) export class AppModule {}
+}) 
+export class AppModule {}
