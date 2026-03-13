@@ -7,13 +7,11 @@ import { playerTable } from '../../shared/db/schema';
 import type { playerSelect } from '../../shared/db/schema';
 import { eq } from 'drizzle-orm';
 import { logoutDto } from '../dto/logout.dto';
-import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 	constructor(
 		private readonly utilsService: UtilsService,
-		private readonly jwtService: JwtService,
 	)
 	{
 		super({
