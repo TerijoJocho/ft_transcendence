@@ -22,8 +22,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
     }),
   ],
-  exports:[DatabaseService, RedisService, CacheInterceptor, UtilsService, ConfigService],
-  providers:[DatabaseService, RedisService, CacheInterceptor, UtilsService, ConfigService,
+  exports:[DatabaseService, RedisService, CacheInterceptor, UtilsService],
+  providers:[DatabaseService, RedisService, CacheInterceptor, UtilsService,
     {
       provide: APP_PIPE,
       useFactory: () =>
