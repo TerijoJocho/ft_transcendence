@@ -18,7 +18,7 @@ export class AuthService {
 		private readonly redisService: RedisService,
 	) {}
 
-	async logIn(user: responseLoginDto, response: Response) {
+	async logIn(user: responseLoginDto, response: Response): Promise<Response> {
 		try {
 			const redisClient = this.redisService.getClient();
 			const accessExpirationMs = parseInt(process.env.JWT_ACCESS_TOKEN_EXPIRATION_MS);
@@ -29,7 +29,7 @@ export class AuthService {
 			const tokenPayload = { 
 				sub: user.playerId, 
 				pseudo: user.identifier,
-			};
+			} as { sub: number; pseudo: string };
 
 			const accessToken = this.jwtService.sign(tokenPayload, 
 				{
@@ -71,14 +71,14 @@ export class AuthService {
 		}
 	}
 
-	async renewAccessToken(user: responseLoginDto, response: Response) {
+	renewAccessToken(user: responseLoginDto, response: Response): Response {
 		const accessExpirationMs = parseInt(process.env.JWT_ACCESS_TOKEN_EXPIRATION_MS);
 		const expiresAccessToken = new Date(Date.now() + accessExpirationMs);
 			
 		const tokenPayload = { 
 			sub: user.playerId, 
 			pseudo: user.identifier,
-		};
+		} as { sub: number; pseudo: string };
 
 		const accessToken = this.jwtService.sign(tokenPayload, 
 			{
@@ -129,7 +129,7 @@ export class AuthService {
 		await this.redisService.getClient().del('refreshToken:' + user.playerId);
 		response.clearCookie('Access');
 		response.clearCookie('Refresh');
-		response.status(200).json({message: 'successfully logged out'})
+		response.status(200).json({message: 'successfully logged out'});
 	}
 }
 
