@@ -31,14 +31,14 @@ export class AuthService {
 				pseudo: user.identifier,
 			} as { sub: number; pseudo: string };
 
-			const accessToken = this.jwtService.sign(tokenPayload, 
+			const accessToken: string = this.jwtService.sign(tokenPayload, 
 				{
 					secret: process.env.JWT_ACCESS_TOKEN_SECRET,
 					expiresIn: accessExpirationMs,
 				} as JwtSignOptions
 			);
 
-			const refreshToken = this.jwtService.sign(tokenPayload, 
+			const refreshToken: string = this.jwtService.sign(tokenPayload, 
 				{
 					secret: process.env.JWT_REFRESH_TOKEN_SECRET,
 					expiresIn: refreshExpirationMs,
@@ -80,7 +80,7 @@ export class AuthService {
 			pseudo: user.identifier,
 		} as { sub: number; pseudo: string };
 
-		const accessToken = this.jwtService.sign(tokenPayload, 
+		const accessToken: string = this.jwtService.sign(tokenPayload, 
 			{
 				secret: process.env.JWT_ACCESS_TOKEN_SECRET,
 				expiresIn: accessExpirationMs,
