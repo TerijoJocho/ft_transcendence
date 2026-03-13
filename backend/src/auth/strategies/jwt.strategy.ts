@@ -6,7 +6,7 @@ import { UtilsService } from '../../shared/services/utils.func.service';
 import { playerTable } from '../../shared/db/schema';
 import type { playerSelect } from '../../shared/db/schema';
 import { eq } from 'drizzle-orm';
-import { logoutDto } from '../dto/logout.dto';
+import { LogoutDto } from '../dto/logout.dto';
 
 const extractAccessToken = (request: Request): string | null => {
 	const token = (request as unknown as { cookies?: Record<string, string | undefined> }).cookies?.Access;
@@ -25,10 +25,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 		});
 	}
 
-	async validate(payload: { sub: number }): Promise<logoutDto> {
+	async validate(payload: { sub: number }): Promise<LogoutDto> {
 		const user = (await this.utilsService.findPlayersBy('and', undefined, eq(playerTable.playerId, payload.sub)) as playerSelect[])[0];
 		if (!user)
 			throw new UnauthorizedException('Invalid token.');
-		return { playerId: user.playerId } as logoutDto;
+		return { playerId: user.playerId } as LogoutDto;
 	}
 }
