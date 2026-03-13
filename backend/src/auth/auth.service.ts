@@ -9,6 +9,11 @@ import { RedisService } from 'src/shared/services/redis.service';
 import { responseLoginDto } from './dto/response-login.dto';
 import { logoutDto } from './dto/logout.dto';
 
+type AuthTokenPayload = {
+	sub: number;
+	pseudo: string;
+};
+
 @Injectable()
 export class AuthService {
 	private readonly logger =  new Logger (AuthService.name);
@@ -26,10 +31,10 @@ export class AuthService {
 			const expiresAccessToken = new Date(Date.now() + accessExpirationMs);
 			const expiresRefreshToken = new Date(Date.now() + refreshExpirationMs);
 			
-			const tokenPayload = { 
+			const tokenPayload: AuthTokenPayload = {
 				sub: user.playerId, 
 				pseudo: user.identifier,
-			} as { sub: number; pseudo: string };
+			};
 
 			const accessToken: string = this.jwtService.sign(tokenPayload, 
 				{
@@ -75,10 +80,10 @@ export class AuthService {
 		const accessExpirationMs = parseInt(process.env.JWT_ACCESS_TOKEN_EXPIRATION_MS);
 		const expiresAccessToken = new Date(Date.now() + accessExpirationMs);
 			
-		const tokenPayload = { 
+		const tokenPayload: AuthTokenPayload = {
 			sub: user.playerId, 
 			pseudo: user.identifier,
-		} as { sub: number; pseudo: string };
+		};
 
 		const accessToken: string = this.jwtService.sign(tokenPayload, 
 			{
@@ -116,13 +121,13 @@ export class AuthService {
 		if (storedRefreshToken !== refreshToken) {
 			throw new UnauthorizedException('Refresh token does not match cache.');
 		}
-		const decoded = this.jwtService.verify(refreshToken, {
+		const decoded = this.jwtService.verify<AuthTokenPayload>(refreshToken, {
 			secret: process.env.JWT_REFRESH_TOKEN_SECRET,
-		}) as { sub: number; pseudo: string };
+		});
 		if (!decoded?.sub || !decoded?.pseudo || decoded.sub !== playerId) {
 			throw new UnauthorizedException('Invalid refresh token payload.');
 		}
-		return { identifier: decoded.pseudo, playerId: decoded.sub } as responseLoginDto;
+		return { identifier: decoded.pseudo, playerId: decoded.sub };
 	}
 
 	async logOut (user: logoutDto, response: Response) {

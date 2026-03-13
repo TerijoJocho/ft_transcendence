@@ -1,12 +1,22 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UtilsService } from '../../shared/services/utils.func.service';
 import { playerTable } from '../../shared/db/schema';
 import type { playerSelect } from '../../shared/db/schema';
 import { eq } from 'drizzle-orm';
 import { logoutDto } from '../dto/logout.dto';
+
+type RequestWithCookies = Request & {
+	cookies?: Record<string, string | undefined>;
+};
+
+const extractAccessToken = (request: Request): string | null => {
+	const cookies = (request as RequestWithCookies).cookies;
+	const accessToken = cookies?.Access;
+	return typeof accessToken === 'string' ? accessToken : null;
+};
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -15,7 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 	)
 	{
 		super({
-			jwtFromRequest: ExtractJwt.fromExtractors([(request: Request) => request.cookies?.Access]),
+			jwtFromRequest: ExtractJwt.fromExtractors([extractAccessToken]),
 			secretOrKey: process.env.JWT_ACCESS_TOKEN_SECRET,
 		});
 	}
