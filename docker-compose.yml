@@ -83,7 +83,7 @@ services:
       # On donne les droits au dossier /vault/data à l'utilisateur 100 (qui est l'user 'vault')
       command: chown -R 100:100 /vault/data /run/secrets && chmod -R 700 /vault/data /run/secrets
       volumes:
-        - ./backend/vault/data:/vault/data 
+        - vault_data:/vault/data
         - shared_secrets:/run/secrets/
 
   vault:
@@ -101,10 +101,11 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_started
-    env_file:
-      - .env
+    environment:
+        POSTGRES_USER: ${POSTGRES_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - ./backend/vault/data:/vault/data
+      - vault_data:/vault/data
       - shared_secrets:/run/secrets/
 
   # -----------------------------
@@ -146,12 +147,10 @@ services:
     networks: [internal]
 
 volumes:
+  vault_data:
+    driver: local
   shared_secrets:
     driver: local
-    driver_opts:
-      type: none
-      device: ${PWD}/shared_secrets
-      o: bind
   
 #   ./data:/var/lib/postgresql/data
 

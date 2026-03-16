@@ -1,0 +1,14 @@
+services:
+  init_vault:
+    volumes:
+      - ./backend/vault/data:/vault/data
+      - ./shared_secrets:/run/secrets/
+
+  vault:
+    volumes:
+      - ./backend/vault/data:/vault/data
+      - ./shared_secrets:/run/secrets/
+
+  backend:
+    volumes:
+      - ./shared_secrets:/run/secrets/:ro
