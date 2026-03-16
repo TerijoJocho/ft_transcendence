@@ -36,7 +36,7 @@ if [ "$initialized" != "true" ]; then
   vault operator unseal "$VAULT_UNSEAL_KEY_2"
   vault operator unseal "$VAULT_UNSEAL_KEY_3"
 
-  vault login "$VAULT_TOKEN"
+  # VAULT_TOKEN is already exported; avoid `vault login` because it prints token details.
   vault policy write backend-policy /backend-policy.hcl
   if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null; then
     vault secrets enable -version=2 -path=secret kv
@@ -67,7 +67,7 @@ else
   fi
   if [ -n "$ROOT_TOKEN" ] && VAULT_TOKEN="$ROOT_TOKEN" vault token lookup >/dev/null 2>&1; then
     echo "valid token found in init file, using it"
-    vault login "$ROOT_TOKEN"
+    export VAULT_TOKEN="$ROOT_TOKEN"
   else
     echo "token in init file is invalid, checking for token in /run/secrets/backend_token..."
     exit 1

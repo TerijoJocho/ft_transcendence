@@ -7,3 +7,6 @@ coverage
 .vscode
 .idea
 /data
+shared_secrets
+backend/vault/data
+docker-compose.override.yml
