@@ -8,7 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 
 @Global()
 @Module({
-  imports:[
+  imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -22,8 +22,12 @@ import { ConfigModule } from '@nestjs/config';
       }),
     }),
   ],
-  exports:[DatabaseService, RedisService, CacheInterceptor, UtilsService],
-  providers:[DatabaseService, RedisService, CacheInterceptor, UtilsService,
+  exports: [DatabaseService, RedisService, CacheInterceptor, UtilsService],
+  providers: [
+    DatabaseService,
+    RedisService,
+    CacheInterceptor,
+    UtilsService,
     {
       provide: APP_PIPE,
       useFactory: () =>

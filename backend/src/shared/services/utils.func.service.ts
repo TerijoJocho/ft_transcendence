@@ -41,39 +41,45 @@ export class UtilsService {
     return query;
   };
 
-insertPlayers = async (
-  players: playerInsert[],
-  insertedValues?: SelectedFieldsFlat,
-) => {
-  const query = this.Database.getDb().insert(playerTable).values(players);
-  return insertedValues ? query.returning(insertedValues) : query.returning();
-};
+  insertPlayers = async (
+    players: playerInsert[],
+    insertedValues?: SelectedFieldsFlat,
+  ) => {
+    const query = this.Database.getDb().insert(playerTable).values(players);
+    return insertedValues ? query.returning(insertedValues) : query.returning();
+  };
 
-updateAllPlayers = async (
-  updatedPlayer: Partial<playerInsert>,
-  updatedValues?: SelectedFieldsFlat,
-) => {
-  const query = updatedValues
-    ? this.Database.getDb().update(playerTable).set(updatedPlayer).returning(updatedValues)
-    : this.Database.getDb().update(playerTable).set(updatedPlayer).returning();
-  return query;
-};
+  updateAllPlayers = async (
+    updatedPlayer: Partial<playerInsert>,
+    updatedValues?: SelectedFieldsFlat,
+  ) => {
+    const query = updatedValues
+      ? this.Database.getDb()
+          .update(playerTable)
+          .set(updatedPlayer)
+          .returning(updatedValues)
+      : this.Database.getDb()
+          .update(playerTable)
+          .set(updatedPlayer)
+          .returning();
+    return query;
+  };
 
-updatePlayersBy = async (
-  updatedPlayer: Partial<playerInsert>,
-  operator?: 'and' | 'or',
-  updatedValues?: SelectedFieldsFlat,
-  ...conditions: (SQLWrapper | SQLWrapper[])[]
-) => {
-  let query = this.Database.getDb().update(playerTable).set(updatedPlayer);
-  const flatConditions = conditions.flat();
-  if (operator === 'or') {
-    query = query.where(or(...flatConditions)) as typeof query;
-  } else if (operator === 'and') {
-    query = query.where(and(...flatConditions)) as typeof query;
-  }
-  return updatedValues ? query.returning(updatedValues) : query.returning();
-};
+  updatePlayersBy = async (
+    updatedPlayer: Partial<playerInsert>,
+    operator?: 'and' | 'or',
+    updatedValues?: SelectedFieldsFlat,
+    ...conditions: (SQLWrapper | SQLWrapper[])[]
+  ) => {
+    let query = this.Database.getDb().update(playerTable).set(updatedPlayer);
+    const flatConditions = conditions.flat();
+    if (operator === 'or') {
+      query = query.where(or(...flatConditions)) as typeof query;
+    } else if (operator === 'and') {
+      query = query.where(and(...flatConditions)) as typeof query;
+    }
+    return updatedValues ? query.returning(updatedValues) : query.returning();
+  };
 
   deleteAllPlayers = async () => {
     return this.Database.getDb().delete(playerTable);
@@ -126,39 +132,42 @@ updatePlayersBy = async (
     return query;
   };
 
-insertGames = async (
-  games: gameInsert[],
-  insertedValues?: SelectedFieldsFlat,
-) => {
-  const query = this.Database.getDb().insert(gameTable).values(games);
-  return insertedValues ? query.returning(insertedValues) : query.returning();
-};
+  insertGames = async (
+    games: gameInsert[],
+    insertedValues?: SelectedFieldsFlat,
+  ) => {
+    const query = this.Database.getDb().insert(gameTable).values(games);
+    return insertedValues ? query.returning(insertedValues) : query.returning();
+  };
 
-updateAllGames = async (
-  updatedGame: Partial<gameInsert>,
-  updatedValues?: SelectedFieldsFlat,
-) => {
-  const query = updatedValues
-    ? this.Database.getDb().update(gameTable).set(updatedGame).returning(updatedValues)
-    : this.Database.getDb().update(gameTable).set(updatedGame).returning();
-  return query;
-};
+  updateAllGames = async (
+    updatedGame: Partial<gameInsert>,
+    updatedValues?: SelectedFieldsFlat,
+  ) => {
+    const query = updatedValues
+      ? this.Database.getDb()
+          .update(gameTable)
+          .set(updatedGame)
+          .returning(updatedValues)
+      : this.Database.getDb().update(gameTable).set(updatedGame).returning();
+    return query;
+  };
 
-updateGamesBy = async (
-  updatedGame: Partial<gameInsert>,
-  operator?: 'and' | 'or',
-  updatedValues?: SelectedFieldsFlat,
-  ...conditions: (SQLWrapper | SQLWrapper[])[]
-) => {
-  let query = this.Database.getDb().update(gameTable).set(updatedGame);
-  const flatConditions = conditions.flat();
-  if (operator === 'or') {
-    query = query.where(or(...flatConditions)) as typeof query;
-  } else if (operator === 'and') {
-    query = query.where(and(...flatConditions)) as typeof query;
-  }
-  return updatedValues ? query.returning(updatedValues) : query.returning();
-};
+  updateGamesBy = async (
+    updatedGame: Partial<gameInsert>,
+    operator?: 'and' | 'or',
+    updatedValues?: SelectedFieldsFlat,
+    ...conditions: (SQLWrapper | SQLWrapper[])[]
+  ) => {
+    let query = this.Database.getDb().update(gameTable).set(updatedGame);
+    const flatConditions = conditions.flat();
+    if (operator === 'or') {
+      query = query.where(or(...flatConditions)) as typeof query;
+    } else if (operator === 'and') {
+      query = query.where(and(...flatConditions)) as typeof query;
+    }
+    return updatedValues ? query.returning(updatedValues) : query.returning();
+  };
 
   deleteAllGames = async () => {
     return this.Database.getDb().delete(gameTable);
@@ -204,39 +213,49 @@ updateGamesBy = async (
     return query;
   };
 
-insertFriendships = async (
-  friendships: friendshipInsert[],
-  insertedValues?: SelectedFieldsFlat,
-) => {
-  const query = this.Database.getDb().insert(friendshipTable).values(friendships);
-  return insertedValues ? query.returning(insertedValues) : query.returning();
-};
+  insertFriendships = async (
+    friendships: friendshipInsert[],
+    insertedValues?: SelectedFieldsFlat,
+  ) => {
+    const query = this.Database.getDb()
+      .insert(friendshipTable)
+      .values(friendships);
+    return insertedValues ? query.returning(insertedValues) : query.returning();
+  };
 
-updateAllFriendships = async (
-  updatedFriendship: Partial<friendshipInsert>,
-  updatedValues?: SelectedFieldsFlat,
-) => {
-  const query = updatedValues
-    ? this.Database.getDb().update(friendshipTable).set(updatedFriendship).returning(updatedValues)
-    : this.Database.getDb().update(friendshipTable).set(updatedFriendship).returning();
-  return query;
-};
+  updateAllFriendships = async (
+    updatedFriendship: Partial<friendshipInsert>,
+    updatedValues?: SelectedFieldsFlat,
+  ) => {
+    const query = updatedValues
+      ? this.Database.getDb()
+          .update(friendshipTable)
+          .set(updatedFriendship)
+          .returning(updatedValues)
+      : this.Database.getDb()
+          .update(friendshipTable)
+          .set(updatedFriendship)
+          .returning();
+    return query;
+  };
 
-updateFriendshipsBy = async (
-  updatedFriendship: Partial<friendshipInsert>,
-  operator?: 'and' | 'or',
-  updatedValues?: SelectedFieldsFlat,
-  ...conditions: (SQLWrapper | SQLWrapper[])[]
-) => {
-  let query = this.Database.getDb().update(friendshipTable).set(updatedFriendship);
-  const flatConditions = conditions.flat();
-  if (operator === 'or') {
-    query = query.where(or(...flatConditions)) as typeof query;
-  } else if (operator === 'and') {
-    query = query.where(and(...flatConditions)) as typeof query;
-  }
-  return updatedValues ? query.returning(updatedValues) : query.returning();
-};
+  updateFriendshipsBy = async (
+    updatedFriendship: Partial<friendshipInsert>,
+    operator?: 'and' | 'or',
+    updatedValues?: SelectedFieldsFlat,
+    ...conditions: (SQLWrapper | SQLWrapper[])[]
+  ) => {
+    let query = this.Database.getDb()
+      .update(friendshipTable)
+      .set(updatedFriendship);
+    const flatConditions = conditions.flat();
+    if (operator === 'or') {
+      query = query.where(or(...flatConditions)) as typeof query;
+    } else if (operator === 'and') {
+      query = query.where(and(...flatConditions)) as typeof query;
+    }
+    return updatedValues ? query.returning(updatedValues) : query.returning();
+  };
 
   deleteAllFriendships = async () => {
     return this.Database.getDb().delete(friendshipTable);
@@ -282,42 +301,49 @@ updateFriendshipsBy = async (
     return query;
   };
 
-insertParticipations = async (
-  participations: participationInsert[],
-  insertedValues?: SelectedFieldsFlat,
-) => {
-  const query = this.Database.getDb().insert(participationTable).values(participations);
-  return insertedValues ? query.returning(insertedValues) : query.returning();
-};
+  insertParticipations = async (
+    participations: participationInsert[],
+    insertedValues?: SelectedFieldsFlat,
+  ) => {
+    const query = this.Database.getDb()
+      .insert(participationTable)
+      .values(participations);
+    return insertedValues ? query.returning(insertedValues) : query.returning();
+  };
 
-updateAllParticipations = async (
-  updatedParticipation: Partial<participationInsert>,
-  updatedValues?: SelectedFieldsFlat,
-) => {
-  const query = updatedValues
-    ? this.Database.getDb()
-        .update(participationTable)
-        .set(updatedParticipation)
-        .returning(updatedValues)
-    : this.Database.getDb().update(participationTable).set(updatedParticipation).returning();
-  return query;
-};
+  updateAllParticipations = async (
+    updatedParticipation: Partial<participationInsert>,
+    updatedValues?: SelectedFieldsFlat,
+  ) => {
+    const query = updatedValues
+      ? this.Database.getDb()
+          .update(participationTable)
+          .set(updatedParticipation)
+          .returning(updatedValues)
+      : this.Database.getDb()
+          .update(participationTable)
+          .set(updatedParticipation)
+          .returning();
+    return query;
+  };
 
-updateParticipationsBy = async (
-  updatedParticipation: Partial<participationInsert>,
-  operator?: 'and' | 'or',
-  updatedValues?: SelectedFieldsFlat,
-  ...conditions: (SQLWrapper | SQLWrapper[])[]
-) => {
-  let query = this.Database.getDb().update(participationTable).set(updatedParticipation);
-  const flatConditions = conditions.flat();
-  if (operator === 'or') {
-    query = query.where(or(...flatConditions)) as typeof query;
-  } else if (operator === 'and') {
-    query = query.where(and(...flatConditions)) as typeof query;
-  }
-  return updatedValues ? query.returning(updatedValues) : query.returning();
-};
+  updateParticipationsBy = async (
+    updatedParticipation: Partial<participationInsert>,
+    operator?: 'and' | 'or',
+    updatedValues?: SelectedFieldsFlat,
+    ...conditions: (SQLWrapper | SQLWrapper[])[]
+  ) => {
+    let query = this.Database.getDb()
+      .update(participationTable)
+      .set(updatedParticipation);
+    const flatConditions = conditions.flat();
+    if (operator === 'or') {
+      query = query.where(or(...flatConditions)) as typeof query;
+    } else if (operator === 'and') {
+      query = query.where(and(...flatConditions)) as typeof query;
+    }
+    return updatedValues ? query.returning(updatedValues) : query.returning();
+  };
 
   deleteAllParticipations = async () => {
     return this.Database.getDb().delete(participationTable);

@@ -34,7 +34,7 @@ describe('SigninService', () => {
     const gameName = 'player1';
     const pwd = 'secret';
 
-	void service.registerPlayers(mailAddress, gameName, pwd);
+    void service.registerPlayers(mailAddress, gameName, pwd);
 
     expect(utilsService.insertPlayers).toHaveBeenCalledWith(
       [
