@@ -9,7 +9,7 @@ import { ResponseLoginDto } from '../dto/response-login.dto';
 export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
 	constructor(private authService: AuthService) {
 		super({
-			usernameField: 'username',
+			usernameField: 'identifier',
 			passwordField: 'password'
 		});
 	}
