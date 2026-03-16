@@ -58,15 +58,54 @@ services:
     environment:
       POSTGRES_URL: ${POSTGRES_URL}
       REDIS_URL: ${REDIS_URL}
+      VAULT_ADDR: ${VAULT_ADDR}
+      VAULT_CACERT: ${VAULT_CACERT}
+      VAULT_SKIP_VERIFY: "true"
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - shared_secrets:/run/secrets/:ro
     depends_on:
       - postgres
       - redis
     networks: [internal]
     # Command pour le dev (hot reload)
     command: npm run start:dev
+
+  # -----------------------------
+  # Vault Hashicorp
+  # -----------------------------
+
+  init_vault:
+      image: alpine:latest
+      container_name: vault_fix_perms
+      networks: [internal]
+      # On donne les droits au dossier /vault/data à l'utilisateur 100 (qui est l'user 'vault')
+      command: chown -R 100:100 /vault/data /run/secrets && chmod -R 700 /vault/data /run/secrets
+      volumes:
+        - ./backend/vault/data:/vault/data 
+        - shared_secrets:/run/secrets/
+
+  vault:
+    build:
+      context: ./backend/vault
+      dockerfile: Dockerfile
+    container_name: ft_transcendence_vault
+    networks: [internal]
+    expose:
+      - "8200"
+    cap_add:
+      - IPC_LOCK # Empêche la RAM d'être copiée sur le disque
+    depends_on:
+      init_vault:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_started
+    env_file:
+      - .env
+    volumes:
+      - ./backend/vault/data:/vault/data
+      - shared_secrets:/run/secrets/
 
   # -----------------------------
   # Frontend (React + Vite)
@@ -106,7 +145,14 @@ services:
       - frontend
     networks: [internal]
 
-# volumes:
+volumes:
+  shared_secrets:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/shared_secrets
+      o: bind
+  
 #   ./data:/var/lib/postgresql/data
 
 networks:
