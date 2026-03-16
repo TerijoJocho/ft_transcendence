@@ -9,30 +9,35 @@ import { eq } from 'drizzle-orm';
 import { LogoutDto } from '../dto/logout.dto';
 
 const extractAccessToken = (request: Request): string | null => {
-	const token = (request as unknown as { cookies?: Record<string, string | undefined> }).cookies?.Access;
-	return token ?? null;
+  const token = (
+    request as unknown as { cookies?: Record<string, string | undefined> }
+  ).cookies?.Access;
+  return token ?? null;
 };
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-	constructor(
-		private readonly utilsService: UtilsService,
-	)
-	{
-		super({
-			jwtFromRequest: ExtractJwt.fromExtractors([extractAccessToken]),
-			secretOrKey: process.env.JWT_ACCESS_TOKEN_SECRET,
-		});
-	}
+  constructor(private readonly utilsService: UtilsService) {
+    super({
+      jwtFromRequest: ExtractJwt.fromExtractors([extractAccessToken]),
+      secretOrKey: process.env.JWT_ACCESS_TOKEN_SECRET,
+    });
+  }
 
-	async validate(payload: { sub: number }): Promise<LogoutDto> {
-		try {
-			const user = (await this.utilsService.findPlayersBy('and', undefined, eq(playerTable.playerId, payload.sub)) as playerSelect[])[0];
-			if (!user)
-				throw new UnauthorizedException('Invalid token.');
-			return { playerId: user.playerId } as LogoutDto;
-		} catch (error) {
-			throw new UnauthorizedException('No token provided.');
-		}
-	}
+  async validate(payload: { sub: number }): Promise<LogoutDto> {
+    try {
+      const user = (
+        (await this.utilsService.findPlayersBy(
+          'and',
+          undefined,
+          eq(playerTable.playerId, payload.sub),
+        )) as playerSelect[]
+      )[0];
+      if (!user) 
+		throw new UnauthorizedException('Invalid token.');
+      return { playerId: user.playerId } as LogoutDto;
+    } catch (error) {
+      throw new UnauthorizedException(error);
+    }
+  }
 }
