@@ -138,5 +138,20 @@ export class AuthService {
 		response.clearCookie('Refresh');
 		response.status(200).json({message: 'successfully logged out'});
 	}
-}
 
+	async me(playerId: number) {
+		const user = (await this.utilsService.findPlayersBy('and',undefined,eq(playerTable.playerId, playerId),))[0];
+
+		if (!user) {
+		throw new UnauthorizedException('User not found.');
+		}
+
+		return {
+			id: user.playerId,
+			pseudo: user.gameName,
+			elo: 1200,
+			status: 'ONLINE',
+			avatar: user.avatarUrl,
+		};
+	}
+}

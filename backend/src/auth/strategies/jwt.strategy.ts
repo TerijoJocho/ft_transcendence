@@ -26,9 +26,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 	}
 
 	async validate(payload: { sub: number }): Promise<LogoutDto> {
-		const user = (await this.utilsService.findPlayersBy('and', undefined, eq(playerTable.playerId, payload.sub)) as playerSelect[])[0];
-		if (!user)
-			throw new UnauthorizedException('Invalid token.');
-		return { playerId: user.playerId } as LogoutDto;
+		try {
+			const user = (await this.utilsService.findPlayersBy('and', undefined, eq(playerTable.playerId, payload.sub)) as playerSelect[])[0];
+			if (!user)
+				throw new UnauthorizedException('Invalid token.');
+			return { playerId: user.playerId } as LogoutDto;
+		} catch (error) {
+			throw new UnauthorizedException('No token provided.');
+		}
 	}
 }

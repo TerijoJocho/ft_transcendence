@@ -1,5 +1,5 @@
 import { AuthService } from './auth.service';
-import { Controller, HttpCode, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
+import { Controller, HttpCode, HttpStatus, Post, Res, UseGuards, Get } from '@nestjs/common';
 import { PassportLocalGuard } from './guards/passport-local.guard';
 import { PassportJwtGuard } from './guards/passport-jwt.guard';
 import type { Response } from 'express';
@@ -35,5 +35,11 @@ export class AuthController {
     @CurrentUser() user: LogoutDto,
     @Res({ passthrough: true }) response: Response) {
       await this.authService.logOut(user, response);
+  }
+
+  @Get('me')
+  @UseGuards(PassportJwtGuard)
+  async me(@CurrentUser() user: LogoutDto) {
+    return user;
   }
 }
