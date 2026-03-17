@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Local Two-Player Chess (Full Rules)</title>
+  <style>
+    body {
+      display: flex;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+    }
+
+    #history {
+      width: 120px;
+      overflow-y: auto;
+      border-right: 2px solid #333;
+      padding: 10px;
+      background: #eee;
+    }
+
+    #history div {
+      margin-bottom: 4px;
+    }
+
+    #game {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 { margin-top: 10px; }
+    #status { margin: 10px; font-weight: bold; }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 70px);
+      grid-template-rows: repeat(8, 70px);
+      border: 4px solid #333;
+      margin-top: 10px;
+    }
+
+    .square {
+      width: 70px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .light { background: #eeeed2; }
+    .dark { background: #769656; }
+    .selected { outline: 3px solid red; }
+
+    button {
+      margin: 10px;
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #promotionUI {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid #333;
+      padding: 10px;
+      z-index: 1000;
+    }
+
+    #promotionUI div {
+      display: inline-block;
+      margin: 5px;
+      font-size: 40px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="history"></div>
+  <div id="game">
+    <h1>Local Two-Player Chess</h1>
+    <div id="status"></div>
+    <div class="board" id="board"></div>
+    <button onclick="resetGame()">Restart Game</button>
+    <div id="promotionUI"></div>
+  </div>
+
+  <script>
+    const boardElement = document.getElementById("board");
+    const statusElement = document.getElementById("status");
+    const promotionUI = document.getElementById("promotionUI");
+    const historyElement = document.getElementById("history");
+
+    let board = [];
+    let selected = null;
+    let currentPlayer = "white";
+    let gameOver = false;
+    let moved = {};
+    let enPassantTarget = null;
+    let halfmoveClock = 0;
+    let pendingPromotion = null;
+    let moveHistory = [];
+
+    const pieces = {
+      r: "♜", n: "♞", b: "♝", q: "♛", k: "♚", p: "♟",
+      R: "♖", N: "♘", B: "♗", Q: "♕", K: "♔", P: "♙"
+    };
+
+    function initBoard()
+    {
+      board = [
+        ["r", "n", "b", "q", "k", "b", "n", "r"],
+        ["p", "p", "p", "p", "p", "p", "p", "p"],
+        ["",  "",  "",  "",  "",  "",  "",  "" ],
+        ["",  "",  "",  "",  "",  "",  "",  "" ],
+        ["",  "",  "",  "",  "",  "",  "",  "" ],
+        ["",  "",  "",  "",  "",  "",  "",  "" ],
+        ["P", "P", "P", "P", "P", "P", "P", "P"],
+        ["R", "N", "B", "Q", "K", "B", "N", "R"]
+      ];
+      moved = { K: false, R0: false, R7: false, k: false, r0: false, r7: false };
+      enPassantTarget = null;
+      halfmoveClock = 0;
+      pendingPromotion = null;
+      moveHistory = [];
+      currentPlayer = "white";
+      selected = null;
+      gameOver = false;
+      renderBoard();
+      updateStatus();
+      updateHistory();
+    }
+
+    function renderBoard(highlights = [])
+    {
+      boardElement.innerHTML = "";
+      for (let r = 0; r < 8; r++)
+      {
+        for (let c = 0; c < 8; c++)
+        {
+          const sq = document.createElement("div");
+          sq.className = "square " + ((r + c) % 2 ? "dark" : "light");
+          sq.dataset.row = r;
+          sq.dataset.col = c;
+          sq.textContent = pieces[board[r][c]] || "";
+          highlights.forEach(h => {
+            if (h.row === r && h.col === c) sq.style.background = h.capture ? "#f88" : "#8f8";
+          });
+          if (selected && selected[0] === r && selected[1] === c) sq.classList.add("selected");
+          sq.onclick = handleClick;
+          boardElement.appendChild(sq);
+        }
+      }
+    }
+
+    function handleClick(e)
+    {
+      if (gameOver || pendingPromotion) return;
+      const r = +e.target.dataset.row;
+      const c = +e.target.dataset.col;
+      const piece = board[r][c];
+
+      if (selected)
+      {
+        const [sr, sc] = selected;
+        if (isLegalMove(sr, sc, r, c))
+        {
+          makeMove(sr, sc, r, c);
+          currentPlayer = currentPlayer === "white" ? "black" : "white";
+          selected = null;
+          renderBoard();
+          checkGameState();
+          updateStatus();
+          return;
+        }
+        selected = null;
+        renderBoard();
+      } else if (piece && isCurrentPlayerPiece(piece))
+      {
+        selected = [r, c];
+        renderBoard(getLegalMoves(r, c));
+      }
+    }
+
+    function getLegalMoves(r, c)
+    {
+      let m = [];
+      for (let i = 0; i < 8; i++)
+        for (let j = 0; j < 8; j++)
+          if (isLegalMove(r, c, i, j))
+            m.push({ row: i, col: j, capture: board[i][j] !== "" });
+      return m;
+    }
+
+    function makeMove(sr, sc, dr, dc)
+    {
+      const piece = board[sr][sc];
+      const target = board[dr][dc];
+      if (piece.toLowerCase() === "p" || target !== "") halfmoveClock = 0; else halfmoveClock++;
+      enPassantTarget = null;
+      if (piece === "K") moved.K = true;
+      if (piece === "k") moved.k = true;
+      if (piece === "R" && sr === 7 && sc === 0) moved.R0 = true;
+      if (piece === "R" && sr === 7 && sc === 7) moved.R7 = true;
+      if (piece === "r" && sr === 0 && sc === 0) moved.r0 = true;
+      if (piece === "r" && sr === 0 && sc === 7) moved.r7 = true;
+      if (piece.toLowerCase() === "p" && dc !== sc && board[dr][dc] === "") board[sr][dc] = "";
+      if (piece.toLowerCase() === "p" && Math.abs(dr - sr) === 2) enPassantTarget = { row: (sr + dr) / 2, col: sc };
+      if (piece.toLowerCase() === "k" && Math.abs(dc - sc) === 2)
+      {
+        if (dc === 6) { board[sr][5] = board[sr][7]; board[sr][7] = ""; }
+        if (dc === 2) { board[sr][3] = board[sr][0]; board[sr][0] = ""; }
+      }
+
+      board[dr][dc] = piece;
+      board[sr][sc] = "";
+
+      if (promotePawn(dr, dc, sr, sc, piece, target)) return;
+
+      const moveNotation = convertMoveToNotation(sr, sc, dr, dc, piece, target);
+      moveHistory.push(moveNotation);
+      updateHistory();
+    }
+
+    function promotePawn(r, c, sr, sc, piece, target)
+    {
+      const p = board[r][c];
+      if ((p === "P" && r === 0) || (p === "p" && r === 7))
+      {
+        pendingPromotion = { row: r, col: c, isWhite: p === "P", sr, sc, piece, target };
+        showPromotionUI(p === "P");
+        return true;
+      }
+      return false;
+    }
+
+    function showPromotionUI(isWhite)
+    {
+      promotionUI.innerHTML = "";
+      const opts = isWhite ? ["Q", "R", "B", "N"] : ["q", "r", "b", "n"];
+      opts.forEach(p => {
+        const el = document.createElement("div");
+        el.textContent = pieces[p];
+        el.onclick = () => selectPromotion(p);
+        promotionUI.appendChild(el);
+      });
+      promotionUI.style.display = "block";
+    }
+
+    function selectPromotion(p)
+    {
+      const { row, col, sr, sc, piece, target } = pendingPromotion;
+      board[row][col] = p;
+      pendingPromotion = null;
+      promotionUI.style.display = "none";
+      let notation = convertMoveToNotation(sr, sc, row, col, piece, target);
+      notation += "=" + p.toUpperCase();
+      moveHistory.push(notation);
+      updateHistory();
+      renderBoard();
+      checkGameState();
+      updateStatus();
+    }
+
+    function isCurrentPlayerPiece(p)
+    {
+      return currentPlayer === "white" ? p === p.toUpperCase() : p === p.toLowerCase();
+    }
+
+    function isLegalMove(sr, sc, dr, dc)
+    {
+      if (sr === dr && sc === dc) return false;
+      const p = board[sr][sc], t = board[dr][dc];
+      if (t && isCurrentPlayerPiece(t)) return false;
+      if (!isValidPieceMove(sr, sc, dr, dc)) return false;
+      const temp = board[dr][dc];
+      board[dr][dc] = board[sr][sc]; board[sr][sc] = "";
+      const check = isInCheck(currentPlayer);
+      board[sr][sc] = board[dr][dc]; board[dr][dc] = temp;
+      return !check;
+    }
+
+    function isValidPieceMove(sr, sc, dr, dc)
+    {
+      const p = board[sr][sc], t = board[dr][dc], rd = dr - sr, cd = dc - sc;
+      switch (p.toLowerCase()) {
+        case "p": {
+          const dir = p === "P" ? -1 : 1, start = p === "P" ? 6 : 1;
+          if (cd === 0 && !t)
+          {
+            if (rd === dir) return true;
+            if (sr === start && rd === 2 * dir && !board[sr + dir][sc]) return true;
+          }
+          if (Math.abs(cd) === 1 && rd === dir)
+          {
+            if (t) return true;
+            if (enPassantTarget && enPassantTarget.row === dr && enPassantTarget.col === dc) return true;
+          }
+          return false;
+        }
+        case "r": if (rd && cd) return false; return isPathClear(sr, sc, dr, dc);
+        case "n": return (Math.abs(rd) === 2 && Math.abs(cd) === 1) || (Math.abs(rd) === 1 && Math.abs(cd) === 2);
+        case "b": if (Math.abs(rd) !== Math.abs(cd)) return false; return isPathClear(sr, sc, dr, dc);
+        case "q": if (rd === 0 || cd === 0 || Math.abs(rd) === Math.abs(cd)) return isPathClear(sr, sc, dr, dc); return false;
+        case "k":
+          if (Math.abs(rd) <= 1 && Math.abs(cd) <= 1) return true;
+          if (rd === 0 && Math.abs(cd) === 2) return canCastle(sr, sc, dc);
+          return false;
+      }
+    }
+
+    function canCastle(r, c, dc)
+    {
+      const p = board[r][c], w = p === "K";
+      if ((w && moved.K) || (!w && moved.k)) return false;
+      if (dc === 6)
+      {
+        if ((w && moved.R7) || (!w && moved.r7)) return false;
+        if (board[r][5] || board[r][6]) return false;
+        if (isSquareAttacked(r, 4, w) || isSquareAttacked(r, 5, w) || isSquareAttacked(r, 6, w)) return false;
+        return true;
+      }
+      if (dc === 2)
+      {
+        if ((w && moved.R0) || (!w && moved.r0)) return false;
+        if (board[r][1] || board[r][2] || board[r][3]) return false;
+        if (isSquareAttacked(r, 4, w) || isSquareAttacked(r, 3, w) || isSquareAttacked(r, 2, w)) return false;
+        return true;
+      }
+    }
+
+    function isSquareAttacked(r, c, w)
+    {
+      for (let i = 0; i < 8; i++)
+        for (let j = 0; j < 8; j++)
+        {
+          const p = board[i][j];
+          if (!p) continue;
+          const opp = w ? p === p.toLowerCase() : p === p.toUpperCase();
+          if (opp && isValidPieceMove(i, j, r, c)) return true;
+        }
+      return false;
+    }
+
+    function isPathClear(sr, sc, dr, dc)
+    {
+      let rs = Math.sign(dr - sr), cs = Math.sign(dc - sc);
+      let r = sr + rs, c = sc + cs;
+      while (r !== dr || c !== dc)
+      {
+        if (board[r][c] !== "") return false;
+        r += rs; c += cs;
+      }
+      return true;
+    }
+
+    function isInCheck(player)
+    {
+      const k = player === "white" ? "K" : "k";
+      let kr, kc;
+      for (let r = 0; r < 8; r++)
+        for (let c = 0; c < 8; c++)
+          if (board[r][c] === k) { kr = r; kc = c; }
+      for (let r = 0; r < 8; r++)
+        for (let c = 0; c < 8; c++)
+        {
+          const p = board[r][c]; if (!p) continue;
+          if ((player === "white" ? p === p.toLowerCase() : p === p.toUpperCase()) && isValidPieceMove(r, c, kr, kc)) return true;
+        }
+      return false;
+    }
+
+    function hasLegalMoves(player)
+    {
+      for (let r = 0; r < 8; r++)
+        for (let c = 0; c < 8; c++)
+        {
+          const p = board[r][c]; if (!p) continue;
+          if ((player === "white" ? p === p.toUpperCase() : p === p.toLowerCase()))
+          {
+            for (let dr = 0; dr < 8; dr++)
+              for (let dc = 0; dc < 8; dc++)
+                if (isLegalMove(r, c, dr, dc)) return true;
+          }
+        }
+      return false;
+    }
+
+    function checkGameState()
+    {
+      const opp = currentPlayer;
+      if (halfmoveClock >= 100) { statusElement.textContent = "Draw by 50-move rule!"; gameOver = true; return; }
+      if (isInCheck(opp))
+      {
+        if (!hasLegalMoves(opp)) { statusElement.textContent = `Checkmate! ${currentPlayer === "white" ? "Black" : "White"} wins!`; gameOver = true; }
+        else statusElement.textContent = `${opp} in check`;
+      } else if (!hasLegalMoves(opp)) { statusElement.textContent = "Stalemate!"; gameOver = true; }
+    }
+
+    function updateStatus()
+    {
+      if (!gameOver) statusElement.textContent = `${currentPlayer}'s turn | Halfmoves: ${halfmoveClock}`;
+    }
+
+    function updateHistory()
+    {
+      historyElement.innerHTML = "";
+      moveHistory.forEach((m, i) => {
+        const div = document.createElement("div");
+        if (i % 2 === 0) div.textContent = `${Math.floor(i / 2) + 1}. ${m}`;
+        else div.textContent = m;
+        historyElement.appendChild(div);
+      });
+    }
+
+    function convertMoveToNotation(sr, sc, dr, dc, piece, target)
+    {
+      let notation = "", isPawn = piece.toLowerCase() === "p", isCapture = target !== "";
+      if (piece.toLowerCase() === "k" && Math.abs(dc - sc) === 2)
+      {
+        let castleNotation = dc === 6 ? "0-0" : "0-0-0";
+        const tempBoard = board.map(r => r.slice());
+        const opponent = currentPlayer === "white" ? "black" : "white";
+        if (isInCheckOnBoard(tempBoard, opponent))
+        {
+          if (!hasLegalMovesOnBoard(tempBoard, opponent)) castleNotation += "#"; else castleNotation += "+";
+        }
+        return castleNotation;
+      }
+      if (!isPawn) notation += piece.toUpperCase(); else if (isCapture) notation += String.fromCharCode(97 + sc);
+      if (isCapture) notation += "x";
+      notation += String.fromCharCode(97 + dc) + (8 - dr);
+      const tempBoard = board.map(r => r.slice());
+      tempBoard[dr][dc] = board[dr][dc] !== "" ? board[dr][dc] : piece; tempBoard[sr][sc] = "";
+      const opponent = currentPlayer === "white" ? "black" : "white";
+      if (isInCheckOnBoard(tempBoard, opponent))
+      {
+        if (!hasLegalMovesOnBoard(tempBoard, opponent)) notation += "#"; else notation += "+";
+      }
+      return notation;
+    }
+
+    function isInCheckOnBoard(tempBoard, player)
+    {
+      const king = player === "white" ? "K" : "k";
+      let kr, kc;
+      for (let r = 0; r < 8; r++)
+        for (let c = 0; c < 8; c++)
+          if (tempBoard[r][c] === king) { kr = r; kc = c; }
+      for (let r = 0; r < 8; r++)
+        for (let c = 0; c < 8; c++)
+        {
+          const p = tempBoard[r][c]; if (!p) continue;
+          if ((player === "white" ? p === p.toLowerCase() : p === p.toUpperCase()) && isValidPieceMoveOnBoard(tempBoard, r, c, kr, kc)) return true;
+        }
+      return false;
+    }
+
+    function hasLegalMovesOnBoard(tempBoard, player)
+    {
+      for (let r = 0; r < 8; r++)
+        for (let c = 0; c < 8; c++)
+        {
+          const p = tempBoard[r][c]; if (!p) continue;
+          if ((player === "white" ? p === p.toUpperCase() : p === p.toLowerCase()))
+          {
+            for (let dr = 0; dr < 8; dr++)
+              for (let dc = 0; dc < 8; dc++)
+                if (isLegalMoveOnBoard(tempBoard, r, c, dr, dc, player)) return true;
+          }
+        }
+      return false;
+    }
+
+    function isLegalMoveOnBoard(tempBoard, sr, sc, dr, dc, player)
+    {
+      if (sr === dr && sc === dc) return false;
+      const p = tempBoard[sr][sc], t = tempBoard[dr][dc];
+      if (t && (player === "white" ? t === t.toUpperCase() : t === t.toLowerCase())) return false;
+      if (!isValidPieceMoveOnBoard(tempBoard, sr, sc, dr, dc)) return false;
+      const temp = tempBoard[dr][dc];
+      tempBoard[dr][dc] = tempBoard[sr][sc]; tempBoard[sr][sc] = "";
+      const inCheck = isInCheckOnBoard(tempBoard, player);
+      tempBoard[sr][sc] = tempBoard[dr][dc]; tempBoard[dr][dc] = temp;
+      return !inCheck;
+    }
+
+    function isValidPieceMoveOnBoard(tempBoard, sr, sc, dr, dc)
+    {
+      const p = tempBoard[sr][sc], t = tempBoard[dr][dc], rd = dr - sr, cd = dc - sc;
+      switch (p.toLowerCase()) {
+        case "p": {
+          const dir = p === "P" ? -1 : 1, start = p === "P" ? 6 : 1;
+          if (cd === 0 && !t)
+          {
+            if (rd === dir) return true;
+            if (sr === start && rd === 2 * dir && !tempBoard[sr + dir][sc]) return true;
+          }
+          if (Math.abs(cd) === 1 && rd === dir)
+          {
+            if (t) return true;
+            if (enPassantTarget && enPassantTarget.row === dr && enPassantTarget.col === dc) return true;
+          }
+          return false;
+        }
+        case "r": if (rd && cd) return false; return isPathClearOnBoard(tempBoard, sr, sc, dr, dc);
+        case "n": return (Math.abs(rd) === 2 && Math.abs(cd) === 1) || (Math.abs(rd) === 1 && Math.abs(cd) === 2);
+        case "b": if (Math.abs(rd) !== Math.abs(cd)) return false; return isPathClearOnBoard(tempBoard, sr, sc, dr, dc);
+        case "q": if (rd === 0 || cd === 0 || Math.abs(rd) === Math.abs(cd)) return isPathClearOnBoard(tempBoard, sr, sc, dr, dc); return false;
+        case "k": if (Math.abs(rd) <= 1 && Math.abs(cd) <= 1) return true; return false;
+      }
+    }
+
+    function isPathClearOnBoard(tempBoard, sr, sc, dr, dc)
+    {
+      let rs = Math.sign(dr - sr), cs = Math.sign(dc - sc);
+      let r = sr + rs, c = sc + cs;
+      while (r !== dr || c !== dc)
+      {
+        if (tempBoard[r][c] !== "") return false;
+        r += rs; c += cs;
+      }
+      return true;
+    }
+
+    function resetGame() { initBoard(); }
+
+    initBoard();
+  </script>
+</body>
+</html>
