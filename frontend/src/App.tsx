@@ -57,9 +57,9 @@ function App() {
         {/* Routes privées */}
         <Route
           element={
-            // <PrivateRoute>
+            <PrivateRoute>
               <PrivateLayout />
-            // </PrivateRoute>
+            </PrivateRoute>
           }
         >
           {/* redirection /dashboard */}
