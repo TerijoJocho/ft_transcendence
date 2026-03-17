@@ -22,8 +22,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return api.logout();
   }
 
+  async function updateUser(status: string) {
+    try {
+      const response = await api.changeStatus({status});
+      setUser(prev => {
+          if (!prev) return prev;
+            return ({
+              ...prev,
+              status: response.newStatus,
+            });
+          });
+    } catch (error) {
+        console.error("Failed to change user status:", error);
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, login, clearAuth, isLoading }}>
+    <AuthContext.Provider value={{ user, login, clearAuth, isLoading, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

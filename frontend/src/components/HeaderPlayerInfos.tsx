@@ -1,34 +1,14 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faCircleUser} from '@fortawesome/free-solid-svg-icons';
-import * as api from "../api/api.ts";
 
 import { useState, useEffect, useRef } from 'react';
-import statusData from "../data/statusData.ts";
-
-import type {User} from "../auth/core/authCore.ts"
+import statusData from "../data/statusData.ts"; //a supp
+import {useAuth} from '../auth/useAuth.ts';
 
 export default function HeaderPlayerInfos() {
+    const {user, updateUser} = useAuth();
     const dropDownWrapper = useRef<HTMLDivElement | null>(null);
-    const [user, setUser] = useState<User | null>(null);
     const [isOpen, setIsOpen] = useState<boolean>(false);
-
-    //fetch le user au mount du composant
-    //renvoie surement le userName: string, userAvatar: img (?), userStatus: ONLINE et les tokens, 
-    useEffect(() => {
-        async function fetchUser() {
-            // const userData = await api.me();
-            //pour le test
-            const userData = {
-                id: 1,
-                pseudo: "UserNameTest",
-                elo: 1634,
-                status: "ONLINE",
-                avatar: "",
-            }
-            setUser(userData);
-        };
-        fetchUser();
-    }, []);
 
     //ferme le menu quand on clique en dehors
     useEffect(() => {
@@ -44,7 +24,7 @@ export default function HeaderPlayerInfos() {
         })
     }, []);
 
-    //si le user n'a pas encore été fetch
+    //si le user n'a pas encore été fetch au démarage de l'app
     //early return
     if (!user)
     {
@@ -58,23 +38,8 @@ export default function HeaderPlayerInfos() {
     //change le status du user d'apres celui qu'il a selectionné
     //update user.status in backend and state local in frontend
     function handleChangeStatus(value: string) {
-        setIsOpen(prev => !prev);
-        //fetch pour PATCH le status du user dans le backend
-        async function patchStatus() {
-            try {
-                const response = await api.changeStatus({status: value});
-                setUser(prev => {
-                    if (!prev) return prev;
-                    return ({
-                        ...prev,
-                        status: response.newStatus,
-                    });
-                });
-            } catch (error) {
-                console.error("Failed to change user status:", error);
-            }
-        };
-        patchStatus();
+        setIsOpen(false);
+        updateUser(value);
     }
 
     //créer les boutons du menu status
@@ -87,7 +52,7 @@ export default function HeaderPlayerInfos() {
     })
 
     //affiche le status actuel du user
-    const currentUserStatus = statusData.find((st) => st.value === user.status);
+    const currentUserStatus = statusData.find((st) => st.value === user.status) ?? statusData[0];
 
     return (
         <header className='flex justify-end items-center m-2 relative text-[#141301]'>
