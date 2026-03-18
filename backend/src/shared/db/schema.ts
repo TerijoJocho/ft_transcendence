@@ -9,6 +9,7 @@ import {
   check,
   unique,
   uniqueIndex,
+  boolean,
 } from 'drizzle-orm/pg-core';
 
 export const gameStatusEnum = pgEnum('game_status_enum', [
@@ -142,4 +143,34 @@ export const friendshipTable = pgTable(
     ),
   ],
 );
-export type friendship = typeof friendshipTable.$inferInsert;
+export type friendshipInsert = typeof friendshipTable.$inferInsert;
+export type friendshipSelect = typeof friendshipTable.$inferSelect;
+
+//table pour les messages privés
+export const messageTable = pgTable(
+  'messages',
+  {
+    messageId: integer().primaryKey().generatedAlwaysAsIdentity(),
+    senderId: integer().notNull(),
+    receiverId: integer().notNull(),
+    content: varchar({ length: 1000 }).notNull(),
+    sentAt: timestamp().notNull().defaultNow(),
+    isRead: boolean().notNull().default(false),
+  },
+  (pgTable) => [
+    foreignKey({
+      columns: [pgTable.senderId],
+      foreignColumns: [playerTable.playerId],
+    })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+    foreignKey({
+      columns: [pgTable.receiverId],
+      foreignColumns: [playerTable.playerId],
+    })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+  ],
+);
+
+export type message = typeof messageTable.$inferInsert;

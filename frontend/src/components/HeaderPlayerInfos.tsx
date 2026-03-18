@@ -16,15 +16,7 @@ export default function HeaderPlayerInfos() {
     //renvoie surement le userName: string, userAvatar: img (?), userStatus: ONLINE et les tokens, 
     useEffect(() => {
         async function fetchUser() {
-            // const userData = await api.me();
-            //pour le test
-            const userData = {
-                id: 1,
-                pseudo: "UserNameTest",
-                elo: 1634,
-                status: "ONLINE",
-                avatar: "",
-            }
+            const userData = await api.me();
             setUser(userData);
         };
         fetchUser();
