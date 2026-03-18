@@ -35,7 +35,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 		)[0];
     	return { playerId: user.playerId } as LogoutDto;
     } catch (error) {
-      throw new UnauthorizedException("Invalid token.");
+		this.logger.error('Access token verification error:', error);
+		throw new UnauthorizedException("Invalid token.");
     }
   }
 }

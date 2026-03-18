@@ -141,6 +141,7 @@ export class AuthService {
 			});
 	}
 	catch (error) {
+		this.logger.error('Refresh token verification error:', error);
 		throw new UnauthorizedException('Cannot decode refresh token.');
 	}
 	if (!decoded?.sub || !decoded?.pseudo || decoded.sub !== playerId) {
