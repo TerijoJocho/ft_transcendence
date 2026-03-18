@@ -8,6 +8,15 @@ import fs from 'fs';
 import axios from 'axios';
 import https from 'https';
 
+type VaultKvV2Response = {
+  data: {
+    data: {
+      username: unknown;
+      password: unknown;
+    };
+  };
+};
+
 async function bootstrap() {
   const tokenPath = '/run/secrets/backend_token';
   const vaultCaCertPath = process.env.VAULT_CACERT;
@@ -16,21 +25,25 @@ async function bootstrap() {
   let httpsAgent: https.Agent | undefined;
 
   if (vaultSkipVerify) {
-    console.warn('VAULT_SKIP_VERIFY=true: TLS certificate verification is disabled (dev only).');
+    console.warn(
+      'VAULT_SKIP_VERIFY=true: TLS certificate verification is disabled (dev only).',
+    );
     httpsAgent = new https.Agent({ rejectUnauthorized: false });
-  }
-  else if (vaultCaCertPath && fs.existsSync(vaultCaCertPath)) {
+  } else if (vaultCaCertPath && fs.existsSync(vaultCaCertPath)) {
     httpsAgent = new https.Agent({
       ca: fs.readFileSync(vaultCaCertPath),
       rejectUnauthorized: true,
     });
-  }
-  else {
-    console.warn('Vault CA cert not found. Set VAULT_CACERT or enable VAULT_SKIP_VERIFY in dev.');
+  } else {
+    console.warn(
+      'Vault CA cert not found. Set VAULT_CACERT or enable VAULT_SKIP_VERIFY in dev.',
+    );
   }
 
   while (!fs.existsSync(tokenPath)) {
-    console.log('waiting file for VAULT_TOKEN to be set in environment variables');
+    console.log(
+      'waiting file for VAULT_TOKEN to be set in environment variables',
+    );
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   const vaultToken = fs.readFileSync(tokenPath, 'utf-8').trim();
@@ -38,20 +51,28 @@ async function bootstrap() {
   console.log('VAULT_TOKEN loaded from Docker secrets');
 
   try {
-    const vaultResponse = await axios.get(`https://vault:8200/v1/secret/data/db`, {
-      headers: {
-        'X-Vault-Token': vaultToken,
+    const vaultResponse = await axios.get<VaultKvV2Response>(
+      `https://vault:8200/v1/secret/data/db`,
+      {
+        headers: {
+          'X-Vault-Token': vaultToken,
+        },
+        httpsAgent,
       },
-      httpsAgent,
-    });
+    );
     const dbUsername = vaultResponse.data.data.data.username;
     const dbPassword = vaultResponse.data.data.data.password;
+    if (typeof dbUsername !== 'string' || typeof dbPassword !== 'string') {
+      throw new Error('Invalid Vault DB secret format');
+    }
     process.env.DB_USERNAME = dbUsername;
     process.env.DB_PASSWORD = dbPassword;
     console.log('Database credentials loaded from Vault');
-  }
-  catch (err) {
-    console.error('Error fetching secrets from Vault:', err instanceof Error ? err.message : err);
+  } catch (err) {
+    console.error(
+      'Error fetching secrets from Vault:',
+      err instanceof Error ? err.message : err,
+    );
     process.exit(1);
   }
 
