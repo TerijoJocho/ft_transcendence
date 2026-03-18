@@ -19,7 +19,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const clearAuth = useCallback(async () => {
     setUser(null);
     setIsLoading(false);
-    return api.logout();
   }, []);
 
   const logout = useCallback(async () => {
