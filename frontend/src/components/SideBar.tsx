@@ -14,13 +14,13 @@ import { useNavigate } from "react-router-dom";
 
 
 export default function SideBar() {
-    const {clearAuth} = useAuth();
+    const {logout} = useAuth();
     const navigate = useNavigate();
     const [isSmallMenu, setIsSmallMenu] = useState(false);
 
      async function handleLogout() {
         try {
-            await clearAuth();
+            await logout();
         } catch (error) {
             console.log(error);
         } finally {
