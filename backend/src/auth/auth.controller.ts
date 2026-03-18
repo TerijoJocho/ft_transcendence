@@ -20,32 +20,31 @@ import { PassportJwtRefreshGuard } from './guards/passport-jwt-refresh.guard';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @HttpCode(HttpStatus.OK)
   @Post('login')
   @UseGuards(PassportLocalGuard)
-  async login(
+  login(
     @CurrentUser() user: ResponseLoginDto,
-    @Res({ passthrough: true }) response: Response,
+    @Res() response: Response,
   ) {
-    await this.authService.logIn(user, response);
+    return this.authService.logIn(user, response);
   }
 
   @Post('refresh')
   @UseGuards(PassportJwtRefreshGuard)
   refresh(
     @CurrentUser() user: ResponseLoginDto,
-    @Res({ passthrough: true }) response: Response,
+    @Res() response: Response,
   ) {
-    this.authService.renewAccessToken(user, response);
+    return this.authService.renewAccessToken(user, response);
   }
 
   @Post('logout')
   @UseGuards(PassportJwtGuard)
-  async logout(
+  logout(
     @CurrentUser() user: LogoutDto,
-    @Res({ passthrough: true }) response: Response,
+    @Res() response: Response,
   ) {
-    await this.authService.logOut(user, response);
+    return this.authService.logOut(user, response);
   }
 
   @Get('me')
