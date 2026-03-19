@@ -16,11 +16,13 @@ function Chat() {
     const [messages, setMessages] = useState([]);
 
     // Filtre la liste d'amis selon la barre de recherche
+    // a changer pour un fetch de la liste d'amis du user
     const filteredFriends = friendsData.filter(f =>
         f.pseudo.toLowerCase().includes(search.toLowerCase())
     );
 
     // Récupère les messages de la conv sélectionnée
+    // a changé pour fetch les messages
     const currentMessages = selectedFriend ? (messages[selectedFriend.id] ?? []) : [];
 
     // Récupère le status du selectedFriend
@@ -73,7 +75,6 @@ function Chat() {
                             const lastMsg = messages[friend.id];
                             const preview = lastMsg ? lastMsg[lastMsg.length - 1].content : 'Démarrer une conversation';
                             const currentFriendStatus = statusData.find((st) => st.value === friend.status);
-                            console.log()
                             return (
                                 <button
                                     key={friend.id}
@@ -125,7 +126,7 @@ function Chat() {
                             </div>
 
                             {/* Bulles de messages */}
-                            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+                            <div className="flex-1  px-5 py-4 space-y-3">
                                 {currentMessages.map(msg => (
                                     <div
                                         key={msg.id}
@@ -189,8 +190,8 @@ function Chat() {
                             <div className="flex flex-col items-center gap-2 mt-4">
                                 <FontAwesomeIcon icon={selectedFriend.avatar} className="text-6xl text-gray-300" />
                                 <p className="font-semibold text-gray-800 text-lg">{selectedFriend.pseudo}</p>
-                                <span className={selectedFriendStatus.style}>
-                                    {selectedFriendStatus.label}
+                                <span className={selectedFriendStatus?.style}>
+                                    {selectedFriendStatus?.label}
                                 </span>
                             </div>
 
