@@ -76,3 +76,25 @@ export function changeStatus(data: {
     body: JSON.stringify(data),
   })
 }
+
+//fetch pour les amis
+// recupere la liste d'amis
+export function getFriendsList () {
+  return request("/api/user/friendship/get", {
+    method: "GET",
+  })
+}
+//ajouter un ami
+export function addFriend (data: {userId: number}){
+  return request("/api/user/frienship/add", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  })
+}
+//enlever un ami
+export function removeFriend (data: {userId: number}){
+  return request("/api/user/frienship/remove", {
+    method: "DELETE",
+    body: JSON.stringify(data),
+  })
+}
