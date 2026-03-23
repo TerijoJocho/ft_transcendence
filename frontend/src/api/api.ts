@@ -1,9 +1,9 @@
 const API_URL = "https://localhost";
 import type { User } from "../auth/core/authCore.ts";
-// const API_URL = "http://localhost:3000";
+import type { Friends } from "../hooks/useFriends.ts";
 
-//debut des api
-async function request(endpoint: string, options: RequestInit = {}, isRetry = false) {
+async function request(endpoint: string, options: RequestInit = {}, isRetry = false)
+{
   const response = await fetch(`${API_URL}${endpoint}`, {
     credentials: "include",
     headers: {
@@ -12,7 +12,7 @@ async function request(endpoint: string, options: RequestInit = {}, isRetry = fa
     ...options,
   });
 
-  if (response.status === 401 && !isRetry)
+  if (response.status === 401 && !isRetry) 
   {
     const refresh = await fetch(`${API_URL}/api/auth/refresh`, {
       method: "POST",
@@ -30,19 +30,19 @@ async function request(endpoint: string, options: RequestInit = {}, isRetry = fa
   return data;
 }
 
-//api pour login
-export function login(data: { 
+export function login(data: 
+{
   identifier: string;
   password: string
-}) : Promise<User> {
+}): Promise<User> {
   return request("/api/auth/login", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
 
-//api pour s'inscrire
-export function register(data: {
+export function register(data:
+{
   pseudo: string;
   mail: string;
   password: string;
@@ -53,48 +53,77 @@ export function register(data: {
   });
 }
 
-//api pour savoir si le user est connecté
-export function me() : Promise<User> {
+export function me(): Promise<User>
+{
   return request("/api/auth/me", {
     method: "GET",
   });
 }
 
-//pour supp les token (access et refresh)
 export function logout() {
   return request("/api/auth/logout", {
     method: "POST",
   });
 }
 
-//permet de changer la valeur du status du user
-export function changeStatus(data: {
+export function changeStatus(data:
+{
   status: string;
 }) {
   return request("/api/user/status", {
     method: "PATCH",
     body: JSON.stringify(data),
-  })
+  });
 }
 
-//fetch pour les amis
-// recupere la liste d'amis
-export function getFriendsList () {
+// récupère la liste d'amis avec isFavFriend inclus
+export function getFriendsList(): Promise<Friends[]>
+{
   return request("/api/user/friendship/get", {
     method: "GET",
-  })
+  });
 }
-//ajouter un ami
-export function addFriend (data: {userId: number}){
-  return request("/api/user/frienship/add", {
+
+// ajouter un ami
+export function addFriend(data: { userId: number })
+{
+  return request("/api/user/friendship/add", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// toggle favori (le backend gère add/remove selon l'état actuel)
+export function toggleFavFriend(data: { userId: number })
+{
+  return request("/api/user/friendship/toggleFav", {
     method: "PATCH",
     body: JSON.stringify(data),
-  })
+  });
 }
-//enlever un ami
-export function removeFriend (data: {userId: number}){
-  return request("/api/user/frienship/remove", {
+
+// enlever un ami
+export function removeFriend(data: { userId: number })
+{
+  return request("/api/user/friendship/remove", {
     method: "DELETE",
     body: JSON.stringify(data),
-  })
+  });
+}
+
+// bloquer un utilisateur
+export function blockUser(data: { userId: number })
+{
+  return request("/api/user/friendship/block", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+// requete pour chercher qqun
+export function searchUser(data: {username: string}): Promise<Friends[]>
+{
+    return request(`/api/user/search?username=${data.username}`, {
+        method: "GET",
+    });
 }
