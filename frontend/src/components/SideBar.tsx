@@ -5,9 +5,8 @@ import {
   faArrowRightFromBracket,
   faBars,
   faCircleUser,
-  faUser,
 } from "@fortawesome/free-solid-svg-icons";
-import { sideBarData, friendsData } from "../data/sideBarData"; //friendsData a enlever
+import { sideBarData } from "../data/sideBarData"; //friendsData a enlever
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../auth/useAuth";
@@ -16,14 +15,7 @@ import { useFriends } from "../hooks/useFriends.ts";
 import statusData from "../data/statusData.ts";
 
 export default function SideBar() {
-  const {
-    friendsList,
-    isLoading,
-    error,
-    toggleFavFriend,
-    removeFriend,
-    blockUser,
-  } = useFriends();
+  const {friendsList} = useFriends();
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [isSmallMenu, setIsSmallMenu] = useState(false);

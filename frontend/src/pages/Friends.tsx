@@ -10,7 +10,6 @@ import statusData from "../data/statusData.ts";
 function Friends() {
   const { friendsList, isLoading, error, toggleFavFriend, removeFriend, blockUser } = useFriends();
   const [friendsSearch, setFriendsSearch] = useState<string>("");
-  const [newFriendsSearch, setNewFriendsSearch] = useState<string>("");
   const [banSearch, setBanSearch] = useState<string>("");
   
   //liste des amis
