@@ -3,8 +3,6 @@ import Search from "./Search.tsx";
 import { searchUser, addFriend } from "../api/api.ts";
 import type { Friends } from "../hooks/useFriends.ts";
 
-const USE_MOCK = true;
-
 export default function AddFriend() {
     const [searchValue, setSearchValue] = useState<string>("");
     const [results, setResults] = useState<Friends[]>([]);
@@ -14,7 +12,6 @@ export default function AddFriend() {
     useEffect(() => {
         // si la recherche est vide on reset et on ne fetch pas
         if (searchValue.trim().length === 0) {
-            setResults([]);
             return;
         }
         // on attend 300ms avant de lancer le fetch

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { faCircleUser } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState, useCallback } from "react";
 import * as api from "../api/api.ts";
@@ -21,10 +22,11 @@ export function useFriends() {
     const [isLoading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchFriends = useCallback(() => {
-        if (USE_MOCK)
-        {
+    // fetch initial au mount
+    useEffect(() => {
+        if (USE_MOCK) {
             setFriendsList(friendsData);
+            setLoading(false);
             return;
         }
         setLoading(true);
@@ -34,9 +36,16 @@ export function useFriends() {
             .finally(() => setLoading(false));
     }, []);
 
-    useEffect(() => {
-        fetchFriends();
-    }, [fetchFriends]);
+    // refetch après que l'user clique sur les buttons
+    const fetchFriends = useCallback(() => {
+        if (USE_MOCK)
+            return;
+        setLoading(true);
+        api.getFriendsList()
+            .then(data => setFriendsList(data))
+            .catch(() => setError(`Impossible de charger la liste d'amis`))
+            .finally(() => setLoading(false));
+    }, []);
 
     const toggleFavFriend = async (userId: number) => {
         await api.toggleFavFriend({ userId })
