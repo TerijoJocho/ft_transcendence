@@ -69,6 +69,10 @@ services:
     command: npm run start:dev
 
   # -----------------------------
+  # Vault Hashicorp
+  # -----------------------------
+
+  # -----------------------------
   # Frontend (React + Vite)
   # -----------------------------
   frontend:
