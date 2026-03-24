@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { faCircleUser } from '@fortawesome/free-solid-svg-icons';
+import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState, useCallback } from "react";
 import * as api from "../api/api.ts";
 
@@ -11,7 +11,7 @@ export type Friends = {
     id: number;
     pseudo: string;
     status: string;
-    avatar: string | typeof faCircleUser;
+    avatar: string | IconDefinition;
     isFriend: boolean;
     isBlocked: boolean;
     isFavFriend: boolean;
@@ -25,6 +25,7 @@ export function useFriends() {
     // fetch initial au mount
     useEffect(() => {
         if (USE_MOCK) {
+            setError(null);
             setFriendsList(friendsData);
             setLoading(false);
             return;
@@ -65,5 +66,11 @@ export function useFriends() {
         fetchFriends();
     };
 
-    return { friendsList, isLoading, error, toggleFavFriend, removeFriend, blockUser };
+    const unblockUser = async (userId: number) => {
+        await api.unblockUser({ userId })
+            .catch(() => setError(`Impossible de débloquer cet utilisateur`));
+        fetchFriends();
+    };
+
+    return { friendsList, isLoading, error, toggleFavFriend, removeFriend, blockUser, unblockUser };
 }

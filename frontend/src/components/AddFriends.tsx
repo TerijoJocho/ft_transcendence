@@ -11,9 +11,8 @@ export default function AddFriend() {
 
     useEffect(() => {
         // si la recherche est vide on reset et on ne fetch pas
-        if (searchValue.trim().length === 0) {
+        if (searchValue.trim().length === 0)
             return;
-        }
         // on attend 300ms avant de lancer le fetch
         const timer = setTimeout(() => {
             setIsLoading(true);
@@ -41,13 +40,8 @@ export default function AddFriend() {
                 placeholder="Rechercher..."
             />
 
-            {isLoading && (
-                <p className="text-sm text-gray-400 p-2">Recherche en cours...</p>
-            )}
-
-            {error && (
-                <p className="text-sm text-red-500 p-2">{error}</p>
-            )}
+            {isLoading && (<p className="text-sm text-gray-400 p-2">Recherche en cours...</p>)}
+            {error && (<p className="text-sm text-red-500 p-2">{error}</p>)}
 
             {/* UI a changer lors de la phase de test  */}
             {results.length > 0 && (
