@@ -122,8 +122,6 @@ export const friendshipTable = pgTable(
     player2Id: integer().notNull(),
     friendshipStatus: friendshipStatusEnum().notNull().default('PENDING'),
     isFriend: boolean().notNull().default(true),
-    isBlocked: boolean().notNull().default(false),
-    isFavFriend: boolean().notNull().default(false),
   },
   (pgTable) => [
     foreignKey({

@@ -13,7 +13,5 @@ export class FriendResponseDto {
   pseudo!: string;
   avatarUrl!: string | null;
   isFriend!: boolean;
-  isBlocked!: boolean;
-  isFavFriend!: boolean;
 }
 
