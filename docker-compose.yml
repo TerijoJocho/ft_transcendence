@@ -102,14 +102,12 @@ services:
       - DISABLE_DEFAULT_CONF=1
     ports:
       - "443:443"
-      - "80:80"
+      - "81:80"
     depends_on:
       - postgres
       - redis
       - backend
       - frontend
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks: [internal]
 
 # volumes:

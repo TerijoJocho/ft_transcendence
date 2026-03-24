@@ -1,4 +1,9 @@
-import { IsString, IsNotEmpty, IsEmail } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEmail,
+  IsStrongPassword,
+} from 'class-validator';
 
 export class SigninDto {
   @IsNotEmpty()
@@ -11,6 +16,7 @@ export class SigninDto {
 
   @IsNotEmpty()
   @IsString()
+  @IsStrongPassword()
   readonly password!: string;
 
   //rajouter l url de l image de profil

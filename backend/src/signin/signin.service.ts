@@ -1,6 +1,6 @@
 import { Injectable, Post } from '@nestjs/common';
-import { player, playerTable } from '../../shared/db/schema';
-import { UtilsService } from '../../shared/services/utils.func.service';
+import { playerInsert, playerTable } from '../shared/db/schema';
+import { UtilsService } from '../shared/services/utils.func.service';
 
 @Injectable()
 export class SigninService {
@@ -8,7 +8,7 @@ export class SigninService {
 
   @Post()
   registerPlayers(mailAddress: string, gameName: string, pwd: string) {
-    const currentPlayers: player = {
+    const currentPlayers: playerInsert = {
       gameName: gameName,
       mailAddress: mailAddress,
       pwd: pwd,

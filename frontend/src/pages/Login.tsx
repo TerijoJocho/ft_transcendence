@@ -33,7 +33,8 @@ function Login() {
       navigate("/dashboard");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erreur serveur";
-      setErrorMessage(message);
+      setErrorMessage("Problème lors de la connexion, voir log.");
+      console.error(message);
     } finally {
       setLoading(false);
     }
@@ -41,7 +42,7 @@ function Login() {
 
   return (
     <div className="glass-container">
-      <h2 className="title-style mt-2 mb-8">Se connecter</h2>
+      <h2 className="title-style">Se connecter</h2>
       <form
         onSubmit={submitForm}
         onChange={() => setHasTouched(true)}
@@ -78,7 +79,7 @@ function Login() {
 
           <Link
             to="/forgot-password"
-            className="ml-auto text-xs hover:underline text-sky-400 cursor-pointer"
+            className="ml-auto text-xs hover:underline text-violet-400 cursor-pointer"
           >
             Mot de passe oublié
           </Link>
@@ -88,8 +89,9 @@ function Login() {
 
         <button
           type="submit"
-          disabled={!isFilledInput || loading}
-          className="button"
+          className={(!isFilledInput || loading) ? "disabled-button" : "button" }
+          disabled={(!isFilledInput || loading)}
+          aria-disabled={(!isFilledInput || loading)}
         >
           {loading ? "Connexion..." : "Se connecter"}
         </button>

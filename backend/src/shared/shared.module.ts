@@ -4,10 +4,15 @@ import { RedisService } from './services/redis.service';
 import { DatabaseService } from './services/db.service';
 import { UtilsService } from './services/utils.func.service';
 import { APP_PIPE } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
 
 @Global()
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     CacheModule.registerAsync({
       inject: [RedisService],
       useFactory: (redisService: RedisService) => ({
