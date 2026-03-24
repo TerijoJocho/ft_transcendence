@@ -71,8 +71,6 @@ export class FriendshipService {
       pseudo : pseudoPlayer[0].pseudo,
       avatarUrl : null,
       isFriend : true,
-      isBlocked : false,
-      isFavFriend : false,
     }
     return friendResponse;
   }
@@ -87,8 +85,6 @@ export class FriendshipService {
         player1Id: friendshipTable.player1Id,
         player2Id: friendshipTable.player2Id,
         isFriend: friendshipTable.isFriend,
-        isBlocked: friendshipTable.isBlocked,
-        isFavFriend: friendshipTable.isFavFriend,
       },  
       eq(friendshipTable.friendshipStatus, 'ADDED'),
       or(
@@ -117,8 +113,6 @@ export class FriendshipService {
               pseudo: friend.pseudo,
               avatarUrl: friend.avatarUrl,
               isFriend: f.isFriend,
-              isBlocked: f.isBlocked,
-              isFavFriend: f.isFavFriend,
           };
         }
       )
@@ -162,8 +156,9 @@ export class FriendshipService {
 
   ////////////////////////// block //////////////////////////////
 
-  async blockPlayer(CurrentUserId: number, target: number) {
-    // TODO: implémenter
+  async blockPlayer(CurrentUserId: number, target: number) 
+  {
+    
   }
 
   ///////////////////////// favoris ///////////////////////////////
