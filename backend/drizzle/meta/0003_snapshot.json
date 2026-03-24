@@ -1,9 +1,16 @@
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
   "id": "555d51c7-9f2b-4c23-bd09-15049842e19f",
 =======
   "id": "2e9aa85f-06bd-4d8f-849b-fddc4383e541",
 >>>>>>> fae5617 (feat(friendsTest): merge friendship and frontend without tracking shared_secrets)
+=======
+  "id": "2e9aa85f-06bd-4d8f-849b-fddc4383e541",
+=======
+  "id": "555d51c7-9f2b-4c23-bd09-15049842e19f",
+>>>>>>> 17ef57e (feat(users) - juste pour pull le main)
+>>>>>>> 153fb5d (feat(users) - juste pour pull le main)
   "prevId": "1d1df7b2-eda1-489e-8e37-a6501fb1f5a6",
   "version": "7",
   "dialect": "postgresql",
@@ -56,6 +63,10 @@
           "notNull": true,
           "default": true
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 153fb5d (feat(users) - juste pour pull le main)
         },
         "isBlocked": {
           "name": "isBlocked",
@@ -70,8 +81,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": false
+<<<<<<< HEAD
 =======
 >>>>>>> fae5617 (feat(friendsTest): merge friendship and frontend without tracking shared_secrets)
+=======
+>>>>>>> 17ef57e (feat(users) - juste pour pull le main)
+>>>>>>> 153fb5d (feat(users) - juste pour pull le main)
         }
       },
       "indexes": {},

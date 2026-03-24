@@ -2,6 +2,7 @@
 set -eu
 
 # pour les permissions des volume sudo chmod 700 .vault-secrets .vault-secrets/core .vault-secrets/approle .vault-secrets/vault_certs
+
 vault server -config=/vault/config/vault-config.hcl &
 
 VAULT_PID=$!
