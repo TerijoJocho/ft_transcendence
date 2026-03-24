@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faCircleUser} from '@fortawesome/free-solid-svg-icons';
-import * as api from "../api/api.ts";
+// import * as api from "../api/api.ts";
 
 import { useState, useEffect, useRef } from 'react';
 import statusData from "../data/statusData.ts";
@@ -56,25 +56,11 @@ export default function HeaderPlayerInfos() {
     }
 
     //change le status du user d'apres celui qu'il a selectionné
-    //update user.status in backend and state local in frontend
+    // changement de statut a gerer que dans le frontend avec websocket
     function handleChangeStatus(value: string) {
         setIsOpen(prev => !prev);
-        //fetch pour PATCH le status du user dans le backend
-        async function patchStatus() {
-            try {
-                const response = await api.changeStatus({status: value});
-                setUser(prev => {
-                    if (!prev) return prev;
-                    return ({
-                        ...prev,
-                        status: response.newStatus,
-                    });
-                });
-            } catch (error) {
-                console.error("Failed to change user status:", error);
-            }
-        };
-        patchStatus();
+        // setUser(prev => [...prev, status: value])
+        console.log(value);
     }
 
     //créer les boutons du menu status
@@ -88,6 +74,9 @@ export default function HeaderPlayerInfos() {
 
     //affiche le status actuel du user
     const currentUserStatus = statusData.find((st) => st.value === user.status);
+    const userAvatar = typeof user.avatar === 'string'
+                        ? (<img src={user.avatar} alt={`${user.pseudo} avatar`} className="w-5 h-5 rounded-full object-cover"/>)
+                        : (<FontAwesomeIcon icon={user.avatar ?? faCircleUser}/>)
 
     return (
         <header className='flex justify-end items-center m-2 relative text-[#141301]'>
@@ -117,12 +106,7 @@ export default function HeaderPlayerInfos() {
                     }
                 </div>
             </div>
-            {
-                user.avatar ? 
-                    <img src={user.avatar} alt='user avatar' className=''/>
-                :
-                    <FontAwesomeIcon icon={faCircleUser} className='text-4xl m-1'/>
-            }
+            {userAvatar}
         </header>
     );
 }
