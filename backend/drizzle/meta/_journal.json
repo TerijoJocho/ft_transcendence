@@ -26,8 +26,13 @@
     {
       "idx": 3,
       "version": "7",
+<<<<<<< HEAD
       "when": 1774310326688,
       "tag": "0003_shocking_spirit",
+=======
+      "when": 1774375013892,
+      "tag": "0003_cuddly_the_hunter",
+>>>>>>> fae5617 (feat(friendsTest): merge friendship and frontend without tracking shared_secrets)
       "breakpoints": true
     }
   ]

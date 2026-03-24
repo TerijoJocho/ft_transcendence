@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "id": "555d51c7-9f2b-4c23-bd09-15049842e19f",
+=======
+  "id": "2e9aa85f-06bd-4d8f-849b-fddc4383e541",
+>>>>>>> fae5617 (feat(friendsTest): merge friendship and frontend without tracking shared_secrets)
   "prevId": "1d1df7b2-eda1-489e-8e37-a6501fb1f5a6",
   "version": "7",
   "dialect": "postgresql",
@@ -51,6 +55,7 @@
           "primaryKey": false,
           "notNull": true,
           "default": true
+<<<<<<< HEAD
         },
         "isBlocked": {
           "name": "isBlocked",
@@ -65,6 +70,8 @@
           "primaryKey": false,
           "notNull": true,
           "default": false
+=======
+>>>>>>> fae5617 (feat(friendsTest): merge friendship and frontend without tracking shared_secrets)
         }
       },
       "indexes": {},

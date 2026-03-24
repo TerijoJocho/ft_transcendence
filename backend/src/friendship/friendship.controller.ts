@@ -36,4 +36,5 @@ export class FriendshipController {
   {
     return this.friendshipService.blockPlayer(user.playerId, targetId.Id);
   }
+  // /api/user/search?username=${params.toString()} pour search
 }
