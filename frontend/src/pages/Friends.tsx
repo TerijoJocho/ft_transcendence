@@ -2,13 +2,13 @@ import Header from "../components/Header.tsx";
 import { useFriends, type Friends as Friend } from "../hooks/useFriends.ts";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBan, faUserMinus, faStar, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { faBan, faUserMinus, faStar, faCheck, faCircleUser } from "@fortawesome/free-solid-svg-icons";
 import Search from "../components/Search.tsx";
 import AddFriend from "../components/AddFriends.tsx";
 import statusData from "../data/statusData.ts";
 
 function Friends() {
-  const { friendsList, isLoading, error, toggleFavFriend, removeFriend, blockUser } = useFriends();
+  const { friendsList, isLoading, error, toggleFavFriend, removeFriend, blockUser, unblockUser } = useFriends();
   const [friendsSearch, setFriendsSearch] = useState<string>("");
   const [banSearch, setBanSearch] = useState<string>("");
   
@@ -27,19 +27,25 @@ function Friends() {
     // toggle (true ou false) un amis de la liste de favoris
     function toggleToFav(friend: Friend) {
       toggleFavFriend(friend.id);
-      console.log(friendsList.filter(f => f.isFavFriend === true));//test
+      // console.log(friendsList.filter(f => f.isFavFriend === true));//test
     }
 
     //enleve un amis de la liste
     function removeFromList(friend: Friend) {
       removeFriend(friend.id);
-      console.log(friendsList)//test
+      // console.log(friendsList)//test
     }
 
     //bloque un user des relations
     function block(friend: Friend) {
       blockUser(friend.id);
-      console.log(friendsList.filter(f => f.isBlocked === true));//test
+      // console.log(friendsList.filter(f => f.isBlocked === true));//test
+    }
+
+    // débloquer un utilisateur
+    function unblock(user: Friend) {
+      unblockUser(user.id);
+      // console.log(friendsList.filter(f => f.isBlocked === true));//test
     }
 
   return (
@@ -54,21 +60,21 @@ function Friends() {
         <section className="border border-violet-300 max-h-screen overflow-y-auto">
           <div className="sticky top-0 z-20 bg-white">
             {/* Titre */}
-            <p className="p-2 border-b">Liste d'amis</p>
+            <p className="p-2">Liste d'amis</p>
             {/* Barre de recherche */}
             <Search value={friendsSearch} onChange={setFriendsSearch} />
           </div>
+
           {/* Liste d'amis */}
           {filteredFriends.map((f) => {
             const friendStatus = statusData.find((st) => st.value === f.status);
+            const friendAvatar = typeof f.avatar === 'string'
+                          ? (<img src={f.avatar} alt={`${f.pseudo} avatar`} className="w-5 h-5 rounded-full object-cover"/>)
+                          : (<FontAwesomeIcon icon={faCircleUser}/>)
             return (
               <div key={f.id} className="flex items-center border-b p-4">
                 <div className="flex-1">
-                {/* changer pour avoir le vrai avatar */}
-                  <FontAwesomeIcon
-                    icon={f.avatar}
-                    className="text-4xl text-gray-300"
-                  />
+                  <div className="text-4xl text-gray-300">{friendAvatar}</div>
                   <div>
                     <p>{f.pseudo}</p>
                     <p className={`${friendStatus.style} w-fit`}>
@@ -78,22 +84,13 @@ function Friends() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => toggleToFav(f)}>
-                    <FontAwesomeIcon
-                        icon={faStar}
-                        className={`${f.isFavFriend ? 'text-yellow-600' : 'hover:text-yellow-600'}`}
-                    />
+                    <FontAwesomeIcon icon={faStar} className={`${f.isFavFriend ? 'text-yellow-600' : 'hover:text-yellow-600'}`}/>
                   </button>
                   <button onClick={() => removeFromList(f)}>
-                    <FontAwesomeIcon
-                      icon={faUserMinus} 
-                      className="hover:text-red-600"
-                    />
+                    <FontAwesomeIcon icon={faUserMinus} className="hover:text-red-600"/>
                   </button>
                   <button onClick={() => block(f)}>
-                    <FontAwesomeIcon
-                      icon={faBan}
-                      className="hover:text-red-600"
-                    />
+                    <FontAwesomeIcon icon={faBan} className="hover:text-red-600"/>
                   </button>
                 </div>
               </div>
@@ -101,42 +98,36 @@ function Friends() {
           })}
         </section>
 
+        {/* Recherche d'utilisateur */}
         <section className="border border-gray-300">
           <p className="p-2 ">Ajouter de nouveaux amis</p>
           <AddFriend />
-        {/* <Search value={newFriendsSearch} onChange={setNewFriendsSearch} />
-        recherche dans la db directe??? */}
         </section>
 
+        {/* Liste des utilisateurs bloqués */}
         <section className="border border-red-300">
           <p className="p-2 ">Liste d'utilisateur bloqués</p>
           {/* Barre de recherche */}
-            <Search value={banSearch} onChange={setBanSearch} />
+          <Search value={banSearch} onChange={setBanSearch} />
           {
             filteredBan.map(f => {
+              const blockedAvatar = typeof f.avatar === 'string'
+                          ? (<img src={f.avatar} alt={`${f.pseudo} avatar`} className="w-5 h-5 rounded-full object-cover"/>)
+                          : (<FontAwesomeIcon icon={faCircleUser}/>)
               if (f.isBlocked)
                 return (
-              <div key={f.id} className="flex items-center border-b p-4">
-                <div className="flex-1">
-                {/* changer pour avoir le vrai avatar */}
-                  <FontAwesomeIcon
-                    icon={f.avatar}
-                    className="text-4xl text-gray-300"
-                  />
-                  <div>
-                    <p>{f.pseudo}</p>
+                  <div key={f.id} className="flex items-center border-b p-4">
+                    <div className="flex-1">
+                      <div className="text-4xl text-gray-300">{blockedAvatar}</div>
+                      <p>{f.pseudo}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => unblock(f)} title="débloquer">
+                        <FontAwesomeIcon icon={faCheck} className="hover:text-green-600"/>
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => unblock(f)} title="débloquer">
-                    <FontAwesomeIcon
-                      icon={faCheck}
-                      className="hover:text-green-600"
-                    />
-                  </button>
-                </div>
-              </div>
-            );
+              );
             })
           }
         </section>
