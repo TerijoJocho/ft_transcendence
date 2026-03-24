@@ -6,6 +6,7 @@ import {
   varchar,
   integer,
   foreignKey,
+  boolean,
   check,
   unique,
   uniqueIndex,
@@ -120,6 +121,9 @@ export const friendshipTable = pgTable(
     player1Id: integer().notNull(),
     player2Id: integer().notNull(),
     friendshipStatus: friendshipStatusEnum().notNull().default('PENDING'),
+    isFriend: boolean().notNull().default(true),
+    isBlocked: boolean().notNull().default(false),
+    isFavFriend: boolean().notNull().default(false),
   },
   (pgTable) => [
     foreignKey({
