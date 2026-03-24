@@ -106,28 +106,29 @@ export function removeFriend(data: { userId: number })
 
 // bloquer un utilisateur
 // isFriend === isFavFriend === false et isBlocked === true
-export function blockUser(data: { userId: number })
-{
-  return request("/api/user/friendship/block", {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
-}
+// export function blockUser(data: { userId: number })
+// {
+//   return request("/api/user/friendship/block", {
+//     method: "PATCH",
+//     body: JSON.stringify(data),
+//   });
+// }
 
 // débloquer un utilisateur
 // isFriend === isFavFriend === isBlocked === false
-export function unblockUser(data: { userId: number })
-{
-  return request("/api/user/friendship/unblock", {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
-}
+// export function unblockUser(data: { userId: number })
+// {
+//   return request("/api/user/friendship/unblock", {
+//     method: "PATCH",
+//     body: JSON.stringify(data),
+//   });
+// }
 
 // requete pour chercher qqun
 export function searchUser(data: {username: string}): Promise<Friends[]>
 {
-    return request(`/api/user/search?username=${data.username}`, {
-        method: "GET",
-    });
+  const params = new URLSearchParams({ username: data.username });
+  return request(`/api/user/search?username=${params.toString()}`, {
+      method: "GET",
+  });
 }

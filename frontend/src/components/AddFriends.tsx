@@ -10,13 +10,21 @@ export default function AddFriend() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        //on recupere la valeur de l'input
+        const timmedValue = searchValue.trim();
+        //s'il y avait une erreur on l'efface
+        setError(null);
         // si la recherche est vide on reset et on ne fetch pas
-        if (searchValue.trim().length === 0)
+        if (timmedValue.length === 0)
+        {
+            setResults([]);
+            setIsLoading(false);
             return;
+        }
         // on attend 300ms avant de lancer le fetch
         const timer = setTimeout(() => {
             setIsLoading(true);
-            searchUser({username: searchValue.trim()})
+            searchUser({username: timmedValue})
                 .then(setResults)
                 .catch(() => setError("Impossible de rechercher cet utilisateur"))
                 .finally(() => setIsLoading(false));
