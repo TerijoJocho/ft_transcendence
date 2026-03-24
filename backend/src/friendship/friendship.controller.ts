@@ -16,13 +16,6 @@ export class FriendshipController {
     return this.friendshipService.create(user.playerId, targetId.Id);
   }
 
-  // @Patch('update')
-  // @UseGuards(PassportJwtGuard)
-  // update(@CurrentUser() user: LogoutDto, @Body() targetId: FriendshipDto) 
-  // {
-  //   return this.friendshipService.update(user.playerId, targetId.Id);
-  // }
-
   @Delete('remove')
   @UseGuards(PassportJwtGuard)
   remove(@CurrentUser() user: LogoutDto, @Body() targetId: FriendshipDto) 
@@ -42,12 +35,5 @@ export class FriendshipController {
   block(@CurrentUser() user: LogoutDto, @Body() targetId: FriendshipDto) 
   {
     return this.friendshipService.blockPlayer(user.playerId, targetId.Id);
-  }
-
-  @Patch('togglefav')
-  @UseGuards(PassportJwtGuard)
-  toggleFav(@CurrentUser() user: LogoutDto, @Body() targetId: FriendshipDto) 
-  {
-    return this.friendshipService.toggleFav(user.playerId, targetId.Id);
   }
 }
