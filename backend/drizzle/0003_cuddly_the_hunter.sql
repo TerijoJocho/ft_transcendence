@@ -1,0 +1,1 @@
+ALTER TABLE "friendship" ADD COLUMN "isFriend" boolean DEFAULT true NOT NULL;
