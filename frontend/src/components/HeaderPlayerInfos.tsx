@@ -59,8 +59,7 @@ export default function HeaderPlayerInfos() {
     // changement de statut a gerer que dans le frontend avec websocket
     function handleChangeStatus(value: string) {
         setIsOpen(prev => !prev);
-        // setUser(prev => [...prev, status: value])
-        console.log(value);
+        setUser(prevUser => (prevUser ? { ...prevUser, status: value } : prevUser));
     }
 
     //créer les boutons du menu status

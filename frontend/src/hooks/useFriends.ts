@@ -5,7 +5,7 @@ import * as api from "../api/api.ts";
 
 //test
 import {friendsData} from '../data/sideBarData.ts';
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 export type Friends = {
     id: number;
@@ -53,17 +53,17 @@ export function useFriends() {
         fetchFriends();
     };
 
-    const blockUser = async (userId: number) => {
-        await api.blockUser({ userId })
-            .catch(() => setError(`Impossible de bloquer cet utilisateur`));
-        fetchFriends();
-    };
+    // const blockUser = async (userId: number) => {
+    //     await api.blockUser({ userId })
+    //         .catch(() => setError(`Impossible de bloquer cet utilisateur`));
+    //     fetchFriends();
+    // };
 
-    const unblockUser = async (userId: number) => {
-        await api.unblockUser({ userId })
-            .catch(() => setError(`Impossible de débloquer cet utilisateur`));
-        fetchFriends();
-    };
+    // const unblockUser = async (userId: number) => {
+    //     await api.unblockUser({ userId })
+    //         .catch(() => setError(`Impossible de débloquer cet utilisateur`));
+    //     fetchFriends();
+    // };
 
-    return { friendsList, isLoading, error, removeFriend, blockUser, unblockUser };
+    return { friendsList, isLoading, error, removeFriend };
 }
