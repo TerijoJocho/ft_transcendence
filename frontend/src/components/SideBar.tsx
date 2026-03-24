@@ -32,7 +32,7 @@ export default function SideBar() {
 
   const toggleMenu = () => setIsSmallMenu((prev) => !prev);
 
-  const favFilteredList = friendsList.filter(f => f.isFavFriend)
+//   const favFilteredList = friendsList.filter(f => f.isFavFriend)
 
   const userAvatar = typeof user.avatar === 'string'
                         ? (<img src={user.avatar} alt={`${user.pseudo} avatar`} className="w-5 h-5 rounded-full object-cover"/>)
@@ -81,7 +81,7 @@ export default function SideBar() {
         })}
 
         {/* liste des amis favoris */}
-        <div className={`${isSmallMenu ? "" : "border rounded-lg"}`}>
+        {/* <div className={`${isSmallMenu ? "" : "border rounded-lg"}`}>
           {isSmallMenu ? (
             <Link to="/friends">
               <FontAwesomeIcon icon={faUserGroup} className="global-hover" />
@@ -105,7 +105,6 @@ export default function SideBar() {
                     return (
                       <div key={friend.id} className="flex items-center text-md justify-between">
                         <div className="self-start">
-                          {/* remplacer par les vraies avatar */}
                           <FontAwesomeIcon icon={faCircleUser} />
                           {friend.pseudo}
                         </div>
@@ -117,7 +116,7 @@ export default function SideBar() {
               </div>
             </>
           )}
-        </div>
+        </div> */}
       </nav>
 
       {/* footer pour cliquer sur la page de profil et se logout */}
