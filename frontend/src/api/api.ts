@@ -66,16 +66,6 @@ export function logout() {
   });
 }
 
-export function changeStatus(data:
-{
-  status: string;
-}) {
-  return request("/api/user/status", {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
-}
-
 // récupère la liste d'amis avec isFavFriend inclus
 export function getFriendsList(): Promise<Friends[]>
 {
@@ -85,6 +75,7 @@ export function getFriendsList(): Promise<Friends[]>
 }
 
 // ajouter un ami
+// isFriend === true
 export function addFriend(data: { userId: number })
 {
   return request("/api/user/friendship/add", {
@@ -94,6 +85,7 @@ export function addFriend(data: { userId: number })
 }
 
 // toggle favori (le backend gère add/remove selon l'état actuel)
+// isFavFriend = !isFavFriend (depend de l'etat precedent)
 export function toggleFavFriend(data: { userId: number })
 {
   return request("/api/user/friendship/toggleFav", {
@@ -103,6 +95,7 @@ export function toggleFavFriend(data: { userId: number })
 }
 
 // enlever un ami
+// isFriend === isFavFriend === isBlocked === false
 export function removeFriend(data: { userId: number })
 {
   return request("/api/user/friendship/remove", {
@@ -112,9 +105,20 @@ export function removeFriend(data: { userId: number })
 }
 
 // bloquer un utilisateur
+// isFriend === isFavFriend === false et isBlocked === true
 export function blockUser(data: { userId: number })
 {
   return request("/api/user/friendship/block", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+// débloquer un utilisateur
+// isFriend === isFavFriend === isBlocked === false
+export function unblockUser(data: { userId: number })
+{
+  return request("/api/user/friendship/unblock", {
     method: "PATCH",
     body: JSON.stringify(data),
   });
