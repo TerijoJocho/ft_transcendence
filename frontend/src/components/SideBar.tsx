@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faUserGroup,
+//   faUserGroup,
   faChevronLeft,
   faArrowRightFromBracket,
   faBars,
@@ -11,11 +11,11 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../auth/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useFriends } from "../hooks/useFriends.ts";
-import statusData from "../data/statusData.ts";
+// import { useFriends } from "../hooks/useFriends.ts";
+// import statusData from "../data/statusData.ts";
 
 export default function SideBar() {
-  const {friendsList} = useFriends();
+//   const {friendsList} = useFriends();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isSmallMenu, setIsSmallMenu] = useState(false);
@@ -119,7 +119,7 @@ export default function SideBar() {
         </div> */}
       </nav>
 
-      {/* footer pour cliquer sur la page de profil et se logout */}
+      {/* footer pour cliquer sur la page de profile et se logout */}
       <footer className={`flex items-center justify-between ${isSmallMenu ? "gap-2" : ""} p-4`}>
         <Link to={"/profil"}>
           <div className="flex items-center global-hover cursor-pointer">
