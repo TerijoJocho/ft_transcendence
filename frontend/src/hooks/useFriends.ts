@@ -14,7 +14,6 @@ export type Friends = {
     avatar: string | IconDefinition;
     isFriend: boolean;
     isBlocked: boolean;
-    isFavFriend: boolean;
 };
 
 export function useFriends() {
@@ -48,12 +47,6 @@ export function useFriends() {
             .finally(() => setLoading(false));
     }, []);
 
-    const toggleFavFriend = async (userId: number) => {
-        await api.toggleFavFriend({ userId })
-            .catch(() => setError(`Impossible de modifier les favoris`));
-        fetchFriends();
-    };
-
     const removeFriend = async (userId: number) => {
         await api.removeFriend({ userId })
             .catch(() => setError(`Impossible d'enlever cet ami`));
@@ -72,5 +65,5 @@ export function useFriends() {
         fetchFriends();
     };
 
-    return { friendsList, isLoading, error, toggleFavFriend, removeFriend, blockUser, unblockUser };
+    return { friendsList, isLoading, error, removeFriend, blockUser, unblockUser };
 }

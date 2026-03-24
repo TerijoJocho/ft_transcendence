@@ -1,4 +1,4 @@
-import { faHouse, faGamepad, faChess } from "@fortawesome/free-solid-svg-icons";
+import { faHouse, faGamepad, faChess, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { faMessage } from "@fortawesome/free-regular-svg-icons";
 import { faCircleUser } from "@fortawesome/free-solid-svg-icons";
 
@@ -43,6 +43,11 @@ export const sideBarData = [
     text: "Chat",
     path: "/chat",
   },
+  {
+    icon: faUserGroup,
+    text: "Amis",
+    path: "/friends"
+  }
 ];
 
 export interface FriendData {

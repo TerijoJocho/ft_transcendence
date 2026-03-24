@@ -2,13 +2,13 @@ import Header from "../components/Header.tsx";
 import { useFriends, type Friends as Friend } from "../hooks/useFriends.ts";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBan, faUserMinus, faStar, faCheck, faCircleUser } from "@fortawesome/free-solid-svg-icons";
+import { faBan, faUserMinus, faCheck, faCircleUser } from "@fortawesome/free-solid-svg-icons";
 import Search from "../components/Search.tsx";
 import AddFriend from "../components/AddFriends.tsx";
 import statusData from "../data/statusData.ts";
 
 function Friends() {
-  const { friendsList, isLoading, error, toggleFavFriend, removeFriend, blockUser, unblockUser } = useFriends();
+  const { friendsList, isLoading, error, removeFriend, blockUser, unblockUser } = useFriends();
   const [friendsSearch, setFriendsSearch] = useState<string>("");
   const [banSearch, setBanSearch] = useState<string>("");
   
@@ -23,12 +23,6 @@ function Friends() {
   const filteredBan = normalizedBanSearch.length === 0
     ? friendsList.filter(f => f.isBlocked)
     : friendsList.filter((f) => f.pseudo.toLowerCase().includes(normalizedBanSearch) && f.isBlocked)
-
-    // toggle (true ou false) un amis de la liste de favoris
-    function toggleToFav(friend: Friend) {
-      toggleFavFriend(friend.id);
-      // console.log(friendsList.filter(f => f.isFavFriend === true));//test
-    }
 
     //enleve un amis de la liste
     function removeFromList(friend: Friend) {
@@ -83,9 +77,6 @@ function Friends() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => toggleToFav(f)}>
-                    <FontAwesomeIcon icon={faStar} className={`${f.isFavFriend ? 'text-yellow-600' : 'hover:text-yellow-600'}`}/>
-                  </button>
                   <button onClick={() => removeFromList(f)}>
                     <FontAwesomeIcon icon={faUserMinus} className="hover:text-red-600"/>
                   </button>
