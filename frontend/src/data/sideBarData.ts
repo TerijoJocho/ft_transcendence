@@ -1,3 +1,4 @@
+import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { faHouse, faGamepad, faChess, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { faMessage } from "@fortawesome/free-regular-svg-icons";
 import { faCircleUser } from "@fortawesome/free-solid-svg-icons";
@@ -11,15 +12,10 @@ const getRandomStatus = (): FriendStatus => {
 };
 
 const getRandomFriendFlags = () => {
-  const isBlocked = Math.random() < 0.15;
-  const isFavFriend = !isBlocked && Math.random() < 0.25;
-  const isFriend = !isBlocked && (isFavFriend || Math.random() < 0.85);
-
-  return {
-    isFriend,
-    isBlocked,
-    isFavFriend,
-  };
+  const r = Math.floor(Math.random() * 2);
+  if (r == 0)
+    return 'ADDED';
+  return 'PENDING'
 };
 
 export const sideBarData = [
@@ -53,11 +49,9 @@ export const sideBarData = [
 export interface FriendData {
   id: number;
   pseudo: string;
-  avatar: typeof faCircleUser;
+  avatar: string | IconDefinition;
   status: FriendStatus;
-  isFriend: boolean;
-  isBlocked: boolean;
-  isFavFriend: boolean;
+  friendshipStatus: string;
   elo: number;
 }
 
@@ -67,7 +61,7 @@ export const friendsData: FriendData[] = [
     pseudo: "NovaFox",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1240,
   },
   {
@@ -75,7 +69,7 @@ export const friendsData: FriendData[] = [
     pseudo: "PixelRook",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1385,
   },
   {
@@ -83,7 +77,7 @@ export const friendsData: FriendData[] = [
     pseudo: "EchoLynx",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1520,
   },
   {
@@ -91,7 +85,7 @@ export const friendsData: FriendData[] = [
     pseudo: "ByteHawk",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1660,
   },
   {
@@ -99,7 +93,7 @@ export const friendsData: FriendData[] = [
     pseudo: "ZenPanda",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1715,
   },
   {
@@ -107,7 +101,7 @@ export const friendsData: FriendData[] = [
     pseudo: "KiraWave",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1430,
   },
   {
@@ -115,7 +109,7 @@ export const friendsData: FriendData[] = [
     pseudo: "RuneWolf",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1595,
   },
   {
@@ -123,7 +117,7 @@ export const friendsData: FriendData[] = [
     pseudo: "BlueOrbit",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1320,
   },
   {
@@ -131,7 +125,7 @@ export const friendsData: FriendData[] = [
     pseudo: "SableCat",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1475,
   },
   {
@@ -139,7 +133,7 @@ export const friendsData: FriendData[] = [
     pseudo: "ArcadeMint",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1760,
   },
   {
@@ -147,7 +141,7 @@ export const friendsData: FriendData[] = [
     pseudo: "VioletGrid",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1880,
   },
   {
@@ -155,7 +149,7 @@ export const friendsData: FriendData[] = [
     pseudo: "CometBee",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1210,
   },
   {
@@ -163,7 +157,7 @@ export const friendsData: FriendData[] = [
     pseudo: "QuasarJay",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1645,
   },
   {
@@ -171,7 +165,7 @@ export const friendsData: FriendData[] = [
     pseudo: "NeonFawn",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1365,
   },
   {
@@ -179,7 +173,7 @@ export const friendsData: FriendData[] = [
     pseudo: "OrbitBard",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1735,
   },
   {
@@ -187,7 +181,7 @@ export const friendsData: FriendData[] = [
     pseudo: "MangoKite",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1280,
   },
   {
@@ -195,7 +189,7 @@ export const friendsData: FriendData[] = [
     pseudo: "RubyGlitch",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1910,
   },
   {
@@ -203,7 +197,7 @@ export const friendsData: FriendData[] = [
     pseudo: "LumenCrow",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1570,
   },
   {
@@ -211,7 +205,7 @@ export const friendsData: FriendData[] = [
     pseudo: "FrostNeko",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1450,
   },
   {
@@ -219,7 +213,7 @@ export const friendsData: FriendData[] = [
     pseudo: "StellarOtter",
     avatar: faCircleUser,
     status: getRandomStatus(),
-    ...getRandomFriendFlags(),
+    friendshipStatus: getRandomFriendFlags(),
     elo: 1690,
   },
 ];
