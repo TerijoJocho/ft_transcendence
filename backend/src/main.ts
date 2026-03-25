@@ -67,7 +67,28 @@ async function bootstrap() {
     }
     process.env.DB_USERNAME = dbUsername;
     process.env.DB_PASSWORD = dbPassword;
-    console.log('Database credentials loaded from Vault');
+
+    const existingPostgresUrl = process.env.POSTGRES_URL;
+    if (existingPostgresUrl) {
+      try {
+        const url = new URL(existingPostgresUrl);
+        url.username = dbUsername;
+        url.password = dbPassword;
+        process.env.POSTGRES_URL = url.toString();
+        console.log(
+          'Database credentials loaded from Vault and POSTGRES_URL updated',
+        );
+      } catch (urlError) {
+        console.error(
+          'POSTGRES_URL is set but invalid; could not inject Vault DB credentials:',
+          urlError instanceof Error ? urlError.message : urlError,
+        );
+      }
+    } else {
+      console.warn(
+        'POSTGRES_URL is not set; Vault DB credentials are loaded but not applied to a database URL.',
+      );
+    }
   } catch (err) {
     console.error(
       'Error fetching secrets from Vault:',
