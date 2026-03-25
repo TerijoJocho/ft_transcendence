@@ -42,7 +42,7 @@ async function bootstrap() {
 
   while (!fs.existsSync(tokenPath)) {
     console.log(
-      'waiting file for VAULT_TOKEN to be set in environment variables',
+      `Waiting for Vault token Docker secret file at ${tokenPath}...`,
     );
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
