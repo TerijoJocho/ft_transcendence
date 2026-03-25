@@ -26,8 +26,8 @@ export default function AddFriend() {
         const timer = setTimeout(() => {
             setIsLoading(true);
             searchUser({username: timmedValue})
-                .then(setResults)
-                .catch(() => setError("Impossible de rechercher cet utilisateur"))
+                .then(data => setResults(data))
+                .catch(() => setError("Impossible de trouver cet utilisateur"))
                 .finally(() => setIsLoading(false));
         }, 300);
         // si searchValue change avant 300ms, on annule le timer précédent
