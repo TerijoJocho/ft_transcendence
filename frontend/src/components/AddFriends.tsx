@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import Search from "./Search.tsx";
 import { searchUser, addFriend } from "../api/api.ts";
 import { useFriends } from "../hooks/useFriends.ts";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUserPlus, faCircleUser } from "@fortawesome/free-solid-svg-icons";
 
 export type SearchUserResult = {
     id: number;
@@ -52,6 +54,7 @@ export default function AddFriend() {
             .catch(() => setError("Impossible d'ajouter cet ami"));
     }
 
+    
     return (
         <div>
             <Search
@@ -66,18 +69,26 @@ export default function AddFriend() {
             {/* UI a changer lors de la phase de test  */}
             {results.length > 0 && (
                 <ul>
-                    {results.map((user) => (
+                    {results.map((user) => {
+                        const friendAvatar = typeof user.avatarUrl === 'string'
+                                                  ? (<img src={user.avatarUrl} alt={`${user.pseudo} avatar`} className="w-5 h-5 rounded-full object-cover"/>)
+                                                  : (<FontAwesomeIcon icon={faCircleUser}/>)
+                        return (
                         <li key={user.id} className="flex items-center justify-between border-b p-3">
-                            <p className="text-sm">{user.pseudo}</p>
+                            <div className="flex gap-2">
+                                {friendAvatar}
+                                <p className="text-sm">{user.pseudo}</p>
+                            </div>
                             <button
                                 title="Ajouter en ami"
                                 onClick={() => handleAddFriend(user.id)}
                                 className="text-xs bg-violet-500 text-white px-3 py-1 rounded-md hover:bg-violet-400"
                             >
-                                Ajouter
+                                <FontAwesomeIcon icon={faUserPlus} />
                             </button>
                         </li>
-                    ))}
+                        )
+                    })}
                 </ul>
             )}
 
