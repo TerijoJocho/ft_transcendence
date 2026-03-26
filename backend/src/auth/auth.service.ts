@@ -84,7 +84,6 @@ export class AuthService {
     const expiresAccessToken = new Date(Date.now() + accessExpirationMs);
     const accessExpirationSec = Math.floor(accessExpirationMs / 1000);
 
-
     const tokenPayload: AuthTokenPayload = {
       sub: user.playerId,
       pseudo: user.identifier,
@@ -122,7 +121,7 @@ export class AuthService {
     playerId: number,
     refreshToken: string,
   ): Promise<ResponseLoginDto> {
-	if (!refreshToken) {
+    if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is missing.');
     }
     const redisClient = this.redisService.getClient();
@@ -135,16 +134,15 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token does not match cache.');
     }
     let decoded: AuthTokenPayload;
-	try {
-		decoded = this.jwtService.verify<AuthTokenPayload>(refreshToken, {
-			secret: process.env.JWT_REFRESH_TOKEN_SECRET,
-			});
-	}
-	catch (error) {
-		this.logger.error('Refresh token verification error:', error);
-		throw new UnauthorizedException('Cannot decode refresh token.');
-	}
-	if (!decoded?.sub || !decoded?.pseudo || decoded.sub !== playerId) {
+    try {
+      decoded = this.jwtService.verify<AuthTokenPayload>(refreshToken, {
+        secret: process.env.JWT_REFRESH_TOKEN_SECRET,
+      });
+    } catch (error) {
+      this.logger.error('Refresh token verification error:', error);
+      throw new UnauthorizedException('Cannot decode refresh token.');
+    }
+    if (!decoded?.sub || !decoded?.pseudo || decoded.sub !== playerId) {
       throw new UnauthorizedException('Invalid refresh token payload.');
     }
     return { identifier: decoded.pseudo, playerId: decoded.sub };
