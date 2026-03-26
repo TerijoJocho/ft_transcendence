@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, Body, ParseIntPipe, Param } from '@nestjs/common';
+import { Controller, Post, UseGuards, Body, ParseIntPipe, Param, Delete } from '@nestjs/common';
 import { PassportJwtGuard } from 'src/auth/guards/passport-jwt.guard';
 import { NewGameDto } from './dto/new-game.dto';
 import { EndGameDto } from './dto/end-game.dto';
@@ -29,13 +29,20 @@ export class GameController {
   @Post(':gameId/end')
   @UseGuards(PassportJwtGuard)
   end(
-	@CurrentUser() user: LogoutDto,
 	@Param('gameId', ParseIntPipe) gameId: number,
 	@Body() bodyDto: EndGameDto) {
-	return this.GameService.endGame(bodyDto, gameId, user.playerId);
+	return this.GameService.endGame(bodyDto, gameId);
   }
 
-  @Post(':gameId/cancel')
+  @Post(':gameId/giveup')
+  @UseGuards(PassportJwtGuard)
+  giveup(
+	@CurrentUser() user: LogoutDto,
+	@Param('gameId', ParseIntPipe) gameId: number) {
+	return this.GameService.giveupGame(gameId, user.playerId);
+  }
+
+  @Delete(':gameId/cancel')
   @UseGuards(PassportJwtGuard)
   cancel(
 	@CurrentUser() user: LogoutDto,
