@@ -51,8 +51,8 @@ function Friends() {
           {/* Liste d'amis */}
           {filteredFriends.map((f) => {
             const friendStatus = statusData.find((st) => st.value === f.status);
-            const friendAvatar = typeof f.avatar === 'string'
-                          ? (<img src={f.avatar} alt={`${f.pseudo} avatar`} className="w-5 h-5 rounded-full object-cover"/>)
+            const friendAvatar = typeof f.avatarUrl === 'string'
+                          ? (<img src={f.avatarUrl} alt={`${f.pseudo} avatar`} className="w-5 h-5 rounded-full object-cover"/>)
                           : (<FontAwesomeIcon icon={faCircleUser}/>)
             return (
               <div key={f.id} className="flex items-center border-b p-4">
@@ -89,8 +89,8 @@ function Friends() {
           <p className="p-2 ">Liste de demande d'amis</p>
           {
             filteredPendingList.map(f => {
-              const pendingAvatar = typeof f.avatar === 'string'
-                          ? (<img src={f.avatar} alt={`${f.pseudo} avatar`} className="w-5 h-5 rounded-full object-cover"/>)
+              const pendingAvatar = typeof f.avatarUrl === 'string'
+                          ? (<img src={f.avatarUrl} alt={`${f.pseudo} avatar`} className="w-5 h-5 rounded-full object-cover"/>)
                           : (<FontAwesomeIcon icon={faCircleUser}/>)
                 return (
                   <div key={f.id} className="flex items-center border-b p-4">

@@ -5,13 +5,14 @@ import * as api from "../api/api.ts";
 
 //test
 import {friendsData} from '../data/sideBarData.ts';
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 export type Friends = {
     id: number;
     pseudo: string;
-    status: string;
-    avatar: string | IconDefinition;
+    status?: string | null; //a enlever
+    avatarUrl: string | IconDefinition;
+    isFriend: boolean;
     friendshipStatus: string;
 };
 
@@ -22,12 +23,12 @@ export function useFriends() {
 
     // fetch initial au mount
     useEffect(() => {
-        if (USE_MOCK) {
-            setError(null);
-            setFriendsList(friendsData);
-            setLoading(false);
-            return;
-        }
+        // if (USE_MOCK) {
+        //     setError(null);
+        //     setFriendsList(friendsData);
+        //     setLoading(false);
+        //     return;
+        // }
         setLoading(true);
         api.getFriendsList()
             .then(data => setFriendsList(data))
@@ -58,5 +59,5 @@ export function useFriends() {
         fetchFriends();
     };
 
-    return { friendsList, isLoading, error, removeFriend, changeFriendshipStatus };
+    return { friendsList, isLoading, error, removeFriend, changeFriendshipStatus, fetchFriends };
 }

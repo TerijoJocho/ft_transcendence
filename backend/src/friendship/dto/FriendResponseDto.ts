@@ -1,17 +1,20 @@
 export type FriendView = {
   id: number;
   pseudo: string;
-  status: string;
+  status: string | null;
   avatarUrl: string | null;
   isFriend: boolean;
-  isBlocked: boolean;
-  isFavFriend: boolean;
+  friendshipStatus: string;
+  isBlocked: boolean;//a enlever
+  isFavFriend: boolean;// a enlever
 };
 
 export class FriendResponseDto {
   id!: number;
   pseudo!: string;
+  status: string | null;
   avatarUrl!: string | null;
   isFriend!: boolean;
+  friendshipStatus!: string;
 }
 

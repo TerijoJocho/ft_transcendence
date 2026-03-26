@@ -2,13 +2,21 @@
 import { useState, useEffect } from "react";
 import Search from "./Search.tsx";
 import { searchUser, addFriend } from "../api/api.ts";
-import type { Friends } from "../hooks/useFriends.ts";
+import { useFriends } from "../hooks/useFriends.ts";
+
+export type SearchUserResult = {
+    id: number;
+    pseudo: string;
+    avatarUrl: string | null;
+};
 
 export default function AddFriend() {
     const [searchValue, setSearchValue] = useState<string>("");
-    const [results, setResults] = useState<Friends[]>([]);
+    const [results, setResults] = useState<SearchUserResult[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+
+    const {fetchFriends} = useFriends();
 
     useEffect(() => {
         //on recupere la valeur de l'input
@@ -36,9 +44,12 @@ export default function AddFriend() {
 
     async function handleAddFriend(userId: number) {
         await addFriend({ userId })
+            .then(() => {
+                setResults([]);
+                setSearchValue("");
+                fetchFriends();
+            })
             .catch(() => setError("Impossible d'ajouter cet ami"));
-        setResults([]);
-        setSearchValue("");
     }
 
     return (

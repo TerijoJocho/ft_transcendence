@@ -1,12 +1,15 @@
 import { Injectable } from "@nestjs/common"
-import { IsEmpty, IsNumber, IsString } from "class-validator";
+import { IsNotEmpty, IsInt, } from "class-validator";
 
 @Injectable()
 export class FriendshipDto 
 {
-    @IsEmpty()
-    @IsNumber()
-    Id!: number;
+    // @IsEmpty()
+    // @IsNumber()
+    // Id!: number;
+    @IsInt()
+    @IsNotEmpty()
+    userId!: number;
 
     // @IsEmpty()
     // @IsNumber()
