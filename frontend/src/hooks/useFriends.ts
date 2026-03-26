@@ -3,10 +3,6 @@ import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState, useCallback } from "react";
 import * as api from "../api/api.ts";
 
-//test
-import {friendsData} from '../data/sideBarData.ts';
-const USE_MOCK = false;
-
 export type Friends = {
     id: number;
     pseudo: string;
@@ -23,12 +19,6 @@ export function useFriends() {
 
     // fetch initial au mount
     useEffect(() => {
-        // if (USE_MOCK) {
-        //     setError(null);
-        //     setFriendsList(friendsData);
-        //     setLoading(false);
-        //     return;
-        // }
         setLoading(true);
         api.getFriendsList()
             .then(data => setFriendsList(data))
@@ -38,8 +28,6 @@ export function useFriends() {
 
     // refetch après que l'user clique sur les buttons
     const fetchFriends = useCallback(() => {
-        if (USE_MOCK)
-            return;
         setLoading(true);
         api.getFriendsList()
             .then(data => setFriendsList(data))
