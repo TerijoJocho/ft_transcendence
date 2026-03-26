@@ -10,7 +10,7 @@ export class GameService {
 	constructor(private readonly utilsService: UtilsService) {}
 
 	convertDtoToGameInsert(gameObject: NewGameDto): gameInsert[] {
-		if (gameObject instanceof NewGameDto) {
+		if (gameObject) {
 			switch (gameObject.gameMode) {
 				case 'CLASSIC':
 					return [{
@@ -55,20 +55,10 @@ export class GameService {
 	}
 
 	async joinGame(gameId: number, playerId: number) {
-		//update game status to ongoing and set totalNbMoves and winnerNbMoves to 0
-		try { 
-			await this.utilsService.updateGamesBy({
-				gameStatus: 'ONGOING',
-				totalNbMoves: 0,
-				winnerNbMoves: 0,
-			} as Partial<gameInsert>, "and", undefined , eq(gameTable.gameId, gameId));
-		} catch {
-			throw new Error("Cannot update game status.");
-		}
 		//create new participation for second player
 		try { 
 			let newGameDtoObject: NewGameDto;
-			const res: {[x: string]: unknown;} = this.utilsService.findParticipationsBy('and', { color: participationTable.playerColor }, eq(participationTable.gameId, gameId), ne(participationTable.playerId, playerId))[0];
+			const res: {[x: string]: unknown;} = (await this.utilsService.findParticipationsBy('and', { color: participationTable.playerColor }, eq(participationTable.gameId, gameId), ne(participationTable.playerId, playerId)))[0];
 			if (res.color === 'WHITE') 
 				newGameDtoObject = {
 					playerColor: 'BLACK'
@@ -81,9 +71,20 @@ export class GameService {
 		} catch {
 			throw new Error("Cannot create participation for second player.");
 		}
+		//update game status to ongoing and set totalNbMoves and winnerNbMoves to 0
+		try { 
+			await this.utilsService.updateGamesBy({
+				gameStatus: 'ONGOING',
+				totalNbMoves: 0,
+				winnerNbMoves: 0,
+			} as Partial<gameInsert>, "and", undefined , eq(gameTable.gameId, gameId));
+		} catch {
+			throw new Error("Cannot update game status.");
+		}
+
 	}
 
-	async endGame(gameInfo: EndGameDto, gameId: number, playerId: number) {
+	async endGame(gameInfo: EndGameDto, gameId: number) {
 		try {
 			await this.utilsService.updateGamesBy({
 				gameStatus: 'COMPLETED',
@@ -94,41 +95,72 @@ export class GameService {
 		} catch { 
 			throw new Error("Cannot end game."); 
 		}
+		// if gameResult is draw
+		if (gameInfo.gameResult === 'DRAW') {
+			try {
+				await this.utilsService.updateParticipationsBy({
+					playerResult: 'DRAW',
+				} as Partial<participationInsert>, "and", undefined , eq(participationTable.gameId, gameId));
+			} catch {
+				throw new Error("Cannot update participations.");
+			}
+			return;
+		}
+		// if gameResult is win, update winner participation with win and loser participation with lose
+		else {
+			try {
+				switch (gameInfo.winnerColor) {
+					case 'WHITE':
+						await this.utilsService.updateParticipationsBy({
+							playerResult: 'WIN',
+						} as Partial<participationInsert>, "and", undefined , eq(participationTable.gameId, gameId), eq(participationTable.playerColor, 'WHITE'));
+						await this.utilsService.updateParticipationsBy({
+							playerResult: 'LOSE',
+						} as Partial<participationInsert>, "and", undefined , eq(participationTable.gameId, gameId), eq(participationTable.playerColor, 'BLACK'));
+						break;
+					case 'BLACK':
+							await this.utilsService.updateParticipationsBy({
+							playerResult: 'WIN',
+						} as Partial<participationInsert>, "and", undefined , eq(participationTable.gameId, gameId), eq(participationTable.playerColor, 'BLACK'));
+						await this.utilsService.updateParticipationsBy({
+							playerResult: 'LOSE',
+						} as Partial<participationInsert>, "and", undefined , eq(participationTable.gameId, gameId), eq(participationTable.playerColor, 'WHITE'));
+						break;
+					default:
+						throw new Error('Invalid winner color');
+					}
+			} catch {
+				throw new Error("Cannot update players participation.");
+			}
+		}
+	}
+
+	async giveupGame(gameId: number, playerId: number) {
+		if (await this.utilsService.findGamesBy('and', undefined, eq(gameTable.gameId, gameId), ne(gameTable.gameStatus, 'ONGOING')))
+			throw new Error("Cannot give up a game that hasn't started yet or is completed.");
 		try {
-			await this.utilsService.updateParticipationsBy({
-				playerResult: gameInfo.playerResult,
-			} as Partial<participationInsert>, "and", undefined , eq(participationTable.gameId, gameId), eq(participationTable.playerId, playerId));
+			await this.utilsService.updateGamesBy({
+				gameStatus: 'COMPLETED',
+				gameResult: 'WIN',
+			} as Partial<gameInsert>, "and", undefined , eq(gameTable.gameId, gameId));
 		} catch {
-			throw new Error("Cannot update player 1 participation.");
+			throw new Error("Cannot end game."); 
 		}
 		try {
-			switch (gameInfo.playerResult) {
-				case 'WIN':
-					await this.utilsService.updateParticipationsBy({
-						playerResult: 'LOSE',
-					} as Partial<participationInsert>, "and", undefined , eq(participationTable.gameId, gameId), ne(participationTable.playerId, playerId));
-					break;
-				case 'LOSE':
-					await this.utilsService.updateParticipationsBy({
-						playerResult: 'WIN',
-					} as Partial<participationInsert>, "and", undefined , eq(participationTable.gameId, gameId), ne(participationTable.playerId, playerId));
-					break;
-				case 'DRAW':
-					await this.utilsService.updateParticipationsBy({
-						playerResult: 'DRAW',
-					} as Partial<participationInsert>, "and", undefined , eq(participationTable.gameId, gameId), ne(participationTable.playerId, playerId));
-					break;
-				default:
-					throw new Error('Invalid player result');
-				}
+			await this.utilsService.updateParticipationsBy({
+				playerResult: 'LOSE',
+			} as Partial<participationInsert>, "and", undefined , eq(participationTable.gameId, gameId), eq(participationTable.playerId, playerId));
+			await this.utilsService.updateParticipationsBy({
+				playerResult: 'WIN',
+			} as Partial<participationInsert>, "and", undefined , eq(participationTable.gameId, gameId), ne(participationTable.playerId, playerId));
 		} catch {
-			throw new Error("Cannot update player 2 participation.");
+			throw new Error("Cannot update players participation.");
 		}
 	}
 
 	async cancelGame(gameId: number, playerId: number) {
 		try {
-			await this.utilsService.deleteParticipationsBy('and', undefined, eq(gameTable.gameId, gameId), eq(participationTable.playerId, playerId));
+			await this.utilsService.deleteParticipationsBy('and', undefined, eq(participationTable.gameId, gameId), eq(participationTable.playerId, playerId));
 			await this.utilsService.deleteGamesBy('and', undefined, eq(gameTable.gameId, gameId), eq(gameTable.gameStatus, 'PENDING'));
 		} catch {
 			throw new Error('Unable to cancel game');
