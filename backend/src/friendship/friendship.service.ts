@@ -72,7 +72,8 @@ export class FriendshipService {
     )) as Array<{ pseudo: string }>;
 
     const friendResponse: FriendResponseDto = {
-      id: id,
+      friendshipId: id,
+      id: playerAdded,
       pseudo: pseudoPlayer[0].pseudo,
       status: 'ONLINE',
       avatarUrl: null,
@@ -87,6 +88,7 @@ export class FriendshipService {
     const friendships = (await this.utilsService.findFriendshipsBy(
       'and',
       {
+        friendshipId: friendshipTable.friendshipId,
         player1Id: friendshipTable.player1Id,
         player2Id: friendshipTable.player2Id,
         isFriend: friendshipTable.isFriend,
@@ -100,6 +102,7 @@ export class FriendshipService {
         eq(friendshipTable.player2Id, CurrentUserId),
       ),
     )) as Array<{
+      friendshipId: number;
       player1Id: number;
       player2Id: number;
       isFriend: boolean;
@@ -107,7 +110,7 @@ export class FriendshipService {
       isFavFriend: boolean;
     }>;
 
-    const results = await Promise.all(
+    const results: Array<FriendResponseDto | null> = await Promise.all(
       friendships.map(async (f) => {
         const friendId =
           f.player1Id === CurrentUserId ? f.player2Id : f.player1Id;
@@ -124,12 +127,13 @@ export class FriendshipService {
         if (!friend) return null;
         return {
           id: friend.id,
+          friendshipId: f.friendshipId,
           pseudo: friend.pseudo,
           status: 'ONLINE',
           avatarUrl: friend.avatarUrl,
           isFriend: f.isFriend,
           friendshipStatus: f.isFriend ? 'ADDED' : 'PENDING',
-        };
+        }
       }),
     );
     return results.filter((r): r is FriendResponseDto => r !== null);
@@ -216,7 +220,8 @@ export class FriendshipService {
       ne(playerTable.playerId, CurrentUserId),
     )) as Array<{ id: number; pseudo: string; avatarUrl: string | null }>;
 
-    if (!users.length) throw new NotFoundException('User not found');
+    if (!users.length)
+      return [];
 
     return users.map((user) => ({
       id: user.id,
