@@ -9,15 +9,11 @@ export class EndGameDto {
 	@IsPositive()
 	readonly winnerNbMoves: number;
 
-	// @IsNotEmpty()
-	// @IsEqual('COMPLETED')
-	// readonly gameStatus: string;
-
 	@IsNotEmpty()
 	@IsIn(['WIN', 'DRAW'])
 	readonly gameResult: string;
 
 	@IsNotEmpty()
-	@IsIn(['WIN', 'LOSE', 'DRAW'])
-	readonly playerResult: string;
+	@IsIn(['BLACK', 'WHITE'])
+	readonly winnerColor: string;
 }
