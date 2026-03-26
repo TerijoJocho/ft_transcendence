@@ -64,7 +64,9 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
-      - shared_secrets:/run/secrets/:ro
+      - .vault-secrets/backend_role_id:/run/approle:ro
+      - .vault-secrets/backend_secret_id:/run/approle:ro
+
     depends_on:
       - postgres
       - redis
@@ -81,7 +83,7 @@ services:
       container_name: vault_fix_perms
       networks: [internal]
       # On donne les droits au dossier /vault/data à l'utilisateur 100 (qui est l'user 'vault')
-      command: chown -R 100:100 /vault/data /run/secrets && chmod -R 700 /vault/data /run/secrets
+      command: chown -R 100:100 /vault/data /run/secrets && chmod -R 700 /vault/data /run/secrets && chmod 400 .vault-secrets/backend_role_id .vault-secrets/backend_secret_id .vault-secrets/unseal_keys
       volumes:
         - vault_data:/vault/data
         - shared_secrets:/run/secrets/
@@ -106,8 +108,8 @@ services:
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - vault_data:/vault/data
-      - shared_secrets:/run/secrets/
-
+      - .vault-secrets:/vault/local-secrets:rw
+      - .vault-secrets:/vault/approle:rw
   # -----------------------------
   # Frontend (React + Vite)
   # -----------------------------
