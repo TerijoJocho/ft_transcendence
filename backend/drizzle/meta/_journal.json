@@ -29,6 +29,13 @@
       "when": 1774375013892,
       "tag": "0003_cuddly_the_hunter",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1774545279108,
+      "tag": "0004_short_scarlet_witch",
+      "breakpoints": true
     }
   ]
 }
