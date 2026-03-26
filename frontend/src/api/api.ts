@@ -1,6 +1,7 @@
 const API_URL = "https://localhost";
 import type { User } from "../auth/core/authCore.ts";
 import type { Friends } from "../hooks/useFriends.ts";
+import type { SearchUserResult} from "../components/AddFriends.tsx";
 
 async function request(endpoint: string, options: RequestInit = {}, isRetry = false)
 {
@@ -69,7 +70,7 @@ export function logout() {
 // récupère la liste d'amis avec isFavFriend inclus
 export function getFriendsList(): Promise<Friends[]>
 {
-  return request("/api/user/friendship/get", {
+  return request("/api/friendship/get", {
     method: "GET",
   });
 }
@@ -77,7 +78,7 @@ export function getFriendsList(): Promise<Friends[]>
 // ajouter un ami
 export function addFriend(data: { userId: number })
 {
-  return request("/api/user/friendship/add", {
+  return request("/api/friendship/add", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -86,7 +87,7 @@ export function addFriend(data: { userId: number })
 // enlever un ami
 export function removeFriend(data: { userId: number })
 {
-  return request("/api/user/friendship/remove", {
+  return request("/api/friendship/remove", {
     method: "DELETE",
     body: JSON.stringify(data),
   });
@@ -95,17 +96,17 @@ export function removeFriend(data: { userId: number })
 // bloquer un utilisateur
 export function changeFriendshipStatus(data: { userId: number })
 {
-  return request("/api/user/friendship/changeFriendshipStatus", {
+  return request("/api/friendship/changeFriendshipStatus", {
     method: "PATCH",
     body: JSON.stringify(data),
   });
 }
 
 // requete pour chercher qqun
-export function searchUser(data: {username: string}): Promise<Friends[]>
+export function searchUser(data: {username: string}): Promise<SearchUserResult[]>
 {
   const params = new URLSearchParams({ username: data.username });
-  return request(`/api/user/search?username=${params.toString()}`, {
+  return request(`/api/friendship/search?${params.toString()}`, {
       method: "GET",
   });
 }

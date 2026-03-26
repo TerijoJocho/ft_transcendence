@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete, UseGuards, Query } from '@nestjs/common';
 import { FriendshipService } from './friendship.service';
 import { FriendshipDto } from './dto/create-friendship.dto';
 import { PassportJwtGuard } from 'src/auth/guards/passport-jwt.guard';
@@ -13,14 +13,14 @@ export class FriendshipController {
   @UseGuards(PassportJwtGuard)
   create(@CurrentUser() user: LogoutDto, @Body() targetId: FriendshipDto) 
   {
-    return this.friendshipService.create(user.playerId, targetId.Id);
+    return this.friendshipService.create(user.playerId, targetId.userId);
   }
 
   @Delete('remove')
   @UseGuards(PassportJwtGuard)
   remove(@CurrentUser() user: LogoutDto, @Body() targetId: FriendshipDto) 
   {
-    return this.friendshipService.delete(user.playerId, targetId.Id);
+    return this.friendshipService.delete(user.playerId, targetId.userId);
   }
 
   @Get('get')
@@ -30,11 +30,16 @@ export class FriendshipController {
     return this.friendshipService.list(user.playerId);
   }
 
-  @Patch('block')
+  @Patch('changeFriendshipStatus')
   @UseGuards(PassportJwtGuard)
-  block(@CurrentUser() user: LogoutDto, @Body() targetId: FriendshipDto) 
+  changeFriendshipStatus(@CurrentUser() user: LogoutDto, @Body() targetId: FriendshipDto) 
   {
-    return this.friendshipService.blockPlayer(user.playerId, targetId.Id);
+    return this.friendshipService.changeFriendshipStatus(user.playerId, targetId.userId);
   }
   // /api/user/search?username=${params.toString()} pour search
+  @Get('search')
+  @UseGuards(PassportJwtGuard)
+  search(@CurrentUser() user: LogoutDto, @Query('username') username: string) {
+    return this.friendshipService.searchUsers(user.playerId, username);
+  }
 }
