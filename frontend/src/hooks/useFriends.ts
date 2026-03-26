@@ -20,6 +20,7 @@ export function useFriends() {
     // fetch initial au mount
     useEffect(() => {
         setLoading(true);
+        setError(null);
         api.getFriendsList()
             .then(data => setFriendsList(data))
             .catch(() => setError(`Impossible de charger la liste d'amis`))
@@ -29,6 +30,7 @@ export function useFriends() {
     // refetch après que l'user clique sur les buttons
     const fetchFriends = useCallback(() => {
         setLoading(true);
+        setError(null);
         api.getFriendsList()
             .then(data => setFriendsList(data))
             .catch(() => setError(`Impossible de charger la liste d'amis`))
