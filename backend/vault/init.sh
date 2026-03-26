@@ -18,17 +18,17 @@ if [ "$initialized" != "true" ]; then
   vault operator init -key-shares=5 -key-threshold=3 -format=json > /tmp/vault_init.json
 
   export VAULT_TOKEN=$(jq -r '.root_token // empty' /tmp/vault_init.json)
-  echo $VAULT_TOKEN > /run/secrets/root_token
+  echo $VAULT_TOKEN > /run/root_token
   export VAULT_UNSEAL_KEY_1=$(jq -r '.unseal_keys_hex[0] // empty' /tmp/vault_init.json)
   export VAULT_UNSEAL_KEY_2=$(jq -r '.unseal_keys_hex[4] // empty' /tmp/vault_init.json)
   export VAULT_UNSEAL_KEY_3=$(jq -r '.unseal_keys_hex[2] // empty' /tmp/vault_init.json)
 
   if [ -n "$VAULT_UNSEAL_KEY_1" ] && [ -n "$VAULT_UNSEAL_KEY_2" ] && [ -n "$VAULT_UNSEAL_KEY_3" ]; then
-  echo "$VAULT_UNSEAL_KEY_1" > /run/secrets/unseal_keys
-  echo "$VAULT_UNSEAL_KEY_2" >> /run/secrets/unseal_keys
-  echo "$VAULT_UNSEAL_KEY_3" >> /run/secrets/unseal_keys
+  echo "$VAULT_UNSEAL_KEY_1" > run/unseal_keys
+  echo "$VAULT_UNSEAL_KEY_2" >> run/unseal_keys
+  echo "$VAULT_UNSEAL_KEY_3" >> run/unseal_keys
   else
-  echo "Error: Missing unseal keys, cannot store them in /run/secrets/unseal_keys"
+  echo "Error: Missing unseal keys, cannot store them in /vault/unseal_keys"
   exit 1
   fi
 
@@ -38,22 +38,34 @@ if [ "$initialized" != "true" ]; then
 
   # VAULT_TOKEN is already exported; avoid `vault login` because it prints token details.
   vault policy write backend-policy /backend-policy.hcl
-  if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null; then
-    vault secrets enable -version=2 -path=secret kv
+  
+  # if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null; then
+  #   vault secrets enable -version=2 -path=secret kv
+  # fi
+  # vault kv put secret/db password=$POSTGRES_PASSWORD username=$POSTGRES_USER
+
+  if ! vault auth list -format=json | jq -e 'has("approle/")' >/dev/null; then
+    vault auth enable approle
   fi
-  vault kv put secret/db password=$POSTGRES_PASSWORD username=$POSTGRES_USER
+  vault write auth/approle/role/backend \
+    token_policies="backend-policy" \
+    token_ttl="15m" \
+    token_max_ttl="1h" \
+    secret_id_ttl="24h" \
+    secret_id_num_uses=0
 
-  vault token create -policy="backend-policy" -format=json > /tmp/vault_backend_token.json
-  export BACKEND_TOKEN=$(jq -r '.auth.client_token // empty' /tmp/vault_backend_token.json)
-  echo $BACKEND_TOKEN > /run/secrets/backend_token
-
+  vault read -format=json auth/approle/role/backend/role-id \
+  | jq -r '.data.role_id' > /run/approle/backend_role_id
+  vault write -f -format=json auth/approle/role/backend/secret-id \
+  | jq -r '.data.secret_id' > /run/approle/backend_secret_id
+  chmod 400 /run/approle/backend_role_id /run/approle/backend_secret_id
 else
 
   if [ "$sealed" = "true" ]; then
     echo "Attempting to unseal using stored keys..."
 
-    if [ -f /run/secrets/unseal_keys ]; then
-      for key in $(cat /run/secrets/unseal_keys); do
+    if [ -f run/unseal_keys ]; then
+      for key in $(cat run/unseal_keys); do
         vault operator unseal "$key"
       done
     else
@@ -62,29 +74,36 @@ else
     fi
   fi
 
-  if [ -f /run/secrets/root_token ]; then
-    ROOT_TOKEN=$(cat /run/secrets/root_token)
+  if [ -f run/root_token ]; then
+    ROOT_TOKEN=$(cat run/root_token)
   fi
+
   if [ -n "$ROOT_TOKEN" ] && VAULT_TOKEN="$ROOT_TOKEN" vault token lookup >/dev/null 2>&1; then
     echo "valid token found in init file, using it"
     export VAULT_TOKEN="$ROOT_TOKEN"
   else
-    echo "token in init file is invalid, checking for token in /run/secrets/backend_token..."
+    echo "root token invalide"
     exit 1
   fi
-
-  if [ -f /run/secrets/backend_token ]; then
-    BACKEND_TOKEN="$(cat /run/secrets/backend_token)"
+  if ! vault auth list -format=json | jq -e 'has("approle/")' >/dev/null; then
+    vault auth enable approle
   fi
-
-  if VAULT_TOKEN="$BACKEND_TOKEN" vault token lookup >/dev/null 2>&1; then
-    echo "valid token found"
-  else
-    echo "invalid token, creating new one"
-    vault token create -policy="backend-policy" -format=json > /tmp/vault_backend_token.json
-    BACKEND_TOKEN=$(jq -r '.auth.client_token // empty' /tmp/vault_backend_token.json)
-    echo $BACKEND_TOKEN > /run/secrets/backend_token
+  if ! vault policy read backend-policy >/dev/null 2>&1; then
+    vault policy write backend-policy /backend-policy.hcl
   fi
+  vault write auth/approle/role/backend \
+  token_policies="backend-policy" \
+  token_ttl="15m" \
+  token_max_ttl="1h" \
+  secret_id_ttl="24h" \
+  secret_id_num_uses=0
+  if [ ! -f /run/approle/backend_role_id ]; then
+    vault read -format=json auth/approle/role/backend/role-id \
+    | jq -r '.data.role_id' > /run/approle/backend_role_id
+  fi
+  vault write -f -format=json auth/approle/role/backend/secret-id \
+  | jq -r '.data.secret_id' > /run/approle/backend_secret_id
+  chmod 400 /run/approle/backend_role_id /run/approle/backend_secret_id
 fi
 
 wait $VAULT_PID
