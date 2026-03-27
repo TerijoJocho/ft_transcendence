@@ -48,7 +48,7 @@ export function register(data:
   mail: string;
   password: string;
 }) {
-  return request("/api/auth/register", {
+  return request("/api/signin/register", {
     method: "POST",
     body: JSON.stringify(data),
   });
