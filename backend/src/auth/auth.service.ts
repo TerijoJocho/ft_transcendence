@@ -2,7 +2,7 @@ import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { playerTable } from '../shared/db/schema';
 import type { playerSelect } from '../shared/db/schema';
 import { Response } from 'express';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { UtilsService } from '../shared/services/utils.func.service';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { RedisService } from '../shared/services/redis.service';
@@ -102,12 +102,19 @@ export class AuthService {
     return response.json(user);
   }
 
-  async verifyUser(username: string, password: string): Promise<playerSelect> {
+  async verifyUser(
+    identifier: string,
+    password: string,
+  ): Promise<playerSelect> {
+    const normalized = identifier.trim();
     const user = (
       (await this.utilsService.findPlayersBy(
         'and',
         undefined,
-        eq(playerTable.gameName, username),
+        or(
+          eq(playerTable.gameName, normalized),
+          eq(playerTable.mailAddress, normalized),
+        ),
         eq(playerTable.pwd, password),
       )) as playerSelect[]
     )[0];
