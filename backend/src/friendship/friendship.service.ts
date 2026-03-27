@@ -133,7 +133,7 @@ export class FriendshipService {
           avatarUrl: friend.avatarUrl,
           isFriend: f.isFriend,
           friendshipStatus: f.isFriend ? 'ADDED' : 'PENDING',
-        }
+        };
       }),
     );
     return results.filter((r): r is FriendResponseDto => r !== null);
@@ -220,8 +220,7 @@ export class FriendshipService {
       ne(playerTable.playerId, CurrentUserId),
     )) as Array<{ id: number; pseudo: string; avatarUrl: string | null }>;
 
-    if (!users.length)
-      return [];
+    if (!users.length) return [];
 
     return users.map((user) => ({
       id: user.id,
