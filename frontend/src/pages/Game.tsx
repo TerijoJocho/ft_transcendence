@@ -22,7 +22,8 @@ function isCurrentPlayerPiece(p, player) {
   return player === "white" ? p === p.toUpperCase() : p === p.toLowerCase();
 }
 function isPathClear(b, sr, sc, dr, dc) {
-  let rs=Math.sign(dr-sr), cs=Math.sign(dc-sc), r=sr+rs, c=sc+cs;
+  const rs=Math.sign(dr-sr), cs=Math.sign(dc-sc);
+  let r=sr+rs, c=sc+cs;
   while (r!==dr||c!==dc) { if (b[r][c]!=="") return false; r+=rs; c+=cs; }
   return true;
 }
