@@ -1,34 +1,72 @@
 #!/bin/sh
+set -eu
+
+# pour les permissions des volume sudo chmod 700 .vault-secrets .vault-secrets/core .vault-secrets/approle .vault-secrets/vault_certs
 vault server -config=/vault/config/vault-config.hcl &
 
 VAULT_PID=$!
 
-echo "⏳ Attente de 5 secondes..."
-sleep 5
+echo "Waiting for Vault process startup..."
 
-export VAULT_CACERT=/etc/vault/certs/vault-selfsigned.crt
-export VAULT_ADDR='https://vault:8200'
+: "${VAULT_CACERT:=/etc/vault/certs/vault-selfsigned.crt}"
+: "${VAULT_ADDR:=https://127.0.0.1:8200}"
+export VAULT_CACERT
+export VAULT_ADDR
 
-status=$(vault status -format=json || true)
-initialized=$(echo "$status" | jq -r '.initialized')
-sealed=$(echo "$status" | jq -r '.sealed')
+if [ ! -s "$VAULT_CACERT" ]; then
+  echo "Vault CA cert missing at $VAULT_CACERT"
+  exit 1
+fi
+
+wait_for_vault() {
+  attempts=0
+  while true; do
+    status_json=$(vault status -format=json 2>/tmp/vault_status_error.log || true)
+    if [ -n "$status_json" ] && echo "$status_json" | jq -e '.initialized != null and .sealed != null' >/dev/null 2>&1; then
+      echo "$status_json"
+      return 0
+    fi
+
+    attempts=$((attempts + 1))
+    if [ "$attempts" -ge 60 ]; then
+      echo "Vault API did not become ready in time"
+      cat /tmp/vault_status_error.log || true
+      return 1
+    fi
+
+    sleep 1
+  done
+}
+
+status=$(wait_for_vault)
+initialized=$(echo "$status" | jq -r '.initialized // false')
+sealed=$(echo "$status" | jq -r '.sealed // true')
 
 if [ "$initialized" != "true" ]; then
   echo "Initializing Vault..."
-  vault operator init -key-shares=5 -key-threshold=3 -format=json > /tmp/vault_init.json
+  if ! vault operator init -key-shares=5 -key-threshold=3 -format=json > /tmp/vault_init.json; then
+    echo "Vault init failed"
+    exit 1
+  fi
 
   export VAULT_TOKEN=$(jq -r '.root_token // empty' /tmp/vault_init.json)
-  echo $VAULT_TOKEN > /run/root_token
+  if [ -z "$VAULT_TOKEN" ]; then
+    echo "Vault init succeeded but root_token is missing"
+    cat /tmp/vault_init.json || true
+    exit 1
+  fi
+
+  echo "$VAULT_TOKEN" > /vault/local-secrets/root_token
   export VAULT_UNSEAL_KEY_1=$(jq -r '.unseal_keys_hex[0] // empty' /tmp/vault_init.json)
-  export VAULT_UNSEAL_KEY_2=$(jq -r '.unseal_keys_hex[4] // empty' /tmp/vault_init.json)
+  export VAULT_UNSEAL_KEY_2=$(jq -r '.unseal_keys_hex[1] // empty' /tmp/vault_init.json)
   export VAULT_UNSEAL_KEY_3=$(jq -r '.unseal_keys_hex[2] // empty' /tmp/vault_init.json)
 
   if [ -n "$VAULT_UNSEAL_KEY_1" ] && [ -n "$VAULT_UNSEAL_KEY_2" ] && [ -n "$VAULT_UNSEAL_KEY_3" ]; then
-  echo "$VAULT_UNSEAL_KEY_1" > run/unseal_keys
-  echo "$VAULT_UNSEAL_KEY_2" >> run/unseal_keys
-  echo "$VAULT_UNSEAL_KEY_3" >> run/unseal_keys
+  echo "$VAULT_UNSEAL_KEY_1" > /vault/local-secrets/unseal_keys
+  echo "$VAULT_UNSEAL_KEY_2" >> /vault/local-secrets/unseal_keys
+  echo "$VAULT_UNSEAL_KEY_3" >> /vault/local-secrets/unseal_keys
   else
-  echo "Error: Missing unseal keys, cannot store them in /vault/unseal_keys"
+  echo "Error: Missing unseal keys, cannot store them in /vault/local-secrets/unseal_keys"
   exit 1
   fi
 
@@ -39,10 +77,10 @@ if [ "$initialized" != "true" ]; then
   # VAULT_TOKEN is already exported; avoid `vault login` because it prints token details.
   vault policy write backend-policy /backend-policy.hcl
   
-  # if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null; then
-  #   vault secrets enable -version=2 -path=secret kv
-  # fi
-  # vault kv put secret/db password=$POSTGRES_PASSWORD username=$POSTGRES_USER
+  if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null; then
+    vault secrets enable -version=2 -path=secret kv
+  fi
+  vault kv put secret/db password=$POSTGRES_PASSWORD username=$POSTGRES_USER
 
   if ! vault auth list -format=json | jq -e 'has("approle/")' >/dev/null; then
     vault auth enable approle
@@ -55,17 +93,17 @@ if [ "$initialized" != "true" ]; then
     secret_id_num_uses=0
 
   vault read -format=json auth/approle/role/backend/role-id \
-  | jq -r '.data.role_id' > /run/approle/backend_role_id
+  | jq -r '.data.role_id' > /vault/approle/backend_role_id
   vault write -f -format=json auth/approle/role/backend/secret-id \
-  | jq -r '.data.secret_id' > /run/approle/backend_secret_id
-  chmod 400 /run/approle/backend_role_id /run/approle/backend_secret_id
+  | jq -r '.data.secret_id' > /vault/approle/backend_secret_id
+  chmod 400 /vault/approle/backend_role_id /vault/approle/backend_secret_id
 else
 
   if [ "$sealed" = "true" ]; then
     echo "Attempting to unseal using stored keys..."
 
-    if [ -f run/unseal_keys ]; then
-      for key in $(cat run/unseal_keys); do
+    if [ -f /vault/local-secrets/unseal_keys ]; then
+      for key in $(cat /vault/local-secrets/unseal_keys); do
         vault operator unseal "$key"
       done
     else
@@ -74,8 +112,9 @@ else
     fi
   fi
 
-  if [ -f run/root_token ]; then
-    ROOT_TOKEN=$(cat run/root_token)
+  ROOT_TOKEN=""
+  if [ -f /vault/local-secrets/root_token ]; then
+    ROOT_TOKEN=$(cat /vault/local-secrets/root_token)
   fi
 
   if [ -n "$ROOT_TOKEN" ] && VAULT_TOKEN="$ROOT_TOKEN" vault token lookup >/dev/null 2>&1; then
@@ -97,13 +136,13 @@ else
   token_max_ttl="1h" \
   secret_id_ttl="24h" \
   secret_id_num_uses=0
-  if [ ! -f /run/approle/backend_role_id ]; then
+  if [ ! -f /vault/approle/backend_role_id ]; then
     vault read -format=json auth/approle/role/backend/role-id \
-    | jq -r '.data.role_id' > /run/approle/backend_role_id
+    | jq -r '.data.role_id' > /vault/approle/backend_role_id
   fi
   vault write -f -format=json auth/approle/role/backend/secret-id \
-  | jq -r '.data.secret_id' > /run/approle/backend_secret_id
-  chmod 400 /run/approle/backend_role_id /run/approle/backend_secret_id
+  | jq -r '.data.secret_id' > /vault/approle/backend_secret_id
+  chmod 400 /vault/approle/backend_role_id /vault/approle/backend_secret_id
 fi
 
 wait $VAULT_PID

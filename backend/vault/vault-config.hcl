@@ -4,7 +4,7 @@ api_addr      = "https://vault:8200"
 disable_mlock = true
 
 storage "file" {
-  path = "vault/data"
+  path = "/vault/data"
   node_id = "file_node_id"
 }
 
