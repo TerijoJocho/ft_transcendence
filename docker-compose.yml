@@ -84,6 +84,9 @@ services:
       context: ./backend/vault/init_service
       dockerfile: Dockerfile
     container_name: vault_fix_perms
+    environment:
+      LOCAL_UID: ${LOCAL_UID:-1000}
+      LOCAL_GID: ${LOCAL_GID:-1000}
     networks: [internal]
     volumes:
       - vault_data:/vault/data
@@ -96,6 +99,7 @@ services:
       context: ./backend/vault
       dockerfile: Dockerfile
     container_name: ft_transcendence_vault
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     networks: [internal]
     expose:
       - "8200"
