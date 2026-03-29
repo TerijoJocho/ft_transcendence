@@ -60,7 +60,7 @@ function isSquareAttacked(b, r, c, byWhite, ep) {
   }
   return false;
 }
-function canCastle(b, r, c, dc, moved, player, ep) {
+function canCastle(b, r, _c, dc, moved, player, ep) {
   const w=player==="white";
   if ((w&&moved.K)||(!w&&moved.k)) return false;
   if (dc===6) {
@@ -105,7 +105,7 @@ function hasAnyLegalMoves(b, player, moved, ep) {
   }
   return false;
 }
-function toNotation(sr, sc, dr, dc, piece, target, boardAfter, nextPlayer, ep) {
+function toNotation(_sr, sc, dr, dc, piece, target, boardAfter, nextPlayer, ep) {
   const isPawn=piece.toLowerCase()==="p", isCapture=target!==""||(isPawn&&sc!==dc);
   let n="";
   if (piece.toLowerCase()==="k"&&Math.abs(dc-sc)===2) { n=dc===6?"O-O":"O-O-O"; }
@@ -119,7 +119,7 @@ function toNotation(sr, sc, dr, dc, piece, target, boardAfter, nextPlayer, ep) {
   if (inChk) n+=hasL?"+":"#";
   return n;
 }
-function applyMove(b, sr, sc, dr, dc, moved, ep, halfmove) {
+function applyMove(b, sr, sc, dr, dc, moved, _ep, halfmove) {
   const nb=b.map(r=>r.slice()), piece=nb[sr][sc], target=nb[dr][dc], pl=piece.toLowerCase();
   const newMoved={...moved};
   if (piece==="K") newMoved.K=true; if (piece==="k") newMoved.k=true;
@@ -276,7 +276,6 @@ export default function Chess() {
                       const isLast = lastMove&&((lastMove[0]===r&&lastMove[1]===c)||(lastMove[2]===r&&lastMove[3]===c));
                       const light  = (r+c)%2===0;
 
-                      // background
                       let bgClass = light ? "bg-amber-100" : "bg-amber-900";
                       if (isLast && !isSel) bgClass = light ? "bg-yellow-300" : "bg-yellow-700";
                       if (isSel) bgClass = "bg-rose-400";
