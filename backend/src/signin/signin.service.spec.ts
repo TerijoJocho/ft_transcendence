@@ -29,12 +29,12 @@ describe('SigninService', () => {
     expect(service).toBeDefined();
   });
 
-  it('registerPlayers calls insertPlayers with expected payload', () => {
+  it('registerPlayers calls insertPlayers with expected payload', async () => {
     const mailAddress = 'user@example.com';
     const gameName = 'player1';
     const pwd = 'secret';
 
-    void service.registerPlayers(mailAddress, gameName, pwd);
+    await service.registerPlayers(mailAddress, gameName, pwd);
 
     expect(utilsService.insertPlayers).toHaveBeenCalledWith(
       [
