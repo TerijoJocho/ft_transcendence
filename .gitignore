@@ -10,7 +10,7 @@ coverage
 shared_secrets
 backend/vault/data
 docker-compose.override.yml
-shared_secrets
-shared_secrets/*
 backend/vault/data
-.vault-secrets
+.vault-secrets/approle/*
+.vault-secrets/core/*
+.vault-secrets/vault_certs/*
