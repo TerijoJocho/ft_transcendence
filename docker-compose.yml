@@ -50,6 +50,7 @@ services:
   # -----------------------------
   # Backend (NestJS)
   # -----------------------------
+
   backend:
     build:
       context: ./backend
@@ -60,13 +61,13 @@ services:
       REDIS_URL: ${REDIS_URL}
       VAULT_ADDR: ${VAULT_ADDR}
       VAULT_CACERT: ${VAULT_CACERT}
-      VAULT_SKIP_VERIFY: "true"
+      VAULT_SKIP_VERIFY: "false"
     volumes:
       - ./backend:/app
       - /app/node_modules
-      - .vault-secrets/backend_role_id:/run/approle:ro
-      - .vault-secrets/backend_secret_id:/run/approle:ro
-
+      - .vault-secrets/approle:/run/approle:ro
+      - .vault-secrets/vault_certs:/etc/vault/certs:ro
+      - .vault-secrets/vault_certs:/etc/vault/certs:ro
     depends_on:
       - postgres
       - redis
@@ -79,14 +80,16 @@ services:
   # -----------------------------
 
   init_vault:
-      image: alpine:latest
-      container_name: vault_fix_perms
-      networks: [internal]
-      # On donne les droits au dossier /vault/data à l'utilisateur 100 (qui est l'user 'vault')
-      command: chown -R 100:100 /vault/data /run/secrets && chmod -R 700 /vault/data /run/secrets && chmod 400 .vault-secrets/backend_role_id .vault-secrets/backend_secret_id .vault-secrets/unseal_keys
-      volumes:
-        - vault_data:/vault/data
-        - shared_secrets:/run/secrets/
+    build:
+      context: ./backend/vault/init_service
+      dockerfile: Dockerfile
+    container_name: vault_fix_perms
+    networks: [internal]
+    volumes:
+      - vault_data:/vault/data
+      - .vault-secrets/core:/vault/local-secrets
+      - .vault-secrets/approle:/vault/approle
+      - .vault-secrets/vault_certs:/certs
 
   vault:
     build:
@@ -108,8 +111,10 @@ services:
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - vault_data:/vault/data
-      - .vault-secrets:/vault/local-secrets:rw
-      - .vault-secrets:/vault/approle:rw
+      - .vault-secrets/core:/vault/local-secrets:rw
+      - .vault-secrets/approle:/vault/approle:rw
+      - .vault-secrets/vault_certs:/etc/vault/certs:ro
+
   # -----------------------------
   # Frontend (React + Vite)
   # -----------------------------
@@ -150,8 +155,6 @@ services:
 
 volumes:
   vault_data:
-    driver: local
-  shared_secrets:
     driver: local
   
 #   ./data:/var/lib/postgresql/data
