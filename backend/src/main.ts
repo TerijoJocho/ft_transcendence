@@ -1,35 +1,24 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
-
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 import fs from 'fs';
-import axios from 'axios';
 import https from 'https';
-
-type VaultKvV2Response = {
-  data: {
-    data: {
-      username: unknown;
-      password: unknown;
-    };
-  };
-};
+import {
+  backTokenByApprole,
+  loadDbCredentialsFromVault,
+} from './utils/function';
 
 async function bootstrap() {
-  const tokenPath = '/run/secrets/backend_token';
   const vaultCaCertPath = process.env.VAULT_CACERT;
-  const vaultSkipVerify = process.env.VAULT_SKIP_VERIFY === 'true';
-
+  const vaultAddr = (process.env.VAULT_ADDR ?? 'https://vault:8200').replace(
+    /\/$/,
+    '',
+  );
   let httpsAgent: https.Agent | undefined;
 
-  if (vaultSkipVerify) {
-    console.warn(
-      'VAULT_SKIP_VERIFY=true: TLS certificate verification is disabled (dev only).',
-    );
-    httpsAgent = new https.Agent({ rejectUnauthorized: false });
-  } else if (vaultCaCertPath && fs.existsSync(vaultCaCertPath)) {
+  if (vaultCaCertPath && fs.existsSync(vaultCaCertPath)) {
     httpsAgent = new https.Agent({
       ca: fs.readFileSync(vaultCaCertPath),
       rejectUnauthorized: true,
@@ -38,57 +27,16 @@ async function bootstrap() {
     console.warn(
       'Vault CA cert not found. Set VAULT_CACERT or enable VAULT_SKIP_VERIFY in dev.',
     );
+    process.exit(1);
   }
 
-  while (!fs.existsSync(tokenPath)) {
-    console.log(
-      `Waiting for Vault token Docker secret file at ${tokenPath}...`,
-    );
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-  }
-  const vaultToken = fs.readFileSync(tokenPath, 'utf-8').trim();
-  process.env.VAULT_TOKEN = vaultToken;
-  console.log('VAULT_TOKEN loaded from Docker secrets');
+  const backendToken = await backTokenByApprole(httpsAgent, vaultAddr);
+  if (typeof backendToken !== 'string' || backendToken.length === 0)
+    throw new Error('Invalid Vault token');
+  console.log('VAULT_TOKEN loaded from Vault by Approle');
 
   try {
-    const vaultResponse = await axios.get<VaultKvV2Response>(
-      `https://vault:8200/v1/secret/data/db`,
-      {
-        headers: {
-          'X-Vault-Token': vaultToken,
-        },
-        httpsAgent,
-      },
-    );
-    const dbUsername = vaultResponse.data.data.data.username;
-    const dbPassword = vaultResponse.data.data.data.password;
-    if (typeof dbUsername !== 'string' || typeof dbPassword !== 'string') {
-      throw new Error('Invalid Vault DB secret format');
-    }
-    process.env.DB_USERNAME = dbUsername;
-    process.env.DB_PASSWORD = dbPassword;
-
-    const existingPostgresUrl = process.env.POSTGRES_URL;
-    if (existingPostgresUrl) {
-      try {
-        const url = new URL(existingPostgresUrl);
-        url.username = dbUsername;
-        url.password = dbPassword;
-        process.env.POSTGRES_URL = url.toString();
-        console.log(
-          'Database credentials loaded from Vault and POSTGRES_URL updated',
-        );
-      } catch (urlError) {
-        console.error(
-          'POSTGRES_URL is set but invalid; could not inject Vault DB credentials:',
-          urlError instanceof Error ? urlError.message : urlError,
-        );
-      }
-    } else {
-      console.warn(
-        'POSTGRES_URL is not set; Vault DB credentials are loaded but not applied to a database URL.',
-      );
-    }
+    await loadDbCredentialsFromVault(httpsAgent, vaultAddr, backendToken);
   } catch (err) {
     console.error(
       'Error fetching secrets from Vault:',
