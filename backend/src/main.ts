@@ -25,7 +25,7 @@ async function bootstrap() {
     });
   } else {
     console.warn(
-      'Vault CA cert not found. Set VAULT_CACERT or enable VAULT_SKIP_VERIFY in dev.',
+      'Vault CA cert not found. Set VAULT_CACERT in dev.',
     );
     process.exit(1);
   }

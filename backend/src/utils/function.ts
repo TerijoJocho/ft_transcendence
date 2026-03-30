@@ -27,7 +27,7 @@ export async function backTokenByApprole(
 
   while (!(fs.existsSync(roleIdPath) && fs.existsSync(secretIdPath))) {
     console.log('Waiting for AppRole credentials files...');
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 10000));
   }
 
   const roleId = fs.readFileSync(roleIdPath, 'utf-8').trim();
@@ -44,7 +44,7 @@ export async function backTokenByApprole(
       headers: {
         'Content-Type': 'application/json',
       },
-      // timeout: 5000,
+      timeout: 10000,
     },
   );
 
