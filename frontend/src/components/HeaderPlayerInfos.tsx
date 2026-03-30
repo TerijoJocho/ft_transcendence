@@ -1,14 +1,34 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faCircleUser} from '@fortawesome/free-solid-svg-icons';
+// import * as api from "../api/api.ts";
 
 import { useState, useEffect, useRef } from 'react';
-import statusData from "../data/statusData.ts"; //a supp
-import {useAuth} from '../auth/useAuth.ts';
+import statusData from "../data/statusData.ts";
+
+import type {User} from "../auth/core/authCore.ts"
 
 export default function HeaderPlayerInfos() {
-    const {user, updateUser} = useAuth();
     const dropDownWrapper = useRef<HTMLDivElement | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [isOpen, setIsOpen] = useState<boolean>(false);
+
+    //fetch le user au mount du composant
+    //renvoie surement le userName: string, userAvatar: img (?), userStatus: ONLINE et les tokens, 
+    useEffect(() => {
+        async function fetchUser() {
+            // const userData = await api.me();
+            //pour le test
+            const userData = {
+                id: 1,
+                pseudo: "UserNameTest",
+                elo: 1634,
+                status: "ONLINE",
+                avatar: "",
+            }
+            setUser(userData);
+        };
+        fetchUser();
+    }, []);
 
     //ferme le menu quand on clique en dehors
     useEffect(() => {
@@ -24,7 +44,7 @@ export default function HeaderPlayerInfos() {
         })
     }, []);
 
-    //si le user n'a pas encore été fetch au démarage de l'app
+    //si le user n'a pas encore été fetch
     //early return
     if (!user)
     {
@@ -36,10 +56,10 @@ export default function HeaderPlayerInfos() {
     }
 
     //change le status du user d'apres celui qu'il a selectionné
-    //update user.status in backend and state local in frontend
+    // changement de statut a gerer que dans le frontend avec websocket
     function handleChangeStatus(value: string) {
-        setIsOpen(false);
-        updateUser(value);
+        setIsOpen(prev => !prev);
+        setUser(prevUser => (prevUser ? { ...prevUser, status: value } : prevUser));
     }
 
     //créer les boutons du menu status
@@ -52,7 +72,10 @@ export default function HeaderPlayerInfos() {
     })
 
     //affiche le status actuel du user
-    const currentUserStatus = statusData.find((st) => st.value === user.status) ?? statusData[0];
+    const currentUserStatus = statusData.find((st) => st.value === user.status);
+    const userAvatar = typeof user.avatar === 'string'
+                        ? (<img src={user.avatar} alt={`${user.pseudo} avatar`} className="w-5 h-5 rounded-full object-cover"/>)
+                        : (<FontAwesomeIcon icon={user.avatar ?? faCircleUser}/>)
 
     return (
         <header className='flex justify-end items-center m-2 relative text-[#141301]'>
@@ -82,12 +105,7 @@ export default function HeaderPlayerInfos() {
                     }
                 </div>
             </div>
-            {
-                user.avatar ? 
-                    <img src={user.avatar} alt='user avatar' className=''/>
-                :
-                    <FontAwesomeIcon icon={faCircleUser} className='text-4xl m-1'/>
-            }
+            {userAvatar}
         </header>
     );
 }
