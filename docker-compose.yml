@@ -67,7 +67,6 @@ services:
       - /app/node_modules
       - .vault-secrets/approle:/run/approle:ro
       - .vault-secrets/vault_certs:/etc/vault/certs:ro
-      - .vault-secrets/vault_certs:/etc/vault/certs:ro
     depends_on:
       - postgres
       - redis
