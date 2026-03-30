@@ -19,6 +19,6 @@ RUN chmod -R 755 /vault/local-secrets /run/approle && chmod -R 755 /etc/vault/ce
 RUN chown -R 100:100 /run /vault/local-secrets /run/approle /etc/vault/certs /init.sh \
     && chmod +x /init.sh 
 
-USER 100
+USER 1000
 
 CMD [ "./init.sh" ]

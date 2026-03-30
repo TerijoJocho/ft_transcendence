@@ -80,7 +80,11 @@ if [ "$initialized" != "true" ]; then
   if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null; then
     vault secrets enable -version=2 -path=secret kv
   fi
-  vault kv put secret/db password=$POSTGRES_PASSWORD username=$POSTGRES_USER
+  if [ -z "${POSTGRES_PASSWORD:-}" ] || [ -z "${POSTGRES_USER:-}" ]; then
+    echo "Error: POSTGRES_USER and POSTGRES_PASSWORD must be set and non-empty before storing database credentials in Vault."
+    exit 1
+  fi
+  vault kv put secret/db password="$POSTGRES_PASSWORD" username="$POSTGRES_USER"
 
   if ! vault auth list -format=json | jq -e 'has("approle/")' >/dev/null; then
     vault auth enable approle
