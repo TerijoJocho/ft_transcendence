@@ -50,6 +50,7 @@ services:
   # -----------------------------
   # Backend (NestJS)
   # -----------------------------
+
   backend:
     build:
       context: ./backend
@@ -58,15 +59,64 @@ services:
     environment:
       POSTGRES_URL: ${POSTGRES_URL}
       REDIS_URL: ${REDIS_URL}
+      VAULT_ADDR: ${VAULT_ADDR}
+      VAULT_CACERT: ${VAULT_CACERT}
+      VAULT_SKIP_VERIFY: "false"
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - .vault-secrets/approle:/run/approle:ro
+      - .vault-secrets/vault_certs:/etc/vault/certs:ro
     depends_on:
       - postgres
       - redis
     networks: [internal]
     # Command pour le dev (hot reload)
     command: npm run start:dev
+
+  # -----------------------------
+  # Vault Hashicorp
+  # -----------------------------
+
+  init_vault:
+    build:
+      context: ./backend/vault/init_service
+      dockerfile: Dockerfile
+    container_name: vault_fix_perms
+    environment:
+      LOCAL_UID: ${LOCAL_UID:-1000}
+      LOCAL_GID: ${LOCAL_GID:-1000}
+    networks: [internal]
+    volumes:
+      - vault_data:/vault/data
+      - .vault-secrets/core:/vault/local-secrets
+      - .vault-secrets/approle:/vault/approle
+      - .vault-secrets/vault_certs:/certs
+
+  vault:
+    build:
+      context: ./backend/vault
+      dockerfile: Dockerfile
+    container_name: ft_transcendence_vault
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    networks: [internal]
+    expose:
+      - "8200"
+    cap_add:
+      - IPC_LOCK # Empêche la RAM d'être copiée sur le disque
+    depends_on:
+      init_vault:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_started
+    environment:
+        POSTGRES_USER: ${POSTGRES_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - vault_data:/vault/data
+      - .vault-secrets/core:/vault/local-secrets:rw
+      - .vault-secrets/approle:/vault/approle:rw
+      - .vault-secrets/vault_certs:/etc/vault/certs:ro
 
   # -----------------------------
   # Frontend (React + Vite)
@@ -106,7 +156,10 @@ services:
       - frontend
     networks: [internal]
 
-# volumes:
+volumes:
+  vault_data:
+    driver: local
+  
 #   ./data:/var/lib/postgresql/data
 
 networks:
