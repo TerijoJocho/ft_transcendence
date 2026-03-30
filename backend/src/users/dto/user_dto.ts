@@ -5,7 +5,7 @@ import {
   IsStrongPassword,
 } from 'class-validator';
 
-export class SigninDto {
+export class registerDto {
   @IsNotEmpty()
   @IsString()
   readonly pseudo!: string;
@@ -22,5 +22,3 @@ export class SigninDto {
   //rajouter l url de l image de profil
   // rajouter npm install class-validator class-transformer dans le repo
 }
-
-
