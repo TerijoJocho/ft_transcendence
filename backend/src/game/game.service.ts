@@ -51,22 +51,33 @@ export class GameService {
 
 	async generateNewGame(gameInfo: NewGameDto, playerId: number) {
 		const createdNewGame = (await this.utilsService.insertGames(this.convertDtoToGameInsert(gameInfo)))[0] as gameSelect;
-		await this.utilsService.insertParticipations(this.convertDtoToParticipationInsert(gameInfo, playerId, createdNewGame.gameId));
+		try {
+			await this.utilsService.insertParticipations(this.convertDtoToParticipationInsert(gameInfo, playerId, createdNewGame.gameId));
+		} catch {
+			(await this.utilsService.deleteGamesBy('and', undefined, eq(gameTable.gameId, createdNewGame.gameId)));
+			throw new Error("Cannot create participation for first player.");
+		}
 	}
 
 	async joinGame(gameId: number, playerId: number) {
+		//check if game exists and is pending
+		const gameRows:  {[x: string]: unknown;}[] | gameSelect[]= (await this.utilsService.findGamesBy('and', undefined, eq(gameTable.gameId, gameId), eq(gameTable.gameStatus, 'PENDING')));
+		if (gameRows.length === 0)
+			throw new Error("Game not found or already started.");
 		//create new participation for second player
-		try { 
-			let newGameDtoObject: NewGameDto;
-			const res: {[x: string]: unknown;} = (await this.utilsService.findParticipationsBy('and', { color: participationTable.playerColor }, eq(participationTable.gameId, gameId), ne(participationTable.playerId, playerId)))[0];
-			if (res.color === 'WHITE') 
-				newGameDtoObject = {
-					playerColor: 'BLACK'
-				};
-			else
-				newGameDtoObject = {
-					playerColor: 'WHITE'
-				};
+		let newGameDtoObject: NewGameDto;
+		const participationRows: {[w: string]: any;}[] = (await this.utilsService.findParticipationsBy('and', { color: participationTable.playerColor }, eq(participationTable.gameId, gameId), ne(participationTable.playerId, playerId)));
+		if (participationRows.length === 0)
+			throw new Error("First player participation not found.");
+		if (participationRows[0].color === 'WHITE') 
+			newGameDtoObject = {
+				playerColor: 'BLACK'
+			};
+		else
+			newGameDtoObject = {
+				playerColor: 'WHITE'
+			};
+		try {
 		await this.utilsService.insertParticipations(this.convertDtoToParticipationInsert(newGameDtoObject, playerId, gameId));
 		} catch {
 			throw new Error("Cannot create participation for second player.");
@@ -79,12 +90,20 @@ export class GameService {
 				winnerNbMoves: 0,
 			} as Partial<gameInsert>, "and", undefined , eq(gameTable.gameId, gameId));
 		} catch {
+			(await this.utilsService.deleteParticipationsBy('and', undefined, eq(participationTable.gameId, gameId), eq(participationTable.playerId, playerId)));
 			throw new Error("Cannot update game status.");
 		}
-
 	}
 
 	async endGame(gameInfo: EndGameDto, gameId: number) {
+		const gameRows = await this.utilsService.findGamesBy(
+			'and',
+			undefined,
+			eq(gameTable.gameId, gameId),
+			ne(gameTable.gameStatus, 'ONGOING'),
+		);
+		if (gameRows.length > 0)
+			throw new Error("Cannot end a game that hasn't started yet or is completed.");
 		try {
 			await this.utilsService.updateGamesBy({
 				gameStatus: 'COMPLETED',
@@ -136,7 +155,13 @@ export class GameService {
 	}
 
 	async giveupGame(gameId: number, playerId: number) {
-		if (await this.utilsService.findGamesBy('and', undefined, eq(gameTable.gameId, gameId), ne(gameTable.gameStatus, 'ONGOING')))
+		const gameRows = await this.utilsService.findGamesBy(
+			'and',
+			undefined,
+			eq(gameTable.gameId, gameId),
+			ne(gameTable.gameStatus, 'ONGOING'),
+		);
+		if (gameRows.length > 0)
 			throw new Error("Cannot give up a game that hasn't started yet or is completed.");
 		try {
 			await this.utilsService.updateGamesBy({
