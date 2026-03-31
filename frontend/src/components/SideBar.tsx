@@ -35,7 +35,7 @@ export default function SideBar() {
 //   const favFilteredList = friendsList.filter(f => f.isFavFriend)
 
   const userAvatar = typeof user.avatar === 'string'
-                        ? (<img src={user.avatar} alt={`${user.pseudo} avatar`} className="w-5 h-5 rounded-full object-cover"/>)
+                        ? (<img src={user.avatar} alt={`${user.pseudo} avatar`} className="w-8 h-8 rounded-full object-cover"/>)
                         : (<FontAwesomeIcon icon={user.avatar ?? faCircleUser}/>)
 
   return (
@@ -79,54 +79,16 @@ export default function SideBar() {
             </Link>
           );
         })}
-
-        {/* liste des amis favoris */}
-        {/* <div className={`${isSmallMenu ? "" : "border rounded-lg"}`}>
-          {isSmallMenu ? (
-            <Link to="/friends">
-              <FontAwesomeIcon icon={faUserGroup} className="global-hover" />
-            </Link>
-          ) : (
-            <>
-              <h2 className="text-sm text-gray-400 mb-2 p-2">
-                <Link to="/friends">
-                  <FontAwesomeIcon icon={faUserGroup} className="mr-1 hover:text-violet-400 cursor-pointer"/>
-                </Link>
-                Amis favoris
-              </h2>
-              <div className="max-h-52 overflow-y-auto space-y-6 p-2">
-                {favFilteredList.length === 0 ? (
-                  <div className="text-sm text-gray-400">
-                    Aucun amis en favoris
-                  </div>
-                ) : (
-                  favFilteredList.map((friend) => {
-                    const friendStatus = statusData.find((st) => st.value === friend.status);
-                    return (
-                      <div key={friend.id} className="flex items-center text-md justify-between">
-                        <div className="self-start">
-                          <FontAwesomeIcon icon={faCircleUser} />
-                          {friend.pseudo}
-                        </div>
-                        <div className={`h-2 w-2 rounded-full border ${friendStatus?.dotClass}`}></div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </>
-          )}
-        </div> */}
       </nav>
 
       {/* footer pour cliquer sur la page de profile et se logout */}
       <footer className={`flex items-center justify-between ${isSmallMenu ? "gap-2" : ""} p-4`}>
         <Link to={"/profil"}>
           <div className="flex items-center global-hover cursor-pointer">
-            {isSmallMenu ? userAvatar : <div className="flex gap-2">{userAvatar} <p>{user.pseudo}</p></div>}
+            {isSmallMenu ? userAvatar : <div className="flex gap-2 items-center">{userAvatar} <p>{user.pseudo}</p></div>}
           </div>
         </Link>
-        <button onClick={handleLogout}>
+        <button onClick={handleLogout} className="h-8">
           <FontAwesomeIcon icon={faArrowRightFromBracket} className="warning-hover"/>
         </button>
       </footer>

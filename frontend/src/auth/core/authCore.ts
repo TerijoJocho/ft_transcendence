@@ -1,11 +1,10 @@
 import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { createContext } from "react";
 
-//peut-etre rajouter le token dans le type à terme ??
 export type User = {
   id: number;
   pseudo: string;
-  elo: number,
+  level: number,
   status: string;
   avatar: string | IconDefinition;
 };

@@ -2,7 +2,7 @@ import HeaderPlayerInfos from "../components/HeaderPlayerInfos.tsx";
 import StatsCards from "../components/StatsCards.tsx";
 import EloGraph from "../components/EloGraph.tsx";
 import LastMatches from "../components/LastMatches.tsx";
-import TournamentHistory from "../components/TournamentHistory.tsx";
+// import TournamentHistory from "../components/TournamentHistory.tsx";
 import DailyPuzzle from "../components/DailyPuzzle.tsx";
 import Achievement from "../components/Achievement.tsx";
 import LeaderBoard from "../components/LeaderBoard.tsx";
@@ -15,10 +15,9 @@ function Dashboard() {
                 <StatsCards />
                 <EloGraph />
                 <LastMatches />
-                <TournamentHistory />
+                <LeaderBoard />
                 <DailyPuzzle />
                 <Achievement />
-                <LeaderBoard />
             </section>
         </div>
     );

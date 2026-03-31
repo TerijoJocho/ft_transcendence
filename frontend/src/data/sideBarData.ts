@@ -29,11 +29,11 @@ export const sideBarData = [
     text: "Jouer",
     path: "/game",
   },
-  {
-    icon: faChess,
-    text: "Tournoi",
-    path: "/tournament",
-  },
+  // {
+  //   icon: faChess,
+  //   text: "Tournoi",
+  //   path: "/tournament",
+  // },
   {
     icon: faMessage,
     text: "Chat",
