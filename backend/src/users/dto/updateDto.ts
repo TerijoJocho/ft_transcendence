@@ -1,4 +1,11 @@
-import { IsString, IsNotEmpty, IsEmail, IsOptional, MaxLength, IsUrl } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEmail,
+  IsOptional,
+  MaxLength,
+  IsUrl,
+} from 'class-validator';
 
 export class UpdateUserDto {
   @IsNotEmpty()
@@ -23,5 +30,5 @@ export class UpdateUserDto {
     { require_protocol: true, protocols: ['https'] },
     { message: 'avatarUrl must be a valid https URL' },
   )
-  avatarUrl? : string;
+  avatarUrl?: string;
 }
