@@ -2,7 +2,7 @@ import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { playerTable } from '../shared/db/schema';
 import type { playerSelect } from '../shared/db/schema';
 import { Response } from 'express';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { UtilsService } from '../shared/services/utils.func.service';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { RedisService } from '../shared/services/redis.service';
@@ -84,7 +84,6 @@ export class AuthService {
     const expiresAccessToken = new Date(Date.now() + accessExpirationMs);
     const accessExpirationSec = Math.floor(accessExpirationMs / 1000);
 
-
     const tokenPayload: AuthTokenPayload = {
       sub: user.playerId,
       pseudo: user.identifier,
@@ -103,12 +102,19 @@ export class AuthService {
     return response.json(user);
   }
 
-  async verifyUser(username: string, password: string): Promise<playerSelect> {
+  async verifyUser(
+    identifier: string,
+    password: string,
+  ): Promise<playerSelect> {
+    const normalized = identifier.trim();
     const user = (
       (await this.utilsService.findPlayersBy(
         'and',
         undefined,
-        eq(playerTable.gameName, username),
+        or(
+          eq(playerTable.gameName, normalized),
+          eq(playerTable.mailAddress, normalized),
+        ),
         eq(playerTable.pwd, password),
       )) as playerSelect[]
     )[0];
@@ -122,7 +128,7 @@ export class AuthService {
     playerId: number,
     refreshToken: string,
   ): Promise<ResponseLoginDto> {
-	if (!refreshToken) {
+    if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is missing.');
     }
     const redisClient = this.redisService.getClient();
@@ -135,16 +141,15 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token does not match cache.');
     }
     let decoded: AuthTokenPayload;
-	try {
-		decoded = this.jwtService.verify<AuthTokenPayload>(refreshToken, {
-			secret: process.env.JWT_REFRESH_TOKEN_SECRET,
-			});
-	}
-	catch (error) {
-		this.logger.error('Refresh token verification error:', error);
-		throw new UnauthorizedException('Cannot decode refresh token.');
-	}
-	if (!decoded?.sub || !decoded?.pseudo || decoded.sub !== playerId) {
+    try {
+      decoded = this.jwtService.verify<AuthTokenPayload>(refreshToken, {
+        secret: process.env.JWT_REFRESH_TOKEN_SECRET,
+      });
+    } catch (error) {
+      this.logger.error('Refresh token verification error:', error);
+      throw new UnauthorizedException('Cannot decode refresh token.');
+    }
+    if (!decoded?.sub || !decoded?.pseudo || decoded.sub !== playerId) {
       throw new UnauthorizedException('Invalid refresh token payload.');
     }
     return { identifier: decoded.pseudo, playerId: decoded.sub };
