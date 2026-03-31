@@ -34,7 +34,7 @@ export class UserService {
         avatarUrl: playerTable.avatarUrl,
       },
       eq(playerTable.playerId, playerId),
-    ); //as Array<{ playerId : number; gameName : string; avatarUrl : string }>
+    );
   }
 
   async deleteUserbyId(playerId: number, response: Response) {
