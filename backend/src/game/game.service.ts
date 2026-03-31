@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UtilsService } from '../shared/services/utils.func.service';
 import { NewGameDto } from './dto/new-game.dto';
-import { gameTable, gameSelect, gameInsert, participationTable, participationInsert, participationSelect, type playerColor } from 'src/shared/db/schema';
+import { gameTable, gameSelect, gameInsert, participationTable, participationInsert } from 'src/shared/db/schema';
 import { EndGameDto } from './dto/end-game.dto';
 import { eq, ne } from 'drizzle-orm';
 

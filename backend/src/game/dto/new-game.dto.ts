@@ -1,4 +1,4 @@
-import { IsIn, IsNotEmpty, IsNumber, IsPositive } from 'class-validator';
+import { IsIn, IsNotEmpty } from 'class-validator';
 
 export class NewGameDto {
 	@IsNotEmpty()
