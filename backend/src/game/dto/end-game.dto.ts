@@ -1,4 +1,4 @@
-import { IsIn, IsNotEmpty, IsNumber, IsPositive } from 'class-validator';
+import { IsIn, IsNotEmpty, IsNumber, IsPositive, ValidateIf } from 'class-validator';
 
 export class EndGameDto {
 	@IsNumber()
@@ -15,5 +15,6 @@ export class EndGameDto {
 
 	@IsNotEmpty()
 	@IsIn(['BLACK', 'WHITE'])
+	@ValidateIf((object: EndGameDto) => object.gameResult === 'WIN')
 	readonly winnerColor: string;
 }
