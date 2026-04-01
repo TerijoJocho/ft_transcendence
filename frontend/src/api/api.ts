@@ -110,3 +110,23 @@ export function searchUser(data: {username: string}): Promise<SearchUserResult[]
       method: "GET",
   });
 }
+
+//pour changer des infos sur le profil
+export function updateProfile(data: {
+  pseudo: string,
+  // email: string,
+  newPassword: string,
+  confirmNewPassword: string,
+}) {
+  return request("/api/user/profile", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+//pour supp le compte
+export function deleteAccount() {
+  return request("/api/user", {
+    method: "DELETE",
+  });
+}
