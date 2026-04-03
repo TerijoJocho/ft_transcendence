@@ -7,15 +7,15 @@ export class SigninService {
   constructor(private readonly utils: UtilsService) {}
 
   @Post()
-  registerPlayers(mailAddress: string, gameName: string, pwd: string) {
+  registerPlayers(mailAddress: string, playerName: string, pwd: string) {
     const currentPlayers: playerInsert = {
-      gameName: gameName,
+      playerName: playerName,
       mailAddress: mailAddress,
       pwd: pwd,
     };
     return this.utils.insertPlayers([currentPlayers], {
       id: playerTable.playerId,
-      gameName: playerTable.gameName,
+      playerName: playerTable.playerName,
     });
   }
 }

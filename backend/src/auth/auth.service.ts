@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import {
   Injectable,
   Logger,
@@ -6,10 +5,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { playerTable } from '../shared/db/schema';
-=======
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { participationTable, playerTable } from '../shared/db/schema';
->>>>>>> b140a7a (feat: updated me() function to test stats funcs from utilsService)
 import type { playerSelect } from '../shared/db/schema';
 import { Response } from 'express';
 import { eq, or } from 'drizzle-orm';

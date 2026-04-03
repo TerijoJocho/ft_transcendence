@@ -54,7 +54,7 @@ export const playerTable = pgTable('players', {
   playerId: integer().primaryKey().generatedAlwaysAsIdentity(),
   // sessionId: varchar().notNull().unique(),
   mailAddress: varchar().notNull().unique(),
-  gameName: varchar().notNull().unique(),
+  playerName: varchar().notNull().unique(),
   pwd: varchar().notNull(),
   avatarUrl: varchar()
     .notNull()
