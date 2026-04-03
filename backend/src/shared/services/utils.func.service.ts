@@ -365,14 +365,14 @@ export class UtilsService {
   };
 
   //miscellaneous functions
-  // query to calculate all/some players' winrate depending on conditions  (=> [gameName, winrate])
+  // query to calculate all/some players' winrate depending on conditions  (=> [playerName, winrate])
   getWinrate = async (
     operator?: 'and' | 'or',
     ...conditions: (SQLWrapper | SQLWrapper[])[]
   ) => {
     let query = this.Database.getDb()
       .select({
-        playerName: playerTable.gameName,
+        playerName: playerTable.playerName,
         winrate: sql`( COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN') + 0.5 * COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW'))
 / NULLIF(COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING'), 0)::float`,
       })
@@ -381,7 +381,7 @@ export class UtilsService {
         playerTable,
         eq(participationTable.playerId, playerTable.playerId),
       )
-      .groupBy(playerTable.gameName);
+      .groupBy(playerTable.playerName);
     const flatConditions = conditions.flat();
     if (operator === 'or') {
       query = query.where(or(...flatConditions)) as typeof query;
@@ -398,7 +398,7 @@ export class UtilsService {
   ) => {
     let query = this.Database.getDb()
       .select({
-        playerName: playerTable.gameName,
+        playerName: playerTable.playerName,
         avgWinMoves: sql`AVG(${gameTable.winnerNbMoves})`,
       })
       .from(participationTable)
@@ -407,7 +407,7 @@ export class UtilsService {
         eq(participationTable.playerId, playerTable.playerId),
       )
       .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
-      .groupBy(playerTable.gameName, participationTable.playerId);
+      .groupBy(playerTable.playerName, participationTable.playerId);
     const flatConditions = conditions.flat();
     if (operator === 'or') {
       query = query.where(
@@ -429,7 +429,7 @@ export class UtilsService {
     const subquery = this.Database.getDb()
       .select({
         playerId: participationTable.playerId,
-        playerName: playerTable.gameName,
+        playerName: playerTable.playerName,
         gameMode: gameTable.gameMode,
         nbGames: sql`COUNT(*)`,
         ranking: sql`RANK() OVER (PARTITION BY ${participationTable.playerId} ORDER BY COUNT(*) DESC)`,
@@ -441,7 +441,7 @@ export class UtilsService {
       )
       .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
       .groupBy(
-        playerTable.gameName,
+        playerTable.playerName,
         gameTable.gameMode,
         participationTable.playerId,
       )
