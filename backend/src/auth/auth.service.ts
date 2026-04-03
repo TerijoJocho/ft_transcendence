@@ -1,5 +1,5 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { playerTable } from '../shared/db/schema';
+import { participationTable, playerTable } from '../shared/db/schema';
 import type { playerSelect } from '../shared/db/schema';
 import { Response } from 'express';
 import { eq, or } from 'drizzle-orm';
@@ -112,7 +112,7 @@ export class AuthService {
         'and',
         undefined,
         or(
-          eq(playerTable.gameName, normalized),
+          eq(playerTable.playerName, normalized),
           eq(playerTable.mailAddress, normalized),
         ),
         eq(playerTable.pwd, password),
@@ -169,18 +169,53 @@ export class AuthService {
         undefined,
         eq(playerTable.playerId, playerId),
       )
-    )[0];
+    ) as playerSelect[];
 
-    if (!user) {
+    if (user.length === 0) {
       throw new UnauthorizedException('User not found.');
     }
 
+    const lvl = (await this.utilsService.getTotalWins('and', eq(playerTable.playerId, user[0].playerId)))[0];
+    const lvlVal: Number = lvl?.totalWins ?? 0;
+
+    const loss = (await this.utilsService.getTotalLosses('and', eq(playerTable.playerId, user[0].playerId)))[0];
+    const lossVal: Number = loss?.totalLosses ?? 0;
+
+    const draws = (await this.utilsService.getTotalDraws('and', eq(playerTable.playerId, user[0].playerId)))[0];
+    const drawVal: Number = draws?.totalDraws ?? 0;
+
+    const gameNb = (await this.utilsService.getTotalGamesPlayed('and', eq(playerTable.playerId, user[0].playerId)))[0];
+    const gameVal: Number = gameNb?.totalGames ?? 0;
+
+    const wr = (await this.utilsService.getWinrate('and', eq(playerTable.playerId, user[0].playerId)))[0];
+    const winrateVal: Number = wr?.winrate ?? 0;
+
+    const color = (await this.utilsService.getFavouriteColor('and', eq(playerTable.playerId, user[0].playerId)))[0];
+    const colorVal: string = color?.playerColor ?? 'unknown';
+
+    const gm = (await this.utilsService.getFavouriteGameMode('and', eq(playerTable.playerId, user[0].playerId)))[0];
+    const gameModeVal: string = gm?.gameMode ?? 'unknown';
+
+    const cws = (await this.utilsService.getCurrentWinStreak('and', eq(playerTable.playerId, user[0].playerId)))[0];
+    const cwsVal: Number = cws?.currentStreak ?? 0;
+
+    const lws = (await this.utilsService.getLongestWinStreak('and', eq(playerTable.playerId, user[0].playerId)))[0];
+    const lwsVal: Number = lws?.longestStreak ?? 0;
+
     return {
-      id: user.playerId,
-      pseudo: user.gameName,
-      elo: 1200,
-      status: 'ONLINE',
-      avatar: user.avatarUrl,
-    };
+      id: user[0].playerId,
+      pseudo: user[0].playerName,
+      status: 'ONLINE', // This is a placeholder. Track user status with websockets.
+      winCount: lvlVal,
+      lossCount: lossVal,
+      drawCount: drawVal,
+      totalGames: gameVal,
+      winrate: winrateVal,
+      favColor: colorVal,
+      favGameMode: gameModeVal,
+      currentwinStreak: cwsVal,
+      longestWinStreak: lwsVal,
+      avatar: user[0].avatarUrl,
+    };      
   }
 }
