@@ -5,6 +5,7 @@ import { createContext } from "react";
 export type User = {
   id: number;
   pseudo: string;
+  email: string,
   elo: number,
   status: string;
   avatar: string | IconDefinition;

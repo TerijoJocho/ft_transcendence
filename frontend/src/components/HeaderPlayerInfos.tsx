@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faCircleUser} from '@fortawesome/free-solid-svg-icons';
-// import * as api from "../api/api.ts";
+import * as api from "../api/api.ts";
 
 import { useState, useEffect, useRef } from 'react';
 import statusData from "../data/statusData.ts";
@@ -16,15 +16,15 @@ export default function HeaderPlayerInfos() {
     //renvoie surement le userName: string, userAvatar: img (?), userStatus: ONLINE et les tokens, 
     useEffect(() => {
         async function fetchUser() {
-            // const userData = await api.me();
+            const userData = await api.me();
             //pour le test
-            const userData = {
-                id: 1,
-                pseudo: "UserNameTest",
-                elo: 1634,
-                status: "ONLINE",
-                avatar: "",
-            }
+            // const userData = {
+            //     id: 1,
+            //     pseudo: "UserNameTest",
+            //     elo: 1634,
+            //     status: "ONLINE",
+            //     avatar: "",
+            // }
             setUser(userData);
         };
         fetchUser();
