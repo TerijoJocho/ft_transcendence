@@ -6,9 +6,7 @@ export default function ProfileInfos({form, handleChange, handleSubmit}) {
     function activateForm() {
         setCanNotWrite(prev => !prev);
         if (!canNotWrite)
-        {
             handleSubmit()
-        }
     }
     return(
         <section className="flex flex-col gap-6">
