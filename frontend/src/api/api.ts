@@ -114,7 +114,7 @@ export function searchUser(data: {username: string}): Promise<SearchUserResult[]
 //pour changer des infos sur le profil
 export function updateProfile(data: {
   pseudo: string,
-  // email: string,
+  email: string,
   newPassword: string,
   confirmNewPassword: string,
 }) {
@@ -126,7 +126,7 @@ export function updateProfile(data: {
 
 //pour supp le compte
 export function deleteAccount() {
-  return request("/api/user", {
+  return request("/api/user/delete", {
     method: "DELETE",
   });
 }
