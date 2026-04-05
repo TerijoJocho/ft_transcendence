@@ -8,7 +8,15 @@ import {
   participationInsert,
   participationTable,
 } from '../db/schema';
+<<<<<<< HEAD
 import { and, or, eq, ne, sql, SQLWrapper, desc } from 'drizzle-orm';
+=======
+<<<<<<< HEAD
+import { and, or, eq, ne, sql, SQLWrapper, desc, gte, lt } from 'drizzle-orm';
+=======
+import { and, or, eq, ne, sql, SQLWrapper, sum, desc } from 'drizzle-orm';
+>>>>>>> 2745606 (feat: added util fun to retrieve a player's game history, modifiied other stat related funcs to accept only one playerId as parameter. tested with  auth/me route)
+>>>>>>> 331fdc5 (feat: added util fun to retrieve a player's game history, modifiied other stat related funcs to accept only one playerId as parameter. tested with  auth/me route)
 import { SelectedFieldsFlat, PgTable } from 'drizzle-orm/pg-core';
 import { DatabaseService } from './db.service';
 import { Injectable } from '@nestjs/common';
