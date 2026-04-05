@@ -8,7 +8,7 @@ import {
   participationInsert,
   participationTable,
 } from '../db/schema';
-import { and, or, eq, sql, SQLWrapper, sum } from 'drizzle-orm';
+import { and, or, eq, ne, sql, SQLWrapper, sum, desc } from 'drizzle-orm';
 import { SelectedFieldsFlat, PgTable } from 'drizzle-orm/pg-core';
 import { DatabaseService } from './db.service';
 import { Injectable } from '@nestjs/common';
@@ -367,8 +367,7 @@ export class UtilsService {
   //miscellaneous functions
   // query to calculate all/some players' winrate depending on conditions  (=> [playerName, winrate])
   getWinrate = async (
-    operator?: 'and' | 'or',
-    ...conditions: (SQLWrapper | SQLWrapper[])[]
+    playerId?: number
   ) => {
     let query = this.Database.getDb()
       .select({
@@ -382,19 +381,15 @@ export class UtilsService {
         eq(participationTable.playerId, playerTable.playerId),
       )
       .groupBy(playerTable.playerName);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      query = query.where(or(...flatConditions)) as typeof query;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      query = query.where(and(...flatConditions)) as typeof query;
+    if (playerId) {
+      query = query.where(eq(participationTable.playerId, playerId)) as typeof query;
     }
     return query;
   };
 
-  //query to calculate average number of moves to win for all/some players
+  //query to calculate average number of moves to win for a player
   getAverageWinMoves = async (
-    operator?: 'and' | 'or',
-    ...conditions: (SQLWrapper | SQLWrapper[])[]
+    playerId?: number
   ) => {
     let query = this.Database.getDb()
       .select({
@@ -408,27 +403,20 @@ export class UtilsService {
       )
       .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
       .groupBy(playerTable.playerName, participationTable.playerId);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
+    if (playerId) {
       query = query.where(
-        and(eq(participationTable.playerResult, 'WIN'), or(...flatConditions)),
-      ) as typeof query;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      query = query.where(
-        and(eq(participationTable.playerResult, 'WIN'), and(...flatConditions)),
+        and(eq(participationTable.playerResult, 'WIN'), eq(participationTable.playerId, playerId)),
       ) as typeof query;
     }
     return query;
   };
 
-  //query to find all/some players' favourite game mode
+  //query to find a player favourite game mode
   getFavouriteGameMode = async (
-    operator?: 'and' | 'or',
-    ...conditions: (SQLWrapper | SQLWrapper[])[]
+    playerId?: number
   ) => {
     let subqueryBuilder = this.Database.getDb()
       .select({
-        playerId: participationTable.playerId,
         playerName: playerTable.playerName,
         gameMode: gameTable.gameMode,
         nbGames: sql<Number>`COUNT(*)::int`,
@@ -440,14 +428,9 @@ export class UtilsService {
         eq(participationTable.playerId, playerTable.playerId),
       )
       .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId));
-    
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      subqueryBuilder = subqueryBuilder.where(or(...flatConditions)) as typeof subqueryBuilder;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      subqueryBuilder = subqueryBuilder.where(and(...flatConditions)) as typeof subqueryBuilder;
+    if (playerId) {
+      subqueryBuilder = subqueryBuilder.where(eq(participationTable.playerId, playerId)) as typeof subqueryBuilder;
     }
-    
     const subquery = subqueryBuilder
       .groupBy(
         playerTable.playerName,
@@ -458,7 +441,6 @@ export class UtilsService {
 
     const query = this.Database.getDb()
       .select({
-        playerId: subquery.playerId,
         playerName: subquery.playerName,
         gameMode: subquery.gameMode,
       })
@@ -468,15 +450,13 @@ export class UtilsService {
     return query;
   };
 
-  //query to return total number of games played by all/some players
+  //query to return total number of games played by a player
   getTotalGamesPlayed = async (
-    operator?: 'and' | 'or',
-    ...conditions: (SQLWrapper | SQLWrapper[])[]
+    playerId?: number
   ) => {
     let query = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,
-        playerId: playerTable.playerId,
         totalGames: sql<Number>`COALESCE(COUNT(*), 0)::int`,
       })
       .from(participationTable)
@@ -485,25 +465,19 @@ export class UtilsService {
         eq(participationTable.playerId, playerTable.playerId),
       )
       .groupBy(playerTable.playerName, playerTable.playerId);
-    const flatConditions = conditions.flat();
-    if (operator === 'or') {
-      query = query.where(or(...flatConditions)) as typeof query;
-    } else if (operator === 'and') {
-      query = query.where(and(...flatConditions)) as typeof query;
+    if (playerId) {
+      query = query.where(eq(participationTable.playerId, playerId)) as typeof query;
     }
     return query;
   };
 
-
-  //query to return total number of wins by all/some players
+  //query to return total number of wins by a player
   getTotalWins = async (
-    operator?: 'and' | 'or',
-    ...conditions: (SQLWrapper | SQLWrapper[])[]
+    playerId?: number
   ) => {
     let query = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,
-        playerId: playerTable.playerId,
         totalWins: sql<Number>`COALESCE(COUNT(*), 0)::int`,
       })
       .from(participationTable)
@@ -512,24 +486,19 @@ export class UtilsService {
         eq(participationTable.playerId, playerTable.playerId),
       )
       .groupBy(playerTable.playerName, playerTable.playerId);
-    const flatConditions = conditions.flat();
-    if (operator === 'or') {
-      query = query.where(and(eq(participationTable.playerResult, 'WIN'), or(...flatConditions))) as typeof query;
-    } else if (operator === 'and') {
-      query = query.where(and(eq(participationTable.playerResult, 'WIN'), and(...flatConditions))) as typeof query;
+    if (playerId) {
+      query = query.where(and(eq(participationTable.playerId, playerId), eq(participationTable.playerResult, "WIN"))) as typeof query;
     }
     return query;
   };
 
-  //query to return total number of losses by all/some players
+  //query to return total number of losses by a player
   getTotalLosses = async (
-    operator?: 'and' | 'or',
-    ...conditions: (SQLWrapper | SQLWrapper[])[]
+    playerId?: number
   ) => {
     let query = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,
-        playerId: playerTable.playerId,
         totalLosses: sql<Number>`COALESCE(COUNT(*), 0)::int`,
       })
       .from(participationTable)
@@ -538,24 +507,19 @@ export class UtilsService {
         eq(participationTable.playerId, playerTable.playerId),
       )
       .groupBy(playerTable.playerName, playerTable.playerId);
-    const flatConditions = conditions.flat();
-    if (operator === 'or') {
-      query = query.where(and(eq(participationTable.playerResult, 'LOSE'), or(...flatConditions))) as typeof query;
-    } else if (operator === 'and') {
-      query = query.where(and(eq(participationTable.playerResult, 'LOSE'), and(...flatConditions))) as typeof query;
+    if (playerId) {
+      query = query.where(and(eq(participationTable.playerId, playerId), eq(participationTable.playerResult, "LOSE"))) as typeof query;
     }
     return query;
   };
 
-  //query to return total number of draws by all/some players
+  //query to return total number of draws by a player
   getTotalDraws = async (
-    operator?: 'and' | 'or',
-    ...conditions: (SQLWrapper | SQLWrapper[])[]
+    playerId?: number
   ) => {
     let query = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,
-        playerId: playerTable.playerId,
         totalDraws: sql<Number>`COALESCE(COUNT(*), 0)::int`,
       })
       .from(participationTable)
@@ -564,19 +528,15 @@ export class UtilsService {
         eq(participationTable.playerId, playerTable.playerId),
       )
       .groupBy(playerTable.playerName, playerTable.playerId);
-    const flatConditions = conditions.flat();
-    if (operator === 'or') {
-      query = query.where(and(eq(participationTable.playerResult, 'DRAW'), or(...flatConditions))) as typeof query;
-    } else if (operator === 'and') {
-      query = query.where(and(eq(participationTable.playerResult, 'DRAW'), and(...flatConditions))) as typeof query;
+    if (playerId) {
+      query = query.where(and(eq(participationTable.playerId, playerId), eq(participationTable.playerResult, "DRAW"))) as typeof query;
     }
     return query;
   };
 
   //query to return current winstreak of all/some players
   getCurrentWinStreak = async (
-    operator?: 'and' | 'or',
-    ...conditions: (SQLWrapper | SQLWrapper[])[]
+    playerId?: number
   ) => {
     const orderedParticipations = this.Database.getDb()
       .select({
@@ -600,11 +560,8 @@ export class UtilsService {
       .from(playerTable)
       .leftJoin(orderedParticipations, eq(playerTable.playerId, orderedParticipations.playerId))
       .groupBy(playerTable.playerId);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      currentWinStreak = currentWinStreak.where(or(...flatConditions)) as typeof currentWinStreak;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      currentWinStreak = currentWinStreak.where(and(...flatConditions)) as typeof currentWinStreak;
+    if (playerId) {
+      currentWinStreak = currentWinStreak.where(eq(playerTable.playerId, playerId)) as typeof currentWinStreak;
     }
     return currentWinStreak;
   };
@@ -612,8 +569,7 @@ export class UtilsService {
 
   //query to return longest winstreak of all/some players
   getLongestWinStreak = async (
-    operator?: 'and' | 'or',
-    ...conditions: (SQLWrapper | SQLWrapper[])[]
+    playerId?: number
   ) => {
     const matchRowNb = this.Database.getDb()
       .select({
@@ -654,19 +610,15 @@ export class UtilsService {
       .from(playerTable)
       .leftJoin(winningStreak, eq(playerTable.playerId, winningStreak.playerId))
       .groupBy(playerTable.playerId);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      longestWinStreak = longestWinStreak.where(or(...flatConditions)) as typeof longestWinStreak;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      longestWinStreak = longestWinStreak.where(and(...flatConditions)) as typeof longestWinStreak;
+    if (playerId) {
+      longestWinStreak = longestWinStreak.where(eq(playerTable.playerId, playerId)) as typeof longestWinStreak;
     }
     return longestWinStreak;
   };
 
   // query to return favourite color of all/some players
   getFavouriteColor = async (
-    operator?: 'and' | 'or',
-    ...conditions: (SQLWrapper | SQLWrapper[])[]
+    playerId?: number
   ) => {
     let colorRankingBuilder = this.Database.getDb()
       .select({
@@ -682,14 +634,9 @@ export class UtilsService {
         eq(participationTable.playerId, playerTable.playerId),
       )
       .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId));
-    
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      colorRankingBuilder = colorRankingBuilder.where(or(...flatConditions)) as typeof colorRankingBuilder;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      colorRankingBuilder = colorRankingBuilder.where(and(...flatConditions)) as typeof colorRankingBuilder;
+    if (playerId) {
+      colorRankingBuilder = colorRankingBuilder.where(eq(playerTable.playerId, playerId)) as typeof colorRankingBuilder;
     }
-    
     let colorRanking = colorRankingBuilder
       .groupBy(
         playerTable.playerName,
@@ -697,29 +644,55 @@ export class UtilsService {
         participationTable.playerId,
       )
       .as('color_ranking');
-    
     const query = this.Database.getDb()
       .select({
-        playerId: colorRanking.playerId,
         playerName: colorRanking.playerName,
         playerColor: colorRanking.playerColor,
       })
       .from(colorRanking)
       .where(eq(colorRanking.ranking, 1));
-    
     return query;
   };
 
-  calculateMatchesDuration = async (
-    operator?: 'and' | 'or',
-    ...conditions: (SQLWrapper | SQLWrapper[])[]
+  getGameHistory = async (
+    playerId?: number
   ) => {
-    const query = this.Database.getDb()
+    const allGames = this.Database.getDb()
       .select({
-        playerId: playerTable.playerId,
-        playerName: playerTable.playerName,
-        gameId: gameTable.gameId,
-        gameDuration: sql<Number>``
+        gameId: participationTable.gameId,
       })
+      .from(participationTable)
+      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+      .where(eq(participationTable.playerId, playerId))
+      .orderBy(desc(gameTable.gameCreatedAt))
+      .as("all_games");
+    const opponentsNamesQuery = this.Database.getDb()
+      .select({
+        opponentsName: playerTable.playerName,
+        gameId: allGames.gameId,
+      })
+      .from(participationTable)
+      .innerJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
+      .innerJoin(allGames, eq(participationTable.gameId, allGames.gameId))
+      .where(
+        ne(participationTable.playerId, playerId),
+      )
+      .as('opponents_names');
+    let query = this.Database.getDb()
+      .select({
+        gameId: gameTable.gameId,
+        gameMode: gameTable.gameMode,
+        playerColor: participationTable.playerColor,
+        playerResult: participationTable.playerResult,
+        opponentName: opponentsNamesQuery.opponentsName,
+        gameDuration: sql<string>`${gameTable.gameCompletedAt} - ${gameTable.gameCreatedAt}`
+      })
+      .from(participationTable)
+      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+      .innerJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
+      .leftJoin(opponentsNamesQuery, eq(opponentsNamesQuery.gameId, gameTable.gameId))
+      .where(eq(participationTable.playerId, playerId))
+      .orderBy(desc(gameTable.gameCreatedAt));
+    return query;
   }
 }
