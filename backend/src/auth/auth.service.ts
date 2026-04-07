@@ -1,5 +1,5 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { participationTable, playerTable } from '../shared/db/schema';
+import { playerTable } from '../shared/db/schema';
 import type { playerSelect } from '../shared/db/schema';
 import { Response } from 'express';
 import { eq, or } from 'drizzle-orm';
