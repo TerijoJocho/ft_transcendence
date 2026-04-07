@@ -5,6 +5,7 @@ import { playerTable, playerInsert } from 'src/shared/db/schema';
 import { UpdateUserDto } from './dto/updateDto';
 import { RedisService } from 'src/shared/services/redis.service';
 import { Response } from 'express';
+import { deleteDto } from './dto/deleteDTO';
 
 @Injectable()
 export class UserService {
@@ -26,27 +27,47 @@ export class UserService {
   }
 
   async getDataUser(playerId: number) {
-    return await this.utils.findPlayersBy(
+    const player = (await this.utils.findPlayersBy(
       'and',
       {
         playerId: playerTable.playerId,
         gameName: playerTable.gameName,
+        mail: playerTable.mailAddress,
         avatarUrl: playerTable.avatarUrl,
       },
       eq(playerTable.playerId, playerId),
-    );
+    )) as Array<{
+      playerId: number;
+      gameName: string;
+      mail: string;
+      avatarUrl: string;
+    }>;
+
+    if (!player.length) throw new Error('Player not found');
+    return player;
   }
 
-  async deleteUserbyId(playerId: number, response: Response) {
-    await this.utils.deletePlayersBy(
+  async deleteUserbyId(playerId: number, data: deleteDto, response: Response) {
+    const passwordRows = (await this.utils.findPlayersBy(
       'and',
       {
         playerId: playerTable.playerId,
-        gameName: playerTable.gameName,
-        mailAddress: playerTable.mailAddress,
+        pass: playerTable.pwd,
       },
       eq(playerTable.playerId, playerId),
-    );
+    )) as Array<{ playerId: number; pass: string }>;
+
+    const password = passwordRows[0];
+    if (password && password.pass === data.password)
+      await this.utils.deletePlayersBy(
+        'and',
+        {
+          playerId: playerTable.playerId,
+          gameName: playerTable.gameName,
+          mailAddress: playerTable.mailAddress,
+        },
+        eq(playerTable.playerId, playerId),
+      );
     await this.redisService.getClient().del('refreshToken:' + playerId);
     response.clearCookie('Access');
     response.clearCookie('Refresh');
@@ -70,11 +91,11 @@ export class UserService {
         },
         eq(playerTable.playerId, userId),
       );
-      if (!result) throw new Error(`User:${userId} not Found`);
-      return `User ${userId} updated successfully`;
+      if (!result) throw new Error(`User  not Found`);
+      return `User updated successfully`;
     } catch (err) {
       console.error(err);
-      throw new InternalServerErrorException(`Failed to update user ${userId}`);
+      throw new InternalServerErrorException(`Failed to update user`);
     }
   }
 }

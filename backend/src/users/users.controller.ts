@@ -14,6 +14,7 @@ import { PassportJwtGuard } from 'src/auth/guards/passport-jwt.guard';
 import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
 import type { Response } from 'express';
 import { registerDto } from './dto/user_dto';
+import { deleteDto } from './dto/deleteDTO';
 
 @Controller('users')
 export class UsersController {
@@ -40,9 +41,10 @@ export class UsersController {
   deleteUser(
     @CurrentUser() user: { playerId: number },
     @Res() response: Response,
+    @Body() data: deleteDto,
   ) {
     const playerId = user.playerId;
-    return this.UserService.deleteUserbyId(playerId, response);
+    return this.UserService.deleteUserbyId(playerId, data, response);
   }
 
   @UseGuards(PassportJwtGuard)
