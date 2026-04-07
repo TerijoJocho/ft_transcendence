@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { SharedModule } from './shared/shared.module';
-import { SigninModule } from './signin/signin.module';
+// import { SigninModule } from './signin/signin.module';
 import { GameModule } from './game/game.module';
 import { FriendshipModule } from './friendship/friendship.module';
 
@@ -11,7 +11,7 @@ import { FriendshipModule } from './friendship/friendship.module';
   imports: [
     SharedModule,
     AuthModule,
-    SigninModule,
+    // SigninModule,
     GameModule,
     FriendshipModule,
   ],
