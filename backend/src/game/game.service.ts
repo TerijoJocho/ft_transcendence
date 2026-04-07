@@ -1,10 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { UtilsService } from '../shared/services/utils.func.service';
 import { NewGameDto } from './dto/new-game.dto';
 import { EndGameDto } from './dto/end-game.dto';
 import { gameTable, participationTable } from 'src/shared/db/schema';
 import type { gameSelect, gameInsert, participationInsert, participationSelect } from 'src/shared/db/schema';
-import { eq, ne } from 'drizzle-orm';
+import { eq, ne, sql } from 'drizzle-orm';
 
 @Injectable()
 export class GameService {
@@ -120,7 +120,7 @@ export class GameService {
 				eq(participationTable.gameId, gameId),
 				eq(participationTable.playerId, playerId));
 		if (participationRows.length === 0)
-			throw new NotFoundException("Player is not part of this game to end it.");
+			throw new ForbiddenException("Player is not part of this game to end it.");
 		const gameRows: { [x: string]: unknown; }[] | gameSelect[] = 
 			await this.utilsService.findGamesBy(
 				'and',
@@ -131,7 +131,7 @@ export class GameService {
 			throw new NotFoundException("Cannot end a game that hasn't started yet or is completed.");
 		try {
 			await this.utilsService.updateGamesBy(
-				{ gameStatus: 'COMPLETED', totalNbMoves: gameInfo.totalNbMoves, winnerNbMoves: gameInfo.winnerNbMoves, gameResult: gameInfo.gameResult } as Partial<gameInsert>, 
+				{ gameStatus: 'COMPLETED', totalNbMoves: gameInfo.totalNbMoves, winnerNbMoves: gameInfo.winnerNbMoves, gameResult: gameInfo.gameResult, gameCompletedAt: sql`NOW()` as unknown as Date } as Partial<gameInsert>, 
 				"and", 
 				undefined , 
 				eq(gameTable.gameId, gameId));
@@ -200,7 +200,7 @@ export class GameService {
 				eq(participationTable.gameId, gameId),
 				eq(participationTable.playerId, playerId));
 		if (participationRows.length === 0)
-			throw new NotFoundException("Player is not part of this game to give up.");
+			throw new ForbiddenException("Player is not part of this game to give up.");
 		const gameRows: { [x: string]: unknown; }[] | gameSelect[] = 
 			await this.utilsService.findGamesBy(
 				'and',
@@ -211,7 +211,7 @@ export class GameService {
 			throw new NotFoundException("Cannot give up a game that hasn't started yet or is completed.");
 		try {
 			await this.utilsService.updateGamesBy(
-				{ gameStatus: 'COMPLETED', gameResult: 'WIN'} as Partial<gameInsert>, 
+				{ gameStatus: 'COMPLETED', gameResult: 'WIN', gameCompletedAt: sql`NOW()` as unknown as Date } as Partial<gameInsert>, 
 				"and", 
 				undefined, 
 				eq(gameTable.gameId, gameId));
@@ -243,7 +243,7 @@ export class GameService {
 				eq(participationTable.gameId, gameId),
 				eq(participationTable.playerId, playerId));
 		if (participationRows.length === 0)
-			throw new NotFoundException("Player is not part of this game to cancel it.");
+			throw new ForbiddenException("Player is not part of this game to cancel it.");
 		const gameRows: { [x: string]: unknown; }[] | gameSelect[] = 
 			await this.utilsService.findGamesBy(
 				'and',
