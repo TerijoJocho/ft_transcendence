@@ -13,9 +13,15 @@ export class SigninService {
       mailAddress: mailAddress,
       pwd: pwd,
     };
-    return this.utils.insertPlayers([currentPlayers], {
-      id: playerTable.playerId,
-      playerName: playerTable.playerName,
-    });
+    try {
+      const result = this.utils.insertPlayers([currentPlayers], {
+        id: playerTable.playerId,
+        playerName: playerTable.playerName,
+      });
+      return result;
+    } catch (error) {
+      console.error('Error inserting player:', error);
+      throw error;
+    }
   }
 }

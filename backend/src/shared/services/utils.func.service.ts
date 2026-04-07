@@ -8,7 +8,7 @@ import {
   participationInsert,
   participationTable,
 } from '../db/schema';
-import { and, or, eq, ne, sql, SQLWrapper, sum, desc } from 'drizzle-orm';
+import { and, or, eq, ne, sql, SQLWrapper, desc } from 'drizzle-orm';
 import { SelectedFieldsFlat, PgTable } from 'drizzle-orm/pg-core';
 import { DatabaseService } from './db.service';
 import { Injectable } from '@nestjs/common';
