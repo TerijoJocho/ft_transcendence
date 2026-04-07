@@ -1,0 +1,453 @@
+{
+  "id": "f45f49c6-9dc3-4d2a-bdfa-fa6e25259f34",
+  "prevId": "d5894ae3-95b8-42a6-95de-18d9c2393c7e",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.friendship": {
+      "name": "friendship",
+      "schema": "",
+      "columns": {
+        "friendshipId": {
+          "name": "friendshipId",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "friendship_friendshipId_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "player1Id": {
+          "name": "player1Id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "player2Id": {
+          "name": "player2Id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "friendshipStatus": {
+          "name": "friendshipStatus",
+          "type": "friendship_status_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "isFriend": {
+          "name": "isFriend",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "friendship_player1Id_players_playerId_fk": {
+          "name": "friendship_player1Id_players_playerId_fk",
+          "tableFrom": "friendship",
+          "tableTo": "players",
+          "columnsFrom": [
+            "player1Id"
+          ],
+          "columnsTo": [
+            "playerId"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        },
+        "friendship_player2Id_players_playerId_fk": {
+          "name": "friendship_player2Id_players_playerId_fk",
+          "tableFrom": "friendship",
+          "tableTo": "players",
+          "columnsFrom": [
+            "player2Id"
+          ],
+          "columnsTo": [
+            "playerId"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "friendship_player1Id_player2Id_unique": {
+          "name": "friendship_player1Id_player2Id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "player1Id",
+            "player2Id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "no_self_friendship": {
+          "name": "no_self_friendship",
+          "value": "\"friendship\".\"player1Id\" <> \"friendship\".\"player2Id\""
+        },
+        "ordered_player_ids": {
+          "name": "ordered_player_ids",
+          "value": "\"friendship\".\"player1Id\" < \"friendship\".\"player2Id\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.games": {
+      "name": "games",
+      "schema": "",
+      "columns": {
+        "gameId": {
+          "name": "gameId",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "games_gameId_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "totalNbMoves": {
+          "name": "totalNbMoves",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "winnerNbMoves": {
+          "name": "winnerNbMoves",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gameCreatedAt": {
+          "name": "gameCreatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "gameCompletedAt": {
+          "name": "gameCompletedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gameStatus": {
+          "name": "gameStatus",
+          "type": "game_status_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "gameResult": {
+          "name": "gameResult",
+          "type": "game_result_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "gameMode": {
+          "name": "gameMode",
+          "type": "game_mode_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "checkmate": {
+          "name": "checkmate",
+          "value": "\"games\".\"gameStatus\" <> 'COMPLETED' OR (\"games\".\"totalNbMoves\" IS NOT NULL AND \"games\".\"winnerNbMoves\" IS NOT NULL)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.participation": {
+      "name": "participation",
+      "schema": "",
+      "columns": {
+        "participationId": {
+          "name": "participationId",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "participation_participationId_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "playerId": {
+          "name": "playerId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gameId": {
+          "name": "gameId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "playerResult": {
+          "name": "playerResult",
+          "type": "player_result_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "playerColor": {
+          "name": "playerColor",
+          "type": "player_color_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "one_current_game_only": {
+          "name": "one_current_game_only",
+          "columns": [
+            {
+              "expression": "playerId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"participation\".\"playerResult\" = 'PENDING'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "participation_playerId_players_playerId_fk": {
+          "name": "participation_playerId_players_playerId_fk",
+          "tableFrom": "participation",
+          "tableTo": "players",
+          "columnsFrom": [
+            "playerId"
+          ],
+          "columnsTo": [
+            "playerId"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        },
+        "participation_gameId_games_gameId_fk": {
+          "name": "participation_gameId_games_gameId_fk",
+          "tableFrom": "participation",
+          "tableTo": "games",
+          "columnsFrom": [
+            "gameId"
+          ],
+          "columnsTo": [
+            "gameId"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "participation_playerId_gameId_unique": {
+          "name": "participation_playerId_gameId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "playerId",
+            "gameId"
+          ]
+        },
+        "participation_gameId_playerColor_unique": {
+          "name": "participation_gameId_playerColor_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "gameId",
+            "playerColor"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.players": {
+      "name": "players",
+      "schema": "",
+      "columns": {
+        "playerId": {
+          "name": "playerId",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "players_playerId_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "mailAddress": {
+          "name": "mailAddress",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "playerName": {
+          "name": "playerName",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pwd": {
+          "name": "pwd",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "playerCreatedAt": {
+          "name": "playerCreatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "avatarUrl": {
+          "name": "avatarUrl",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http://www.w3.org/2000/svg%22%20viewBox%3D%220%200%20640%20640%22%3E%3Cpath%20d%3D%22M463%20448.2C440.9%20409.8%20399.4%20384%20352%20384L288%20384C240.6%20384%20199.1%20409.8%20177%20448.2C212.2%20487.4%20263.2%20512%20320%20512C376.8%20512%20427.8%20487.3%20463%20448.2zM64%20320C64%20178.6%20178.6%2064%20320%2064C461.4%2064%20576%20178.6%20576%20320C576%20461.4%20461.4%20576%20320%20576C178.6%20576%2064%20461.4%2064%20320zM320%20336C359.8%20336%20392%20303.8%20392%20264C392%20224.2%20359.8%20192%20320%20192C280.2%20192%20248%20224.2%20248%20264C248%20303.8%20280.2%20336%20320%20336z%22/%3E%3C/svg%3E'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "players_mailAddress_unique": {
+          "name": "players_mailAddress_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "mailAddress"
+          ]
+        },
+        "players_playerName_unique": {
+          "name": "players_playerName_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "playerName"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.friendship_status_enum": {
+      "name": "friendship_status_enum",
+      "schema": "public",
+      "values": [
+        "PENDING",
+        "ADDED"
+      ]
+    },
+    "public.game_mode_enum": {
+      "name": "game_mode_enum",
+      "schema": "public",
+      "values": [
+        "CLASSIC",
+        "BLITZ",
+        "BULLET"
+      ]
+    },
+    "public.game_result_enum": {
+      "name": "game_result_enum",
+      "schema": "public",
+      "values": [
+        "WIN",
+        "DRAW",
+        "PENDING"
+      ]
+    },
+    "public.game_status_enum": {
+      "name": "game_status_enum",
+      "schema": "public",
+      "values": [
+        "PENDING",
+        "ONGOING",
+        "COMPLETED"
+      ]
+    },
+    "public.player_color_enum": {
+      "name": "player_color_enum",
+      "schema": "public",
+      "values": [
+        "WHITE",
+        "BLACK"
+      ]
+    },
+    "public.player_result_enum": {
+      "name": "player_result_enum",
+      "schema": "public",
+      "values": [
+        "PENDING",
+        "WIN",
+        "LOSE",
+        "DRAW"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
