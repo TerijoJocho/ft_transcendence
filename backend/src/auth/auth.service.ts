@@ -209,6 +209,7 @@ export class AuthService {
       id: user[0].playerId,
       pseudo: user[0].playerName,
       status: 'ONLINE', // This is a placeholder. Track user status with websockets.
+      elo: 2000, // Placeholder. Implement ELO calculation based on game results or remove from frontend.
       winCount: lvlVal,
       lossCount: lossVal,
       drawCount: drawVal,
@@ -216,7 +217,7 @@ export class AuthService {
       winrate: winrateVal,
       favColor: colorVal,
       favGameMode: gameModeVal,
-      currentwinStreak: cwsVal,
+      currentWinStreak: cwsVal,
       longestWinStreak: lwsVal,
       gameHistoryList: historyVal,
       avatar: user[0].avatarUrl,
