@@ -501,6 +501,9 @@ export class UtilsService {
     if (playerId) {
       query = query.where(eq(playerTable.playerId, playerId)) as typeof query;
     }
+    else {
+      query = query.where(eq(participationTable.playerResult, "DRAW")) as typeof query;
+    }
     return query;
   };
 
