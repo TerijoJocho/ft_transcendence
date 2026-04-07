@@ -24,9 +24,7 @@ async function bootstrap() {
       rejectUnauthorized: true,
     });
   } else {
-    console.warn(
-      'Vault CA cert not found. Set VAULT_CACERT in dev.',
-    );
+    console.warn('Vault CA cert not found. Set VAULT_CACERT in dev.');
     process.exit(1);
   }
 
