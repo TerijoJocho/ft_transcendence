@@ -457,16 +457,16 @@ export class UtilsService {
     let query = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,
-        totalGames: sql<Number>`COALESCE(COUNT(*), 0)::int`,
+        totalGames: sql<Number>`COUNT(${participationTable.gameId})::int`,
       })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
+      .from(playerTable)
+      .leftJoin(
+        participationTable,
         eq(participationTable.playerId, playerTable.playerId),
       )
       .groupBy(playerTable.playerName, playerTable.playerId);
     if (playerId) {
-      query = query.where(eq(participationTable.playerId, playerId)) as typeof query;
+      query = query.where(eq(playerTable.playerId, playerId)) as typeof query;
     }
     return query;
   };
@@ -489,6 +489,9 @@ export class UtilsService {
     if (playerId) {
       query = query.where(and(eq(participationTable.playerId, playerId), eq(participationTable.playerResult, "WIN"))) as typeof query;
     }
+    else {
+      query = query.where(eq(participationTable.playerResult, "WIN")) as typeof query;
+    }
     return query;
   };
 
@@ -510,6 +513,9 @@ export class UtilsService {
     if (playerId) {
       query = query.where(and(eq(participationTable.playerId, playerId), eq(participationTable.playerResult, "LOSE"))) as typeof query;
     }
+    else {
+      query = query.where(eq(participationTable.playerResult, "LOSE")) as typeof query;
+    }
     return query;
   };
 
@@ -530,6 +536,9 @@ export class UtilsService {
       .groupBy(playerTable.playerName, playerTable.playerId);
     if (playerId) {
       query = query.where(and(eq(participationTable.playerId, playerId), eq(participationTable.playerResult, "DRAW"))) as typeof query;
+    }
+    else {
+      query = query.where(eq(participationTable.playerResult, "DRAW")) as typeof query;
     }
     return query;
   };
@@ -655,7 +664,7 @@ export class UtilsService {
   };
 
   getGameHistory = async (
-    playerId?: number
+    playerId: number
   ) => {
     const allGames = this.Database.getDb()
       .select({
