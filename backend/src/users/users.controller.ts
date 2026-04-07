@@ -18,7 +18,7 @@ import { deleteDto } from './dto/deleteDTO';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly  UserService: UserService) {}
+  constructor(private readonly UserService: UserService) {}
 
   @Post('register')
   register(@Body() bodyDto: registerDto) {
