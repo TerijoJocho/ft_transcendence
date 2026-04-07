@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UtilsService } from 'src/shared/services/utils.func.service';
 import { eq } from 'drizzle-orm';
 import { playerTable, playerInsert } from 'src/shared/db/schema';
@@ -43,7 +48,7 @@ export class UserService {
       avatarUrl: string;
     }>;
 
-    if (!player.length) throw new Error('Player not found');
+    if (!player.length) throw new NotFoundException('Player not found');
     return player;
   }
 
@@ -58,16 +63,17 @@ export class UserService {
     )) as Array<{ playerId: number; pass: string }>;
 
     const password = passwordRows[0];
-    if (password && password.pass === data.password)
-      await this.utils.deletePlayersBy(
-        'and',
-        {
-          playerId: playerTable.playerId,
-          gameName: playerTable.gameName,
-          mailAddress: playerTable.mailAddress,
-        },
-        eq(playerTable.playerId, playerId),
-      );
+    if (password && password.pass != data.password)
+      throw new UnauthorizedException();
+    await this.utils.deletePlayersBy(
+      'and',
+      {
+        playerId: playerTable.playerId,
+        gameName: playerTable.gameName,
+        mailAddress: playerTable.mailAddress,
+      },
+      eq(playerTable.playerId, playerId),
+    );
     await this.redisService.getClient().del('refreshToken:' + playerId);
     response.clearCookie('Access');
     response.clearCookie('Refresh');
@@ -91,7 +97,7 @@ export class UserService {
         },
         eq(playerTable.playerId, userId),
       );
-      if (!result) throw new Error(`User  not Found`);
+      if (!result.length) throw new Error(`User  not Found`);
       return `User updated successfully`;
     } catch (err) {
       console.error(err);
