@@ -52,10 +52,10 @@ export type friendshipStatus = 'PENDING' | 'ADDED';
 
 export const playerTable = pgTable('players', {
   playerId: integer().primaryKey().generatedAlwaysAsIdentity(),
-  // sessionId: varchar().notNull().unique(),
   mailAddress: varchar().notNull().unique(),
-  gameName: varchar().notNull().unique(),
+  playerName: varchar().notNull().unique(),
   pwd: varchar().notNull(),
+  playerCreatedAt: timestamp().notNull().defaultNow(),
   avatarUrl: varchar()
     .notNull()
     .default(
@@ -71,7 +71,8 @@ export const gameTable = pgTable(
     gameId: integer().primaryKey().generatedAlwaysAsIdentity(),
     totalNbMoves: integer(),
     winnerNbMoves: integer(),
-    gameDate: timestamp().notNull().defaultNow(),
+    gameCreatedAt: timestamp().notNull().defaultNow(),
+    gameCompletedAt: timestamp(),
     gameStatus: gameStatusEnum().notNull().default('PENDING'),
     gameResult: gameResultEnum().notNull().default('PENDING'),
     gameMode: gameModeEnum().notNull(),

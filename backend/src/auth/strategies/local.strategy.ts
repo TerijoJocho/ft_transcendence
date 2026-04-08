@@ -24,7 +24,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
     );
     return {
       playerId: user.playerId,
-      identifier: user.gameName,
+      identifier: user.playerName,
     } as ResponseLoginDto;
   }
 }
