@@ -1,6 +1,17 @@
-import { useState } from "react";
-
-export default function ProfileInfos({form, handleChange, handleSubmit}) {
+import { type ChangeEvent, useState } from "react";
+interface ProfileInfosForm {
+    pseudo: string;
+    email: string;
+    newPassword: string;
+    confirmNewPassword: string;
+    avatar: string;
+}
+interface ProfileInfosProps {
+    form: ProfileInfosForm;
+    handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
+    handleSubmit: () => void;
+}
+export default function ProfileInfos({form, handleChange, handleSubmit}: ProfileInfosProps) {
     const [canNotWrite, setCanNotWrite] = useState<boolean>(true);
 
     function activateForm() {
