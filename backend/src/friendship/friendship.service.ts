@@ -66,7 +66,7 @@ export class FriendshipService {
     const pseudoPlayer = (await this.utilsService.findPlayersBy(
       'and',
       {
-        pseudo: playerTable.gameName,
+        pseudo: playerTable.playerName,
       },
       eq(playerTable.playerId, playerAdded),
     )) as Array<{ pseudo: string }>;
@@ -118,7 +118,7 @@ export class FriendshipService {
           'and',
           {
             id: playerTable.playerId,
-            pseudo: playerTable.gameName,
+            pseudo: playerTable.playerName,
             avatarUrl: playerTable.avatarUrl,
           },
           eq(playerTable.playerId, friendId),
@@ -213,10 +213,10 @@ export class FriendshipService {
       'and',
       {
         id: playerTable.playerId,
-        pseudo: playerTable.gameName,
+        pseudo: playerTable.playerName,
         avatarUrl: playerTable.avatarUrl,
       },
-      ilike(playerTable.gameName, `%${searchTerm}%`),
+      ilike(playerTable.playerName, `%${searchTerm}%`),
       ne(playerTable.playerId, CurrentUserId),
     )) as Array<{ id: number; pseudo: string; avatarUrl: string | null }>;
 
