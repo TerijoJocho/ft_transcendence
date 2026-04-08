@@ -6,7 +6,12 @@ import {
 } from '@nestjs/common';
 import { UtilsService } from 'src/shared/services/utils.func.service';
 import { eq } from 'drizzle-orm';
-import { playerTable, playerInsert } from 'src/shared/db/schema';
+import {
+  playerTable,
+  playerInsert,
+  friendshipTable,
+  participationTable,
+} from 'src/shared/db/schema';
 import { UpdateUserDto } from './dto/updateDto';
 import { RedisService } from 'src/shared/services/redis.service';
 import { Response } from 'express';
@@ -27,7 +32,7 @@ export class UserService {
     };
     return this.utils.insertPlayers([currentPlayers], {
       id: playerTable.playerId,
-      gameName: playerTable.playerName,
+      pseudo: playerTable.playerName,
     });
   }
 
@@ -35,24 +40,28 @@ export class UserService {
     const player = (await this.utils.findPlayersBy(
       'and',
       {
-        playerId: playerTable.playerId,
-        gameName: playerTable.playerName,
-        mail: playerTable.mailAddress,
+        id: playerTable.playerId,
+        pseudo: playerTable.playerName,
+        email: playerTable.mailAddress,
         avatarUrl: playerTable.avatarUrl,
       },
       eq(playerTable.playerId, playerId),
     )) as Array<{
-      playerId: number;
-      gameName: string;
-      mail: string;
+      id: number;
+      pseudo: string;
+      email: string;
       avatarUrl: string;
     }>;
 
     if (!player.length) throw new NotFoundException('Player not found');
-    return player;
+    return player[0];
   }
 
   async deleteUserbyId(playerId: number, data: deleteDto, response: Response) {
+    if (!data?.password) {
+      throw new UnauthorizedException('Mot de passe requis');
+    }
+
     const passwordRows = (await this.utils.findPlayersBy(
       'and',
       {
@@ -63,8 +72,24 @@ export class UserService {
     )) as Array<{ playerId: number; pass: string }>;
 
     const password = passwordRows[0];
-    if (password && password.pass != data.password)
-      throw new UnauthorizedException();
+    if (!password) throw new NotFoundException('Player not found');
+
+    if (password.pass !== data.password)
+      throw new UnauthorizedException('Mauvais mot de passe');
+
+    await this.utils.deleteParticipationsBy(
+      'and',
+      undefined,
+      eq(participationTable.playerId, playerId),
+    );
+
+    await this.utils.deleteFriendshipsBy(
+      'or',
+      undefined,
+      eq(friendshipTable.player1Id, playerId),
+      eq(friendshipTable.player2Id, playerId),
+    );
+
     await this.utils.deletePlayersBy(
       'and',
       {
@@ -87,8 +112,23 @@ export class UserService {
     userData: UpdateUserDto,
   ): Promise<string> {
     try {
+      const updatePayload: Partial<playerInsert> = {};
+
+      if (userData.pseudo !== undefined) {
+        updatePayload.playerName = userData.pseudo;
+      }
+      if (userData.email !== undefined) {
+        updatePayload.mailAddress = userData.email;
+      }
+      if (userData.newPassword !== undefined) {
+        updatePayload.pwd = userData.newPassword;
+      }
+      if (userData.avatar !== undefined) {
+        updatePayload.avatarUrl = userData.avatar;
+      }
+
       const result = await this.utils.updatePlayersBy(
-        userData,
+        updatePayload,
         'and',
         {
           playerId: playerTable.playerId,
