@@ -23,7 +23,6 @@ function Login() {
     setErrorMessage(null);
 
     try {
-      //retourne un user de type User -> {id, pseudo}
       const user = await login({
         identifier,
         password,

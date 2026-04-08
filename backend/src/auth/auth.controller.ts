@@ -41,9 +41,9 @@ export class AuthController {
     return this.authService.logOut(user, response);
   }
 
-  @Get('me')
+  @Get('userStats')
   @UseGuards(PassportJwtGuard)
   async me(@CurrentUser() user: LogoutDto) {
-    return this.authService.me(user.playerId);
+    return this.authService.userStats(user.playerId);
   }
 }
