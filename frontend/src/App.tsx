@@ -24,7 +24,7 @@ function App() {
 
   useEffect(() => {
     // au démarrage de l'app, vérifie qui est connecté en appelant me()
-    api.me()
+    api.me() //utiliser le get de /user
       .then((user) => login(user)) //si connecté, on lance login() pour enregistrer le user
       .catch(() => clearAuth()); // si erreur -> pas connecté, on lance clearAuth() pour avoir user === null
   }, [login, clearAuth]);

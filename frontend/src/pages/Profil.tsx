@@ -15,6 +15,7 @@ function Profil() {
     email: user.email,
     newPassword: "",
     confirmNewPassword: "",
+    avatar: "",
   });
   const [feedback, setFeedback] = useState<{
     message: string;
