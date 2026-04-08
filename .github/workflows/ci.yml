@@ -16,7 +16,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20.11'
+        node-version: '20.19.0'
 
     # --- FRONTEND CHECKS ---
     - name: Install Frontend Dependencies
