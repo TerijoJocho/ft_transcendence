@@ -61,6 +61,18 @@ export default function ProfileInfos({form, handleChange, handleSubmit}) {
                                 onChange={(e) => handleChange(e)}
                             />
                         </div>
+                        <div className="flex flex-col border rounded-md p-4">
+                            <label htmlFor="avatarUrl" className="text-violet-300 mb-2">Nouvel avatar (url https)</label>
+                            <input 
+                                type="text" 
+                                id="avatarUrl" 
+                                disabled={canNotWrite}
+                                className='input-style border-b border-b-violet-300'
+                                value={form.avatar}
+                                name="avatar"
+                                onChange={(e) => handleChange(e)}
+                            />
+                        </div>
                     </>
             }
             <button onClick={activateForm} className='button text-white'>
