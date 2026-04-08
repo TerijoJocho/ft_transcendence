@@ -13,10 +13,9 @@ export default function HeaderPlayerInfos() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   //fetch le user au mount du composant
-  //renvoie surement le userName: string, userAvatar: img (?), userStatus: ONLINE et les tokens,
   useEffect(() => {
     async function fetchUser() {
-      const userData = await api.me(); //utiliser le get de /user
+      const userData = await api.me(); //utiliser le me de /auth
       setUser(userData);
     }
     fetchUser();
