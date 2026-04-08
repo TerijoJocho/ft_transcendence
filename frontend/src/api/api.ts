@@ -48,7 +48,7 @@ export function register(data:
   mail: string;
   password: string;
 }) {
-  return request("/api/signin/register", {
+  return request("/api/signin/register", { //changer par /user/register
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -56,7 +56,7 @@ export function register(data:
 
 export function me(): Promise<User>
 {
-  return request("/api/auth/me", {
+  return request("/api/auth/me", { //changer par /user/get
     method: "GET",
   });
 }
@@ -116,7 +116,7 @@ export function updateProfile(data: {
   pseudo: string,
   email: string,
   newPassword: string,
-  confirmNewPassword: string,
+  avatar: string,
 }) {
   return request("/api/user/profile", {
     method: "PATCH",
