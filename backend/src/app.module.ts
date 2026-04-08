@@ -19,6 +19,7 @@ import { UsersModule } from './users/users.module';
     DoubleFactorModule,
     UsersModule,
     DoubleFactorModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
