@@ -68,8 +68,8 @@ function Profil() {
     api
       .updateProfile(form)
       .then(() => {
-        (setFeedback({ message: "Changement effectué", type: "success" }),
-          setTimeout(() => window.location.reload(), 2000));
+        setFeedback({ message: "Changement effectué", type: "success" });
+          setTimeout(() => window.location.reload(), 2000);
       })
       .catch((e) =>
         setFeedback({
