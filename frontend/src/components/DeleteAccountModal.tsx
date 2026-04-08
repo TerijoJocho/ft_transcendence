@@ -39,7 +39,7 @@ export default function DeleteAccountModal({
       <label
         htmlFor="delete"
         className="mb-3 mt-6 text-lg"
-      >{`"${CONFIRM_PHRASE}"`}</label>
+      >{`\"${CONFIRM_PHRASE}\"`}</label>
       <input
         id="delete"
         type="text"
