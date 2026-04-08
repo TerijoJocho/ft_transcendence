@@ -382,15 +382,15 @@ export class UtilsService {
       )
       .groupBy(playerTable.playerName);
     if (playerId) {
-      query = query.where(eq(participationTable.playerId, playerId)) as typeof query;
+      query = query.where(
+        eq(participationTable.playerId, playerId),
+      ) as typeof query;
     }
     return query;
   };
 
   //query to calculate average number of moves to win for a player
-  getAverageWinMoves = async (
-    playerId?: number
-  ) => {
+  getAverageWinMoves = async (playerId?: number) => {
     let query = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,
@@ -405,22 +405,26 @@ export class UtilsService {
       .groupBy(playerTable.playerName, participationTable.playerId);
     if (playerId) {
       query = query.where(
-        and(eq(participationTable.playerResult, 'WIN'), eq(participationTable.playerId, playerId)),
+        and(
+          eq(participationTable.playerResult, 'WIN'),
+          eq(participationTable.playerId, playerId),
+        ),
       ) as typeof query;
     }
     return query;
   };
 
   //query to find a player favourite game mode
-  getFavouriteGameMode = async (
-    playerId?: number
-  ) => {
+  getFavouriteGameMode = async (playerId?: number) => {
     let subqueryBuilder = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,
         gameMode: gameTable.gameMode,
-        nbGames: sql<Number>`COUNT(*)::int`,
-        ranking: sql<Number>`RANK() OVER (PARTITION BY ${participationTable.playerId} ORDER BY COUNT(*) DESC)`.as('ranking'),
+        nbGames: sql<number>`COUNT(*)::int`,
+        ranking:
+          sql<number>`RANK() OVER (PARTITION BY ${participationTable.playerId} ORDER BY COUNT(*) DESC)`.as(
+            'ranking',
+          ),
       })
       .from(participationTable)
       .innerJoin(
@@ -429,7 +433,9 @@ export class UtilsService {
       )
       .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId));
     if (playerId) {
-      subqueryBuilder = subqueryBuilder.where(eq(participationTable.playerId, playerId)) as typeof subqueryBuilder;
+      subqueryBuilder = subqueryBuilder.where(
+        eq(participationTable.playerId, playerId),
+      ) as typeof subqueryBuilder;
     }
     const subquery = subqueryBuilder
       .groupBy(
@@ -446,18 +452,16 @@ export class UtilsService {
       })
       .from(subquery)
       .where(eq(subquery.ranking, 1));
-    
+
     return query;
   };
 
   //query to return total number of games played by a player
-  getTotalGamesPlayed = async (
-    playerId?: number
-  ) => {
+  getTotalGamesPlayed = async (playerId?: number) => {
     let query = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,
-        totalGames: sql<Number>`COUNT(${participationTable.gameId})::int`,
+        totalGames: sql<number>`COUNT(${participationTable.gameId})::int`,
       })
       .from(playerTable)
       .leftJoin(
@@ -472,13 +476,11 @@ export class UtilsService {
   };
 
   //query to return total number of wins by a player
-  getTotalWins = async (
-    playerId?: number
-  ) => {
+  getTotalWins = async (playerId?: number) => {
     let query = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,
-        totalWins: sql<Number>`COALESCE(COUNT(*), 0)::int`,
+        totalWins: sql<number>`COALESCE(COUNT(*), 0)::int`,
       })
       .from(participationTable)
       .innerJoin(
@@ -487,22 +489,26 @@ export class UtilsService {
       )
       .groupBy(playerTable.playerName, playerTable.playerId);
     if (playerId) {
-      query = query.where(and(eq(participationTable.playerId, playerId), eq(participationTable.playerResult, "WIN"))) as typeof query;
-    }
-    else {
-      query = query.where(eq(participationTable.playerResult, "WIN")) as typeof query;
+      query = query.where(
+        and(
+          eq(participationTable.playerId, playerId),
+          eq(participationTable.playerResult, 'WIN'),
+        ),
+      ) as typeof query;
+    } else {
+      query = query.where(
+        eq(participationTable.playerResult, 'WIN'),
+      ) as typeof query;
     }
     return query;
   };
 
   //query to return total number of losses by a player
-  getTotalLosses = async (
-    playerId?: number
-  ) => {
+  getTotalLosses = async (playerId?: number) => {
     let query = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,
-        totalLosses: sql<Number>`COALESCE(COUNT(*), 0)::int`,
+        totalLosses: sql<number>`COALESCE(COUNT(*), 0)::int`,
       })
       .from(participationTable)
       .innerJoin(
@@ -511,22 +517,26 @@ export class UtilsService {
       )
       .groupBy(playerTable.playerName, playerTable.playerId);
     if (playerId) {
-      query = query.where(and(eq(participationTable.playerId, playerId), eq(participationTable.playerResult, "LOSE"))) as typeof query;
-    }
-    else {
-      query = query.where(eq(participationTable.playerResult, "LOSE")) as typeof query;
+      query = query.where(
+        and(
+          eq(participationTable.playerId, playerId),
+          eq(participationTable.playerResult, 'LOSE'),
+        ),
+      ) as typeof query;
+    } else {
+      query = query.where(
+        eq(participationTable.playerResult, 'LOSE'),
+      ) as typeof query;
     }
     return query;
   };
 
   //query to return total number of draws by a player
-  getTotalDraws = async (
-    playerId?: number
-  ) => {
+  getTotalDraws = async (playerId?: number) => {
     let query = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,
-        totalDraws: sql<Number>`COALESCE(COUNT(*), 0)::int`,
+        totalDraws: sql<number>`COALESCE(COUNT(*), 0)::int`,
       })
       .from(participationTable)
       .innerJoin(
@@ -535,69 +545,78 @@ export class UtilsService {
       )
       .groupBy(playerTable.playerName, playerTable.playerId);
     if (playerId) {
-      query = query.where(and(eq(participationTable.playerId, playerId), eq(participationTable.playerResult, "DRAW"))) as typeof query;
-    }
-    else {
-      query = query.where(eq(participationTable.playerResult, "DRAW")) as typeof query;
+      query = query.where(
+        and(
+          eq(participationTable.playerId, playerId),
+          eq(participationTable.playerResult, 'DRAW'),
+        ),
+      ) as typeof query;
+    } else {
+      query = query.where(
+        eq(participationTable.playerResult, 'DRAW'),
+      ) as typeof query;
     }
     return query;
   };
 
   //query to return current winstreak of all/some players
-  getCurrentWinStreak = async (
-    playerId?: number
-  ) => {
+  getCurrentWinStreak = async (playerId?: number) => {
     const orderedParticipations = this.Database.getDb()
       .select({
         playerId: participationTable.playerId,
         gameId: participationTable.gameId,
         gameDate: gameTable.gameCreatedAt,
         playerResult: participationTable.playerResult,
-        sumWin: sql<Number>`SUM(CASE WHEN ${participationTable.playerResult} <> 'WIN' THEN 1 ELSE 0 END) OVER (PARTITION BY ${participationTable.playerId} ORDER BY ${gameTable.gameCreatedAt} DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::int`.as('sumWin'),
+        sumWin:
+          sql<number>`SUM(CASE WHEN ${participationTable.playerResult} <> 'WIN' THEN 1 ELSE 0 END) OVER (PARTITION BY ${participationTable.playerId} ORDER BY ${gameTable.gameCreatedAt} DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::int`.as(
+            'sumWin',
+          ),
       })
       .from(participationTable)
-      .innerJoin(
-        gameTable,
-        eq(participationTable.gameId, gameTable.gameId),
-      )
+      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
       .as('ordered_participations');
     let currentWinStreak = this.Database.getDb()
       .select({
         playerId: playerTable.playerId,
-        currentStreak: sql<Number>`COALESCE(COUNT(*) FILTER (WHERE ${orderedParticipations.playerResult} = 'WIN' AND ${orderedParticipations.sumWin} = 0), 0)::int`,
+        currentStreak: sql<number>`COALESCE(COUNT(*) FILTER (WHERE ${orderedParticipations.playerResult} = 'WIN' AND ${orderedParticipations.sumWin} = 0), 0)::int`,
       })
       .from(playerTable)
-      .leftJoin(orderedParticipations, eq(playerTable.playerId, orderedParticipations.playerId))
+      .leftJoin(
+        orderedParticipations,
+        eq(playerTable.playerId, orderedParticipations.playerId),
+      )
       .groupBy(playerTable.playerId);
     if (playerId) {
-      currentWinStreak = currentWinStreak.where(eq(playerTable.playerId, playerId)) as typeof currentWinStreak;
+      currentWinStreak = currentWinStreak.where(
+        eq(playerTable.playerId, playerId),
+      ) as typeof currentWinStreak;
     }
     return currentWinStreak;
   };
 
-
   //query to return longest winstreak of all/some players
-  getLongestWinStreak = async (
-    playerId?: number
-  ) => {
+  getLongestWinStreak = async (playerId?: number) => {
     const matchRowNb = this.Database.getDb()
       .select({
         playerId: participationTable.playerId,
         gameId: participationTable.gameId,
         gameDate: gameTable.gameCreatedAt,
         playerResult: participationTable.playerResult,
-        rowNum: sql`ROW_NUMBER() OVER (PARTITION BY ${participationTable.playerId} ORDER BY ${gameTable.gameCreatedAt})`.as('rowNum'),
+        rowNum:
+          sql`ROW_NUMBER() OVER (PARTITION BY ${participationTable.playerId} ORDER BY ${gameTable.gameCreatedAt})`.as(
+            'rowNum',
+          ),
       })
       .from(participationTable)
-      .innerJoin(
-        gameTable,
-        eq(participationTable.gameId, gameTable.gameId),
-      )
+      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
       .as('match_row_num');
     const winRowNb = this.Database.getDb()
       .select({
         playerId: matchRowNb.playerId,
-        groupId: sql`${matchRowNb.rowNum} - ROW_NUMBER() OVER (PARTITION BY ${matchRowNb.playerId} ORDER BY ${matchRowNb.gameDate})`.as('groupId'),
+        groupId:
+          sql`${matchRowNb.rowNum} - ROW_NUMBER() OVER (PARTITION BY ${matchRowNb.playerId} ORDER BY ${matchRowNb.gameDate})`.as(
+            'groupId',
+          ),
       })
       .from(matchRowNb)
       .where(eq(matchRowNb.playerResult, 'WIN'))
@@ -606,7 +625,7 @@ export class UtilsService {
       .select({
         playerId: winRowNb.playerId,
         groupId: winRowNb.groupId,
-        cnt: sql<Number>`COUNT(*)::int`.as('cnt'),
+        cnt: sql<number>`COUNT(*)::int`.as('cnt'),
       })
       .from(winRowNb)
       .groupBy(winRowNb.playerId, winRowNb.groupId)
@@ -614,28 +633,31 @@ export class UtilsService {
     let longestWinStreak = this.Database.getDb()
       .select({
         playerId: playerTable.playerId,
-        longestStreak: sql<Number>`COALESCE(MAX(${winningStreak.cnt}), 0)::int`,
+        longestStreak: sql<number>`COALESCE(MAX(${winningStreak.cnt}), 0)::int`,
       })
       .from(playerTable)
       .leftJoin(winningStreak, eq(playerTable.playerId, winningStreak.playerId))
       .groupBy(playerTable.playerId);
     if (playerId) {
-      longestWinStreak = longestWinStreak.where(eq(playerTable.playerId, playerId)) as typeof longestWinStreak;
+      longestWinStreak = longestWinStreak.where(
+        eq(playerTable.playerId, playerId),
+      ) as typeof longestWinStreak;
     }
     return longestWinStreak;
   };
 
   // query to return favourite color of all/some players
-  getFavouriteColor = async (
-    playerId?: number
-  ) => {
+  getFavouriteColor = async (playerId?: number) => {
     let colorRankingBuilder = this.Database.getDb()
       .select({
         playerId: participationTable.playerId,
         playerName: playerTable.playerName,
         playerColor: participationTable.playerColor,
-        nbGames: sql<Number>`COUNT(*)::int`.as('nbGames'),
-        ranking: sql<Number>`RANK() OVER (PARTITION BY ${participationTable.playerId} ORDER BY COUNT(*) DESC)`.as('ranking'),
+        nbGames: sql<number>`COUNT(*)::int`.as('nbGames'),
+        ranking:
+          sql<number>`RANK() OVER (PARTITION BY ${participationTable.playerId} ORDER BY COUNT(*) DESC)`.as(
+            'ranking',
+          ),
       })
       .from(participationTable)
       .innerJoin(
@@ -644,9 +666,11 @@ export class UtilsService {
       )
       .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId));
     if (playerId) {
-      colorRankingBuilder = colorRankingBuilder.where(eq(playerTable.playerId, playerId)) as typeof colorRankingBuilder;
+      colorRankingBuilder = colorRankingBuilder.where(
+        eq(playerTable.playerId, playerId),
+      ) as typeof colorRankingBuilder;
     }
-    let colorRanking = colorRankingBuilder
+    const colorRanking = colorRankingBuilder
       .groupBy(
         playerTable.playerName,
         participationTable.playerColor,
@@ -663,9 +687,7 @@ export class UtilsService {
     return query;
   };
 
-  getGameHistory = async (
-    playerId: number
-  ) => {
+  getGameHistory = async (playerId: number) => {
     const allGames = this.Database.getDb()
       .select({
         gameId: participationTable.gameId,
@@ -674,34 +696,41 @@ export class UtilsService {
       .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
       .where(eq(participationTable.playerId, playerId))
       .orderBy(desc(gameTable.gameCreatedAt))
-      .as("all_games");
+      .as('all_games');
     const opponentsNamesQuery = this.Database.getDb()
       .select({
         opponentsName: playerTable.playerName,
         gameId: allGames.gameId,
       })
       .from(participationTable)
-      .innerJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
-      .innerJoin(allGames, eq(participationTable.gameId, allGames.gameId))
-      .where(
-        ne(participationTable.playerId, playerId),
+      .innerJoin(
+        playerTable,
+        eq(participationTable.playerId, playerTable.playerId),
       )
+      .innerJoin(allGames, eq(participationTable.gameId, allGames.gameId))
+      .where(ne(participationTable.playerId, playerId))
       .as('opponents_names');
-    let query = this.Database.getDb()
+    const query = this.Database.getDb()
       .select({
         gameId: gameTable.gameId,
         gameMode: gameTable.gameMode,
         playerColor: participationTable.playerColor,
         playerResult: participationTable.playerResult,
         opponentName: opponentsNamesQuery.opponentsName,
-        gameDuration: sql<string>`${gameTable.gameCompletedAt} - ${gameTable.gameCreatedAt}`
+        gameDuration: sql<string>`${gameTable.gameCompletedAt} - ${gameTable.gameCreatedAt}`,
       })
       .from(participationTable)
       .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
-      .innerJoin(playerTable, eq(participationTable.playerId, playerTable.playerId))
-      .leftJoin(opponentsNamesQuery, eq(opponentsNamesQuery.gameId, gameTable.gameId))
+      .innerJoin(
+        playerTable,
+        eq(participationTable.playerId, playerTable.playerId),
+      )
+      .leftJoin(
+        opponentsNamesQuery,
+        eq(opponentsNamesQuery.gameId, gameTable.gameId),
+      )
       .where(eq(participationTable.playerId, playerId))
       .orderBy(desc(gameTable.gameCreatedAt));
     return query;
-  }
+  };
 }

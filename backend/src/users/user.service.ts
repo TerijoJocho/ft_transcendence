@@ -21,13 +21,13 @@ export class UserService {
 
   registerPlayers(mailAddress: string, gameName: string, pwd: string) {
     const currentPlayers: playerInsert = {
-      gameName: gameName,
+      playerName: gameName,
       mailAddress: mailAddress,
       pwd: pwd,
     };
     return this.utils.insertPlayers([currentPlayers], {
       id: playerTable.playerId,
-      gameName: playerTable.gameName,
+      gameName: playerTable.playerName,
     });
   }
 
@@ -36,7 +36,7 @@ export class UserService {
       'and',
       {
         playerId: playerTable.playerId,
-        gameName: playerTable.gameName,
+        gameName: playerTable.playerName,
         mail: playerTable.mailAddress,
         avatarUrl: playerTable.avatarUrl,
       },
@@ -69,7 +69,7 @@ export class UserService {
       'and',
       {
         playerId: playerTable.playerId,
-        gameName: playerTable.gameName,
+        gameName: playerTable.playerName,
         mailAddress: playerTable.mailAddress,
       },
       eq(playerTable.playerId, playerId),
@@ -92,7 +92,7 @@ export class UserService {
         'and',
         {
           playerId: playerTable.playerId,
-          gameName: playerTable.gameName,
+          gameName: playerTable.playerName,
           mailAddress: playerTable.mailAddress,
         },
         eq(playerTable.playerId, userId),
