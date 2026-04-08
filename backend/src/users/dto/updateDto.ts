@@ -1,6 +1,5 @@
 import {
   IsString,
-  IsNotEmpty,
   IsEmail,
   IsOptional,
   MaxLength,
@@ -8,20 +7,17 @@ import {
 } from 'class-validator';
 
 export class UpdateUserDto {
-  @IsNotEmpty()
   @IsString()
   @IsOptional()
-  gameName?: string;
+  pseudo?: string;
 
-  @IsNotEmpty()
   @IsEmail()
   @IsOptional()
-  mailAddress?: string;
+  email?: string;
 
-  @IsNotEmpty()
   @IsString()
   @IsOptional()
-  pwd?: string;
+  newPassword?: string;
 
   @IsString()
   @MaxLength(2048)
@@ -30,5 +26,5 @@ export class UpdateUserDto {
     { require_protocol: true, protocols: ['https'] },
     { message: 'avatarUrl must be a valid https URL' },
   )
-  avatarUrl?: string;
+  avatar?: string;
 }

@@ -214,7 +214,7 @@ export class AuthService {
     response.status(200).json({ message: 'successfully logged out' });
   }
 
-  async me(playerId: number) {
+  async userStats(playerId: number) {
     const user = (await this.utilsService.findPlayersBy(
       'and',
       undefined,

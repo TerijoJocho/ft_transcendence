@@ -7,6 +7,7 @@ import { SigninModule } from './signin/signin.module';
 import { GameModule } from './game/game.module';
 import { FriendshipModule } from './friendship/friendship.module';
 import { DoubleFactorModule } from './double_factor/double_factor.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { DoubleFactorModule } from './double_factor/double_factor.module';
     GameModule,
     FriendshipModule,
     DoubleFactorModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
