@@ -1,21 +1,16 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-//   faUserGroup,
   faChevronLeft,
   faArrowRightFromBracket,
   faBars,
-  faCircleUser,
 } from "@fortawesome/free-solid-svg-icons";
-import { sideBarData } from "../data/sideBarData"; //friendsData a enlever
+import { sideBarData } from "../data/sideBarData";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../auth/useAuth";
 import { useNavigate } from "react-router-dom";
-// import { useFriends } from "../hooks/useFriends.ts";
-// import statusData from "../data/statusData.ts";
 
 export default function SideBar() {
-//   const {friendsList} = useFriends();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isSmallMenu, setIsSmallMenu] = useState(false);
@@ -31,11 +26,33 @@ export default function SideBar() {
   }
 
   const toggleMenu = () => setIsSmallMenu((prev) => !prev);
+  const displayName = user.pseudo?.trim() || "Profil";
+  const userInitial = displayName.charAt(0).toUpperCase();
+  const hasAvatar = typeof user.avatarUrl === "string" && user.avatarUrl.trim().length > 0;
 
-//   const favFilteredList = friendsList.filter(f => f.isFavFriend)
+  const userAvatar = hasAvatar ? (
+    <img
+      src={user.avatarUrl}
+      alt={`${displayName} avatar`}
+      className="w-10 h-10 rounded-full object-cover"
+    />
+  ) : (
+    <div className="w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center font-semibold">
+      {userInitial}
+    </div>
+  );
 
-  const userAvatar = typeof user.avatar === 'string' && (<img src={user.avatar} alt={`${user.pseudo} avatar`} className="w-10 h-10 rounded-full object-cover"/>)
-  const miniUserAvatar = typeof user.avatar === 'string' && (<img src={user.avatar} alt={`${user.pseudo} avatar`} className="w-6 h-6 rounded-full object-cover"/>)
+  const miniUserAvatar = hasAvatar ? (
+    <img
+      src={user.avatarUrl}
+      alt={`${displayName} avatar`}
+      className="w-6 h-6 rounded-full object-cover"
+    />
+  ) : (
+    <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-semibold">
+      {userInitial}
+    </div>
+  );
 
   return (
     <section
@@ -83,15 +100,19 @@ export default function SideBar() {
       {/* footer pour cliquer sur la page de profile et se logout */}
       <footer className={`p-4`}>
         <div className="global-hover cursor-pointer">
-          {
-            isSmallMenu
-            ? <Link to={"/profil"}>{miniUserAvatar}</Link>
-            : <Link to={"/profil"}><div className="flex items-center gap-2">{userAvatar} <p>{user.pseudo}</p></div></Link>
-          }
+          {isSmallMenu ? (
+            <Link to={"/profil"}>{miniUserAvatar}</Link>
+          ) : (
+            <Link to={"/profil"}>
+              <div className="flex items-center gap-2">
+                {userAvatar} <p>{displayName}</p>
+              </div>
+            </Link>
+          )}
         </div>
 
         <button onClick={handleLogout} className="warning-hover">
-          <FontAwesomeIcon icon={faArrowRightFromBracket}/>
+          <FontAwesomeIcon icon={faArrowRightFromBracket} />
         </button>
       </footer>
     </section>
