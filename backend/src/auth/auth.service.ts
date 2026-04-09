@@ -173,23 +173,15 @@ export class AuthService {
       throw new UnauthorizedException('User not found.');
     }
 
-    const lvl = (await this.utilsService.getTotalWins(user[0].playerId))[0];
-    const lvlVal: number = lvl?.totalWins ?? 0;
-
-    const loss = (await this.utilsService.getTotalLosses(user[0].playerId))[0];
-    const lossVal: number = loss?.totalLosses ?? 0;
-
-    const draws = (await this.utilsService.getTotalDraws(user[0].playerId))[0];
-    const drawVal: number = draws?.totalDraws ?? 0;
-
-    const gameNb = (
-      await this.utilsService.getTotalGamesPlayed(user[0].playerId)
+    const stats = (
+      await this.utilsService.getGamesResCounts(user[0].playerId)
     )[0];
-    const gameVal: number = gameNb?.totalGames ?? 0;
-
-    const wr = (await this.utilsService.getWinrate(user[0].playerId))[0];
-    const winrateVal: number = wr?.winrate ?? 0;
-
+    const lvlVal: number = stats?.totalWins ?? 0;
+    const lossVal: number = stats?.totalLosses ?? 0;
+    const drawVal: number = stats?.totalDraws ?? 0;
+    const gameVal: number = stats?.totalGames ?? 0;
+    const winrateVal: number = stats?.winRate ?? 0;
+    
     const color = (
       await this.utilsService.getFavouriteColor(user[0].playerId)
     )[0];
