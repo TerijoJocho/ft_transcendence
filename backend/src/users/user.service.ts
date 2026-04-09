@@ -24,11 +24,11 @@ export class UserService {
     private readonly redisService: RedisService,
   ) {}
 
-  registerPlayers(mailAddress: string, gameName: string, pwd: string) {
+  registerPlayers(mailAddress: string, gameName: string, pwd?: string) {
     const currentPlayers: playerInsert = {
       playerName: gameName,
       mailAddress: mailAddress,
-      pwd: pwd,
+      pwd: pwd || undefined,
     };
     return this.utils.insertPlayers([currentPlayers], {
       id: playerTable.playerId,
