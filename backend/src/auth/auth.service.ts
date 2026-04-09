@@ -23,7 +23,11 @@ export class AuthService {
     private readonly redisService: RedisService,
   ) {}
 
-  async logIn(user: ResponseLoginDto, response: Response, redirect = false): Promise<Response> {
+  async logIn(
+    user: ResponseLoginDto,
+    response: Response,
+    redirect = false,
+  ): Promise<Response> {
     try {
       const redisClient = this.redisService.getClient();
       const accessExpirationMs = parseInt(
@@ -169,48 +173,58 @@ export class AuthService {
   }
 
   async me(playerId: number) {
-    const user = (
-      await this.utilsService.findPlayersBy(
-        'and',
-        undefined,
-        eq(playerTable.playerId, playerId),
-      )
-    ) as playerSelect[];
+    const user = (await this.utilsService.findPlayersBy(
+      'and',
+      undefined,
+      eq(playerTable.playerId, playerId),
+    )) as playerSelect[];
 
     if (user.length === 0) {
       throw new UnauthorizedException('User not found.');
     }
 
     const lvl = (await this.utilsService.getTotalWins(user[0].playerId))[0];
-    const lvlVal: Number = lvl?.totalWins ?? 0;
+    const lvlVal: number = lvl?.totalWins ?? 0;
 
     const loss = (await this.utilsService.getTotalLosses(user[0].playerId))[0];
-    const lossVal: Number = loss?.totalLosses ?? 0;
+    const lossVal: number = loss?.totalLosses ?? 0;
 
     const draws = (await this.utilsService.getTotalDraws(user[0].playerId))[0];
-    const drawVal: Number = draws?.totalDraws ?? 0;
+    const drawVal: number = draws?.totalDraws ?? 0;
 
-    const gameNb = (await this.utilsService.getTotalGamesPlayed(user[0].playerId))[0];
-    const gameVal: Number = gameNb?.totalGames ?? 0;
+    const gameNb = (
+      await this.utilsService.getTotalGamesPlayed(user[0].playerId)
+    )[0];
+    const gameVal: number = gameNb?.totalGames ?? 0;
 
     const wr = (await this.utilsService.getWinrate(user[0].playerId))[0];
-    const winrateVal: Number = wr?.winrate ?? 0;
+    const winrateVal: number = wr?.winrate ?? 0;
 
-    const color = (await this.utilsService.getFavouriteColor(user[0].playerId))[0];
+    const color = (
+      await this.utilsService.getFavouriteColor(user[0].playerId)
+    )[0];
     const colorVal: string = color?.playerColor ?? 'unknown';
 
-    const gm = (await this.utilsService.getFavouriteGameMode(user[0].playerId))[0];
+    const gm = (
+      await this.utilsService.getFavouriteGameMode(user[0].playerId)
+    )[0];
     const gameModeVal: string = gm?.gameMode ?? 'unknown';
 
-    const cws = (await this.utilsService.getCurrentWinStreak(user[0].playerId))[0];
-    const cwsVal: Number = cws?.currentStreak ?? 0;
+    const cws = (
+      await this.utilsService.getCurrentWinStreak(user[0].playerId)
+    )[0];
+    const cwsVal: number = cws?.currentStreak ?? 0;
 
-    const lws = (await this.utilsService.getLongestWinStreak(user[0].playerId))[0];
-    const lwsVal: Number = lws?.longestStreak ?? 0;
+    const lws = (
+      await this.utilsService.getLongestWinStreak(user[0].playerId)
+    )[0];
+    const lwsVal: number = lws?.longestStreak ?? 0;
 
-    const gameHistory = (await this.utilsService.getGameHistory(user[0].playerId));
+    const gameHistory = await this.utilsService.getGameHistory(
+      user[0].playerId,
+    );
     const historyVal = gameHistory ? gameHistory : undefined;
-  
+
     return {
       id: user[0].playerId,
       pseudo: user[0].playerName,
@@ -227,6 +241,6 @@ export class AuthService {
       longestWinStreak: lwsVal,
       gameHistoryList: historyVal,
       avatar: user[0].avatarUrl,
-    };      
+    };
   }
 }

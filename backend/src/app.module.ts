@@ -8,7 +8,13 @@ import { GameModule } from './game/game.module';
 import { FriendshipModule } from './friendship/friendship.module';
 
 @Module({
-  imports: [SharedModule, AuthModule, SigninModule, GameModule, FriendshipModule],
+  imports: [
+    SharedModule,
+    AuthModule,
+    SigninModule,
+    GameModule,
+    FriendshipModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

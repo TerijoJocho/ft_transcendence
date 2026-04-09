@@ -27,12 +27,14 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(PassportGoogleAuthGuard)
-  async googleAuth() {
-  }
+  async googleAuth() {}
 
   @Get('google/callback')
   @UseGuards(PassportGoogleAuthGuard)
-  async googleAuthRedirect(@CurrentUser() user: ResponseLoginDto, @Res() response: Response) {
+  async googleAuthRedirect(
+    @CurrentUser() user: ResponseLoginDto,
+    @Res() response: Response,
+  ) {
     return this.authService.logIn(user, response, true);
   }
 
