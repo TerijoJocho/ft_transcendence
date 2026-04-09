@@ -365,28 +365,6 @@ export class UtilsService {
   };
 
   //miscellaneous functions
-  // query to calculate a player winrate depending on conditions  (=> [gameName, winrate])
-  getWinrate = async (playerId?: number) => {
-    let query = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        winrate: sql<number>`( COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN') + 0.5 * COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW'))
-/ NULLIF(COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING'), 0)::float`,
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .groupBy(playerTable.playerName);
-    if (playerId) {
-      query = query.where(
-        eq(participationTable.playerId, playerId),
-      ) as typeof query;
-    }
-    return query;
-  };
-
   //query to calculate average number of moves to win for a player
   getAverageWinMoves = async (playerId?: number) => {
     let query = this.Database.getDb()
@@ -454,12 +432,16 @@ export class UtilsService {
     return query;
   };
 
-  //query to return total number of games played by a player
-  getTotalGamesPlayed = async (playerId?: number) => {
+  //query to return total number of games, nb of wins, loss and draws for a player
+  getGamesResCounts = async (playerId?: number) => {
     let query = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,
+        winRate: sql<number>`( COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN') + 0.5 * COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW')) / NULLIF(COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING'), 0)::float`,
         totalGames: sql<number>`COUNT(${participationTable.gameId})::int`,
+        totalWins: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`,
+        totalLosses: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'LOSE')::int`,
+        totalDraws: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW')::int`,
       })
       .from(playerTable)
       .leftJoin(
@@ -469,90 +451,6 @@ export class UtilsService {
       .groupBy(playerTable.playerName, playerTable.playerId);
     if (playerId) {
       query = query.where(eq(playerTable.playerId, playerId)) as typeof query;
-    }
-    return query;
-  };
-
-  //query to return total number of wins by a player
-  getTotalWins = async (playerId?: number) => {
-    let query = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        totalWins: sql<number>`COALESCE(COUNT(*), 0)::int`,
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .groupBy(playerTable.playerName, playerTable.playerId);
-    if (playerId) {
-      query = query.where(
-        and(
-          eq(participationTable.playerId, playerId),
-          eq(participationTable.playerResult, 'WIN'),
-        ),
-      ) as typeof query;
-    } else {
-      query = query.where(
-        eq(participationTable.playerResult, 'WIN'),
-      ) as typeof query;
-    }
-    return query;
-  };
-
-  //query to return total number of losses by a player
-  getTotalLosses = async (playerId?: number) => {
-    let query = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        totalLosses: sql<number>`COALESCE(COUNT(*), 0)::int`,
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .groupBy(playerTable.playerName, playerTable.playerId);
-    if (playerId) {
-      query = query.where(
-        and(
-          eq(participationTable.playerId, playerId),
-          eq(participationTable.playerResult, 'LOSE'),
-        ),
-      ) as typeof query;
-    } else {
-      query = query.where(
-        eq(participationTable.playerResult, 'LOSE'),
-      ) as typeof query;
-    }
-    return query;
-  };
-
-  //query to return total number of draws by a player
-  getTotalDraws = async (playerId?: number) => {
-    let query = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        totalDraws: sql<number>`COALESCE(COUNT(*), 0)::int`,
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .groupBy(playerTable.playerName, playerTable.playerId);
-    if (playerId) {
-      query = query.where(
-        and(
-          eq(participationTable.playerId, playerId),
-          eq(participationTable.playerResult, 'DRAW'),
-        ),
-      ) as typeof query;
-    } else {
-      query = query.where(
-        eq(participationTable.playerResult, 'DRAW'),
-      ) as typeof query;
     }
     return query;
   };
