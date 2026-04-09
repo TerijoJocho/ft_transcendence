@@ -10,7 +10,13 @@ import { GoogleAuthStrategy } from './strategies/google-auth.strategy';
 
 @Module({
   imports: [PassportModule, JwtModule],
-  providers: [AuthService, LocalStrategy, JwtStrategy, JwtRefreshStrategy, GoogleAuthStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    GoogleAuthStrategy,
+  ],
   controllers: [AuthController],
   exports: [AuthService],
 })
