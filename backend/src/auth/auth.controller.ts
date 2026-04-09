@@ -8,6 +8,7 @@ import { ResponseLoginDto } from './dto/response-login.dto';
 import { LogoutDto } from './dto/logout.dto';
 import { PassportJwtRefreshGuard } from './guards/passport-jwt-refresh.guard';
 import { TwoFactorDto } from './dto/twoFactorDto';
+import { PassportGoogleAuthGuard } from './guards/passport-google-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -33,6 +34,17 @@ export class AuthController {
   @UseGuards(PassportJwtRefreshGuard)
   refresh(@CurrentUser() user: ResponseLoginDto, @Res() response: Response) {
     return this.authService.renewAccessToken(user, response);
+  }
+
+  @Get('google')
+  @UseGuards(PassportGoogleAuthGuard)
+  async googleAuth() {
+  }
+
+  @Get('google/callback')
+  @UseGuards(PassportGoogleAuthGuard)
+  async googleAuthRedirect(@CurrentUser() user: ResponseLoginDto, @Res() response: Response) {
+    return this.authService.logIn(user, response, true);
   }
 
   @Post('logout')
