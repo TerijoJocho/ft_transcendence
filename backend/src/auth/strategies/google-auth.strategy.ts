@@ -20,7 +20,11 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  async validate(_accessToken: string, _refreshToken: string, profile: Profile) {
+  async validate(
+    _accessToken: string,
+    _refreshToken: string,
+    profile: Profile,
+  ) {
     const displayName = profile.displayName;
     const primaryEmail = profile.emails?.[0]?.value;
 
@@ -29,19 +33,22 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
     }
 
     try {
-      const isExist =
-        await this.utilsService.findPlayersBy(
-          'and',
-          undefined,
-          eq(playerTable.mailAddress, primaryEmail),
-        ) as playerSelect[];
+      const isExist = (await this.utilsService.findPlayersBy(
+        'and',
+        undefined,
+        eq(playerTable.mailAddress, primaryEmail),
+      )) as playerSelect[];
       if (isExist && isExist.length === 0) {
-        const user = (await this.signinService.registerPlayers(primaryEmail, displayName))[0] as playerSelect;
+        const user = (
+          await this.signinService.registerPlayers(primaryEmail, displayName)
+        )[0] as playerSelect;
         return user;
       }
       return isExist[0];
     } catch {
-      throw new ServiceUnavailableException('Cannot find or register new player with Google OAuth.');
+      throw new ServiceUnavailableException(
+        'Cannot find or register new player with Google OAuth.',
+      );
     }
   }
 }
