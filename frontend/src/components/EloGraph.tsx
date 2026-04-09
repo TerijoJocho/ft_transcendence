@@ -2,65 +2,147 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
 } from 'chart.js';
-import { Line } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend
 );
 
-const options = {
-  responsive: true,
-  maintainAspectRatio: false,
-  scales: {
-    y: {
-        min: 0,
-        max: 3000,
+export default function EloGraph({user}) {
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+          min: 0,
+          max: 100,
+      },
     },
-  },
-  plugins: {
-    legend: {
-      position: 'top' as const,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: true,
+        text: 'Progression de votre winrate dans le temps',
+      },
     },
-    title: {
-      display: true,
-      text: 'Progression',
-    },
-  },
-};
+  };
 
-const labels = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+  const labels = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
-const data = {
-  labels,
-  datasets: [
-    {
-      label: 'Courbe ELO durant la semaine',
-      data: [100, 103, 105, 102, 130, 160, 1340],
-      borderColor: 'oklch(81.1% 0.111 293.571)',
-      backgroundColor: 'rgba(255, 99, 132, 0.5)',
-      tension: 0.5,
-    },
-  ],
-};
+  const data = {
+    labels,
+    datasets: [
+      {
+        label: 'WinRate',
+        data: [12, 34, 43, 12, 45],
+        backgroundColor: 'rgba(53, 162, 235, 0.5)',
+      },
+    ],
+  };
 
-export default function EloGraph() {
     return (
         <section className="grid-style row-span-2 col-span-2 flex flex-col">
             <div className="border rounded-md m-2 p-1 flex-1">
-                    <Line options={options} data={data} />
+                    <Bar options={options} data={data} />
             </div>
         </section>
     );
 }
+
+//pour avoir le graph avec les vrais données
+// import {
+//   Chart as ChartJS,
+//   CategoryScale,
+//   LinearScale,
+//   BarElement,
+//   Title,
+//   Tooltip,
+//   Legend,
+// } from 'chart.js';
+// import { Bar } from 'react-chartjs-2';
+// import { useEffect, useState } from 'react';
+// import * as api from '../api/api';
+
+// ChartJS.register(
+//   CategoryScale,
+//   LinearScale,
+//   BarElement,
+//   Title,
+//   Tooltip,
+//   Legend
+// );
+
+// type WeeklyPoint = {
+//   dayIndex: number;
+//   date: string;
+//   winrate: number;
+// };
+
+// const labels = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+
+// export default function EloGraph() {
+//   const [points, setPoints] = useState<WeeklyPoint[]>([]);
+
+//   useEffect(() => {
+//     async function load() {
+//       const data = await api.weeklyWinrate();
+//       setPoints(data?.points ?? []);
+//     };
+//     load();
+//   }, []);
+
+//   const normalized = Array.from({ length: 7 }, (_, i) => {
+//     return points.find((p) => p.dayIndex === i + 1)?.winrate ?? 0;
+//   });
+
+//   const options = {
+//     responsive: true,
+//     maintainAspectRatio: false,
+//     scales: {
+//         y: {
+//           min: 0,
+//           max: 100,
+//         },
+//     },
+//     plugins: {
+//         legend: {
+//             position: 'top' as const,
+//         },
+//         title: {
+//           display: true,
+//           text: 'Progression de votre winrate dans la semaine',
+//         },
+//       },
+//   };
+
+//   const data = {
+//     labels,
+//     datasets: [
+//       {
+//         label: 'WinRate (%)',
+//         data: normalized,
+//         backgroundColor: 'rgba(53, 162, 235, 0.5)',
+//       },
+//     ],
+//   };
+
+//   return (
+//     <section className="grid-style row-span-2 col-span-2 flex flex-col">
+//       <div className="border rounded-md m-2 p-1 flex-1">
+//         <Bar options={options} data={data} />
+//       </div>
+//     </section>
+//   );
+// }

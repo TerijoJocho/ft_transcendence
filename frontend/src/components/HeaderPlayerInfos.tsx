@@ -4,22 +4,11 @@ import { faCircleUser } from "@fortawesome/free-solid-svg-icons";
 import { useState, useEffect, useRef } from "react";
 import statusData from "../data/statusData.ts";
 
-import type { User } from "../auth/core/authCore.ts";
-import * as api from '../api/api.ts';
 import Level from "../components/Level.tsx";
 
-export default function HeaderPlayerInfos() {
-  const [user, setUser] = useState<User | null>(null);
+export default function HeaderPlayerInfos({user, setUser}) {
   const dropDownWrapper = useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-
-  useEffect(() => {
-        async function fetchUser() {
-            const userData = await api.me();
-            setUser(userData);
-        };
-        fetchUser();
-    }, []);
 
   //ferme le menu quand on clique en dehors
   useEffect(() => {
@@ -77,7 +66,7 @@ export default function HeaderPlayerInfos() {
       <img
         src={user.avatar}
         alt={`${user.pseudo} avatar`}
-        className="w-16 h-16 rounded-full object-cover m-2"
+        className="w-12 h-12 rounded-full object-cover m-2"
       />
     ) : (
       <FontAwesomeIcon icon={user.avatar ?? faCircleUser} />
@@ -91,14 +80,14 @@ export default function HeaderPlayerInfos() {
           {user.pseudo ? user.pseudo : "UserName"}
         </h3>
 
-        <Level />
+        <Level level={user.winCount}/>
 
         <div ref={dropDownWrapper} className="self-end">
           <button
             onClick={() => setIsOpen((prev) => !prev)}
-            className={`${currentUserStatus.style} max-w-fit self-end`}
+            className={`${currentUserStatus?.style} max-w-fit self-end`}
           >
-            {currentUserStatus.label}
+            {currentUserStatus?.label}
           </button>
 
           {isOpen && (
