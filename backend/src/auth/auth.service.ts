@@ -23,7 +23,7 @@ export class AuthService {
     private readonly redisService: RedisService,
   ) {}
 
-  async logIn(user: ResponseLoginDto, response: Response): Promise<Response> {
+  async logIn(user: ResponseLoginDto, response: Response, redirect = false): Promise<Response> {
     try {
       const redisClient = this.redisService.getClient();
       const accessExpirationMs = parseInt(
@@ -67,6 +67,12 @@ export class AuthService {
         secure: process.env.NODE_ENV === 'production',
         expires: expiresRefreshToken,
       });
+
+      if (redirect) {
+        const redirectUrl = new URL(process.env.AUTH_UI_REDIRECT);
+        response.redirect(redirectUrl.toString());
+        return response;
+      }
 
       return response.json(user);
     } catch (error) {
