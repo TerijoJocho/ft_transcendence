@@ -1,15 +1,15 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-google-oauth20';
-import { SigninService } from '../../signin/signin.service';
 import { UtilsService } from 'src/shared/services/utils.func.service';
 import { playerSelect, playerTable } from 'src/shared/db/schema';
 import { eq } from 'drizzle-orm';
+import { UserService } from 'src/users/user.service';
 
 @Injectable()
 export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
-    private readonly signinService: SigninService,
+    private readonly userService: UserService,
     private readonly utilsService: UtilsService,
   ) {
     super({
@@ -40,7 +40,7 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
       )) as playerSelect[];
       if (isExist && isExist.length === 0) {
         const user = (
-          await this.signinService.registerPlayers(primaryEmail, displayName)
+          await this.userService.registerPlayers(primaryEmail, displayName)
         )[0] as playerSelect;
         return user;
       }
