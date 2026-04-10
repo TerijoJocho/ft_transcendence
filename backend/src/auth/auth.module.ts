@@ -7,9 +7,10 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { GoogleAuthStrategy } from './strategies/google-auth.strategy';
+import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [PassportModule, JwtModule],
+  imports: [PassportModule, JwtModule, UsersModule],
   providers: [
     AuthService,
     LocalStrategy,
