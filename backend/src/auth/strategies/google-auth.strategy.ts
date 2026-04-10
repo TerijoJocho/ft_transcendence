@@ -20,35 +20,71 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
+  // async validate(
+  //   _accessToken: string,
+  //   _refreshToken: string,
+  //   profile: Profile,
+  // ) {
+  //   const displayName = profile.displayName;
+  //   const primaryEmail = profile.emails?.[0]?.value;
+
+  //   if (!primaryEmail) {
+  //     throw new ServiceUnavailableException('Google profile email is missing.');
+  //   }
+
+  //   try {
+  //     const isExist = (await this.utilsService.findPlayersBy(
+  //       'and',
+  //       undefined,
+  //       eq(playerTable.mailAddress, primaryEmail),
+  //     )) as playerSelect[];
+  //     if (isExist && isExist.length === 0) {
+  //       const user = (
+  //         await this.userService.registerPlayers(primaryEmail, displayName)
+  //       )[0] as playerSelect;
+  //       return user;
+  //     }
+  //     return isExist[0];
+  //   } catch {
+  //     throw new ServiceUnavailableException(
+  //       'Cannot find or register new player with Google OAuth.',
+  //     );
+  //   }
+  // }
   async validate(
-    _accessToken: string,
-    _refreshToken: string,
-    profile: Profile,
-  ) {
-    const displayName = profile.displayName;
-    const primaryEmail = profile.emails?.[0]?.value;
+  _accessToken: string,
+  _refreshToken: string,
+  profile: Profile,
+) {
+  const displayName = profile.displayName;
+  const primaryEmail = profile.emails?.[0]?.value;
+  console.log('Google profile:', profile);
 
-    if (!primaryEmail) {
-      throw new ServiceUnavailableException('Google profile email is missing.');
-    }
-
-    try {
-      const isExist = (await this.utilsService.findPlayersBy(
-        'and',
-        undefined,
-        eq(playerTable.mailAddress, primaryEmail),
-      )) as playerSelect[];
-      if (isExist && isExist.length === 0) {
-        const user = (
-          await this.userService.registerPlayers(primaryEmail, displayName)
-        )[0] as playerSelect;
-        return user;
-      }
-      return isExist[0];
-    } catch {
-      throw new ServiceUnavailableException(
-        'Cannot find or register new player with Google OAuth.',
-      );
-    }
+  if (!primaryEmail) {
+    throw new ServiceUnavailableException('Google profile email is missing.');
   }
+
+  try {
+    const isExist = (await this.utilsService.findPlayersBy(
+      'and',
+      undefined,
+      eq(playerTable.mailAddress, primaryEmail),
+    )) as playerSelect[];
+
+    if (!isExist || isExist.length === 0) {
+      const user = await this.userService.registerPlayers(
+        primaryEmail,
+        displayName,
+      );
+      return user[0];
+    }
+
+    return isExist[0];
+  } catch (error) {
+    console.error('Google OAuth error:', error);
+    throw new ServiceUnavailableException(
+      'Cannot find or register new player with Google OAuth.',
+    );
+  }
+}
 }
