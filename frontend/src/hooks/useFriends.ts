@@ -1,15 +1,15 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState, useCallback } from "react";
 import * as api from "../api/api.ts";
 
 export type Friends = {
     id: number;
     pseudo: string;
-    status?: string | null; //a enlever
-    avatarUrl: string | IconDefinition;
+    status: string; //a enlever
+    avatarUrl: string;
     isFriend: boolean;
     friendshipStatus: string;
+    level: string;
 };
 
 export function useFriends() {
@@ -49,5 +49,5 @@ export function useFriends() {
         fetchFriends();
     };
 
-    return { friendsList, isLoading, error, removeFriend, changeFriendshipStatus, fetchFriends };
+    return { friendsList, isLoading, error, removeFriend, changeFriendshipStatus, fetchFriends};
 }

@@ -1,23 +1,22 @@
 import { useState } from 'react';
 import Header from '../components/Header.tsx';
 // import { useChat } from '../hooks/useChat';
-import { friendsData } from '../data/sideBarData';
 import statusData from '../data/statusData.ts';
-import type { FriendData } from '../data/sideBarData';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane, faMagnifyingGlass, faCircle } from '@fortawesome/free-solid-svg-icons';
+import { useFriends, type Friends } from '../hooks/useFriends.ts';
 
 function Chat() {
     // const isConnected = true; // à brancher sur useChat() plus tard
-
+    const {friendsList} = useFriends();
     const [search, setSearch] = useState('');
-    const [selectedFriend, setSelectedFriend] = useState<FriendData | null>(friendsData[0]);
+    const [selectedFriend, setSelectedFriend] = useState<Friends | null>(friendsList[0]);
     const [inputValue, setInputValue] = useState('');
     const [messages, setMessages] = useState([]);
 
     // Filtre la liste d'amis selon la barre de recherche
     // a changer pour un fetch de la liste d'amis du user
-    const filteredFriends = friendsData.filter(f =>
+    const filteredFriends = friendsList.filter(f =>
         f.pseudo.toLowerCase().includes(search.toLowerCase())
     );
 
@@ -26,7 +25,7 @@ function Chat() {
     const currentMessages = selectedFriend ? (messages[selectedFriend.id] ?? []) : [];
 
     // Récupère le status du selectedFriend
-    const selectedFriendStatus = statusData.find(st => st.value === selectedFriend.status);
+    const selectedFriendStatus = statusData.find(st => st.value === selectedFriend?.status);
 
     function handleSend() {
         if (!inputValue.trim() || !selectedFriend) return;
@@ -82,12 +81,16 @@ function Chat() {
                                     className={`w-full flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-violet-50 transition-colors text-left
                                         ${isSelected ? 'bg-violet-100 border-l-violet-500' : ''}`}
                                 >
-                                    {/* Avatar */}
+                                    {/* AvatarUrl */}
                                     <div className="relative shrink-0">
-                                        <FontAwesomeIcon icon={friend.avatar} className="text-3xl text-gray-400" />
+                                        <img
+                                            src={friend.avatarUrl}
+                                            alt={friend.pseudo}
+                                            className="w-8 h-8 rounded-full object-cover bg-gray-200"
+                                        />
                                         <FontAwesomeIcon
                                             icon={faCircle}
-                                            className={`absolute bottom-0 right-0 ${currentFriendStatus?.color} text-xs`}
+                                            className={`absolute bottom-0 right-0 text-${currentFriendStatus?.color} text-xs`}
                                         />
                                     </div>
 
@@ -115,10 +118,14 @@ function Chat() {
                         <>
                             {/* Header de la conv */}
                             <div className="flex items-center gap-3 px-5 py-3 border-b bg-gray-50 shrink-0">
-                                <FontAwesomeIcon icon={selectedFriend.avatar} className="text-2xl text-gray-400" />
+                                <img
+                                    src={selectedFriend.avatarUrl}
+                                    alt={selectedFriend.pseudo}
+                                    className="w-8 h-8 rounded-full object-cover bg-gray-200"
+                                />
                                 <div>
                                     <p className="font-semibold text-gray-800">{selectedFriend.pseudo}</p>
-                                    <p className={`text-xs ${selectedFriendStatus?.color} flex items-center gap-1`}>
+                                    <p className={`text-xs text-${selectedFriendStatus?.color} flex items-center gap-1`}>
                                         <FontAwesomeIcon icon={faCircle} className="text-[8px]" />
                                         {selectedFriendStatus?.label ?? "Status inconnu"}
                                     </p>
@@ -186,9 +193,13 @@ function Chat() {
                 <section className="w-56 shrink-0 flex flex-col items-center p-6 gap-4 bg-gray-50">
                     {selectedFriend ? (
                         <>
-                            {/* Avatar + nom */}
+                            {/* AvatarUrl + nom */}
                             <div className="flex flex-col items-center gap-2 mt-4">
-                                <FontAwesomeIcon icon={selectedFriend.avatar} className="text-6xl text-gray-300" />
+                                <img
+                                    src={selectedFriend.avatarUrl}
+                                    alt={selectedFriend.pseudo}
+                                    className="w-20 h-20 rounded-full object-cover bg-gray-200"
+                                />
                                 <p className="font-semibold text-gray-800 text-lg">{selectedFriend.pseudo}</p>
                                 <span className={selectedFriendStatus?.style}>
                                     {selectedFriendStatus?.label}
@@ -200,8 +211,8 @@ function Chat() {
                             {/* Infos hard-codées — à brancher sur /users/:id */}
                             <div className="w-full space-y-3 text-sm text-gray-600">
                                 <div className="flex justify-between">
-                                    <span className="text-gray-400">ELO</span>
-                                    <span className="font-semibold text-gray-800">{selectedFriend.elo}</span>
+                                    <span className="text-gray-400">Niveau</span>
+                                    <span className="font-semibold text-gray-800">{selectedFriend.level}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-400">Victoires</span>
