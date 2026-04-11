@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AuthService } from '../auth.service';
-import { ResponseLoginDto } from '../dto/response-login.dto';
+import { LoginDto } from '../dto/login.dto';
 
 const extractRefreshToken = (request: Request): string | null => {
   const token = (
@@ -25,10 +25,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
     });
   }
 
-  async validate(
-    request: Request,
-    payload: { sub: number; pseudo: string },
-  ): Promise<ResponseLoginDto> {
+  async validate(request: Request, payload: { sub: number; pseudo: string }): Promise<LoginDto> {
     const refreshToken = extractRefreshToken(request);
     if (!refreshToken)
       throw new UnauthorizedException('Refresh token is missing.');
