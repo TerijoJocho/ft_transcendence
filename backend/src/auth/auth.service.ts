@@ -6,7 +6,7 @@ import { eq, or } from 'drizzle-orm';
 import { UtilsService } from '../shared/services/utils.func.service';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { RedisService } from '../shared/services/redis.service';
-import { ResponseLoginDto } from './dto/response-login.dto';
+import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
 
 type AuthTokenPayload = {
@@ -23,7 +23,7 @@ export class AuthService {
     private readonly redisService: RedisService,
   ) {}
 
-  async logIn(user: ResponseLoginDto, response: Response, redirect = false): Promise<Response> {
+  async logIn(user: LoginDto, response: Response, redirect = false): Promise<Response> {
     try {
       const redisClient = this.redisService.getClient();
       const accessExpirationMs = parseInt(
@@ -56,6 +56,13 @@ export class AuthService {
         EX: refreshExpirationMs / 1000,
       });
 
+      const googleTokenToRevoke: string = user.googleRefreshToken || user.googleAccessToken;
+      if (googleTokenToRevoke) {
+        await redisClient.set('googleToken:' + user.playerId, googleTokenToRevoke, {
+          EX: refreshExpirationMs / 1000,
+        });
+      }
+
       response.cookie('Access', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -83,7 +90,7 @@ export class AuthService {
     }
   }
 
-  renewAccessToken(user: ResponseLoginDto, response: Response): Response {
+  renewAccessToken(user: LoginDto, response: Response): Response {
     const accessExpirationMs = parseInt(
       process.env.JWT_ACCESS_TOKEN_EXPIRATION_MS,
     );
@@ -127,7 +134,7 @@ export class AuthService {
     return user;
   }
 
-  async verifyRefreshToken(playerId: number, refreshToken: string): Promise<ResponseLoginDto> {
+  async verifyRefreshToken(playerId: number, refreshToken: string): Promise<LoginDto> {
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is missing.');
     }
@@ -156,10 +163,38 @@ export class AuthService {
   }
 
   async logOut(user: LogoutDto, response: Response) {
-    await this.redisService.getClient().del('refreshToken:' + user.playerId);
+    const redisClient = this.redisService.getClient();
+
+    const googleToken = (await redisClient.get('googleToken:' + user.playerId)) as string;
+    if (googleToken) {
+      try {
+        await this.revokeGoogleToken(googleToken);
+      } catch (error) {
+        this.logger.warn(
+          `Failed to revoke Google token for player ${user.playerId}: ${(error as Error).message}`,
+        );
+      }
+    }
+
+    await redisClient.del('refreshToken:' + user.playerId);
+    await redisClient.del('googleToken:' + user.playerId);
     response.clearCookie('Access');
     response.clearCookie('Refresh');
     response.status(200).json({ message: 'successfully logged out' });
+  }
+
+  private async revokeGoogleToken(token: string): Promise<void> {
+    const revokeResponse = await fetch('https://oauth2.googleapis.com/revoke', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({ token }),
+    });
+
+    if (!revokeResponse.ok) {
+      throw new Error(`Google revoke failed with status ${revokeResponse.status}.`);
+    }
   }
 
   async userStats(playerId: number) {
