@@ -54,7 +54,7 @@ export const playerTable = pgTable('players', {
   playerId: integer().primaryKey().generatedAlwaysAsIdentity(),
   mailAddress: varchar().notNull().unique(),
   playerName: varchar().notNull().unique(),
-  pwd: varchar().notNull(),
+  pwd: varchar(),
   playerCreatedAt: timestamp().notNull().defaultNow(),
   avatarUrl: varchar()
     .notNull()
@@ -125,6 +125,7 @@ export const friendshipTable = pgTable(
     friendshipId: integer().primaryKey().generatedAlwaysAsIdentity(),
     player1Id: integer().notNull(),
     player2Id: integer().notNull(),
+    requesterId: integer().notNull(),
     friendshipStatus: friendshipStatusEnum().notNull().default('PENDING'),
     isFriend: boolean().notNull().default(false),
   },
@@ -141,6 +142,12 @@ export const friendshipTable = pgTable(
     })
       .onDelete('restrict')
       .onUpdate('cascade'),
+    foreignKey({
+      columns: [pgTable.requesterId],
+      foreignColumns: [playerTable.playerId],
+    })
+      .onDelete('restrict')
+      .onUpdate('cascade'),
     unique().on(pgTable.player1Id, pgTable.player2Id),
     check(
       'no_self_friendship',
@@ -149,6 +156,10 @@ export const friendshipTable = pgTable(
     check(
       'ordered_player_ids',
       sql`${pgTable.player1Id} < ${pgTable.player2Id}`,
+    ),
+    check(
+      'requester_in_friendship',
+      sql`${pgTable.requesterId} = ${pgTable.player1Id} OR ${pgTable.requesterId} = ${pgTable.player2Id}`,
     ),
   ],
 );
