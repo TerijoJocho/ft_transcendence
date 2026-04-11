@@ -15,16 +15,16 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
   }
 
   async validate(
-    username: string,
+    identifier: string,
     password: string,
   ): Promise<ResponseLoginDto> {
     const user: playerSelect = await this.authService.verifyUser(
-      username,
+      identifier,
       password,
     );
     return {
       playerId: user.playerId,
-      identifier: user.gameName,
+      identifier: user.playerName,
     } as ResponseLoginDto;
   }
 }

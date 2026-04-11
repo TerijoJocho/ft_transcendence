@@ -7,3 +7,13 @@ coverage
 .vscode
 .idea
 /data
+shared_secrets
+backend/vault/data
+docker-compose.override.yml
+backend/vault/data
+.vault-secrets/approle/*
+.vault-secrets/core/*
+.vault-secrets/vault_certs/*
+!.vault-secrets/approle/.gitkeep
+!.vault-secrets/core/.gitkeep
+!.vault-secrets/vault_certs/.gitkeep

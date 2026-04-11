@@ -1,118 +1,120 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-    faUserGroup,
-    faChevronLeft,
-    faArrowRightFromBracket,
-    faBars,
-    faCircleUser,
-} from '@fortawesome/free-solid-svg-icons';
-import {sideBarData, friendsData} from '../data/sideBarData';
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+  faChevronLeft,
+  faArrowRightFromBracket,
+  faBars,
+} from "@fortawesome/free-solid-svg-icons";
+import { sideBarData } from "../data/sideBarData";
+import { Link } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "../auth/useAuth";
 import { useNavigate } from "react-router-dom";
 
-
 export default function SideBar() {
-    const {logout} = useAuth();
-    const navigate = useNavigate();
-    const [isSmallMenu, setIsSmallMenu] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [isSmallMenu, setIsSmallMenu] = useState(false);
 
-     async function handleLogout() {
-        try {
-            await logout();
-        } catch (error) {
-            console.log(error);
-        } finally {
-            navigate("/login");
-        }
+  async function handleLogout() {
+    try {
+      await logout();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      navigate("/login");
     }
+  }
 
-    const toggleMenu = () => setIsSmallMenu(prev => !prev);
+  const toggleMenu = () => setIsSmallMenu((prev) => !prev);
+  const displayName = user.pseudo?.trim() || "Profil";
+  const userInitial = displayName.charAt(0).toUpperCase();
+  const hasAvatar = typeof user.avatarUrl === "string" && user.avatarUrl.trim().length > 0;
 
-    /*requete /me ou /user idk, pour recuperer : username, avatar, liste d'amis*/
+  const userAvatar = hasAvatar ? (
+    <img
+      src={user.avatarUrl}
+      alt={`${displayName} avatar`}
+      className="w-10 h-10 rounded-full object-cover"
+    />
+  ) : (
+    <div className="w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center font-semibold">
+      {userInitial}
+    </div>
+  );
 
-    return (
-        <section className={`sticky top-0 h-screen ${isSmallMenu ? "w-24 items-center" : "w-56"} bg-gray-700 text-white flex flex-col p-4 transition-all duration-200`}>
+  const miniUserAvatar = hasAvatar ? (
+    <img
+      src={user.avatarUrl}
+      alt={`${displayName} avatar`}
+      className="w-6 h-6 rounded-full object-cover"
+    />
+  ) : (
+    <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-semibold">
+      {userInitial}
+    </div>
+  );
 
-            <header className={`${isSmallMenu ? "" : "flex justify-between items-center"} border-b border-gray-600 p-3 mb-4`}>
-                {!isSmallMenu && 
-                    <span className={`${isSmallMenu ? "text-sm" : "text-xl"} font-bold cursor-default`}>
-                        ChessWar
-                    </span>
-                }
-                <button onClick={toggleMenu} className='cursor-pointer'>
-                    {isSmallMenu ? 
-                        <FontAwesomeIcon icon={faBars} className='global-hover'/>
-                        :
-                        <FontAwesomeIcon icon={faChevronLeft} className='global-hover'/>
-                    }
-                </button>
-            </header>
+  return (
+    <section
+      className={`sticky top-0 h-screen ${isSmallMenu ? "w-24 items-center" : "w-56"} bg-gray-700 text-white flex flex-col p-4 transition-all duration-200`}
+    >
+      <header
+        className={`${isSmallMenu ? "" : "flex justify-between items-center"} border-b border-gray-600 p-3 mb-4`}
+      >
+        {!isSmallMenu && (
+          <span
+            className={`${isSmallMenu ? "text-sm" : "text-xl"} font-bold cursor-default`}
+          >
+            ChessWar
+          </span>
+        )}
+        <button onClick={toggleMenu} className="cursor-pointer">
+          {isSmallMenu ? (
+            <FontAwesomeIcon icon={faBars} className="global-hover" />
+          ) : (
+            <FontAwesomeIcon icon={faChevronLeft} className="global-hover" />
+          )}
+        </button>
+      </header>
 
-            <nav className={`flex flex-col gap-8 p-6 flex-1 overflow-hidden border-b border-gray-600`}>
-                {/* liens verrs les autres pages */}
-                {
-                    sideBarData.map((data, index) => {
-                        return (
-                            <Link to={data.path} key={index} className='flex items-center gap-6 text-xl tracking-wide font-medium global-hover'>
-                                <FontAwesomeIcon icon={data.icon}/>
-                                <span className={`${isSmallMenu ? "hidden" : "md:inline"}`}>{data.text}</span>
-                            </Link>
-                        )
-                    })
-                }
+      <nav
+        className={`flex flex-col gap-8 p-6 flex-1 overflow-hidden border-b border-gray-600`}
+      >
+        {/* liens verrs les autres pages */}
+        {sideBarData.map((data, index) => {
+          return (
+            <Link
+              to={data.path}
+              key={index}
+              className="flex items-center gap-6 text-xl tracking-wide font-medium global-hover"
+            >
+              <FontAwesomeIcon icon={data.icon} />
+              <span className={`${isSmallMenu ? "hidden" : "md:inline"}`}>
+                {data.text}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
 
-                {/* liste des amis connectés */}
-                <div className={`${isSmallMenu ? "" : "border rounded-lg"}`}>
-                    {isSmallMenu ? 
-                        <Link to="/friends">
-                            <FontAwesomeIcon icon={faUserGroup} className='global-hover'/>
-                        </Link>
-                        :
-                        <>                            
-                            <h2 className="text-sm text-gray-400 mb-2 p-2">
-                                <Link to="/friends">
-                                    <FontAwesomeIcon icon={faUserGroup} className='mr-1 hover:text-violet-400 cursor-pointer'/>
-                                </Link>
-                                Amis connectés
-                            </h2>
-                            <div className="max-h-52 overflow-y-auto space-y-6 p-2">                            
-                            {
-                                friendsData.map((friend) => (
-                                    <div key={friend.id} className='flex items-center text-md justify-between'>
-                                        <div className='self-start'>
-                                            <FontAwesomeIcon icon={friend.avatar} />
-                                            {friend.pseudo}
-                                        </div>
-                                        <div className='h-2 w-2 rounded-full border bg-green-400 '></div>
-                                    </div>
-                                ))
-                            }
-                            </div>
-                        </>
-                    }
+      {/* footer pour cliquer sur la page de profile et se logout */}
+      <footer className={`p-4`}>
+        <div className="global-hover cursor-pointer">
+          {isSmallMenu ? (
+            <Link to={"/profil"}>{miniUserAvatar}</Link>
+          ) : (
+            <Link to={"/profil"}>
+              <div className="flex items-center gap-2">
+                {userAvatar} <p>{displayName}</p>
+              </div>
+            </Link>
+          )}
+        </div>
 
-                </div>
-            </nav>
-            
-            {/* footer pour cliquer sur la page de profil et se logout */}
-            <footer className={`flex items-center justify-between ${isSmallMenu ? "gap-2" : ""} p-4`}>
-                <Link to={"/profil"} >
-                    {
-                        isSmallMenu ? 
-                            <FontAwesomeIcon icon={faCircleUser} className='global-hover cursor-pointer'/> 
-                            :
-                            <div className='flex items-center global-hover cursor-pointer'>
-                                <FontAwesomeIcon icon={faCircleUser}/> 
-                                <p>Pseudo</p>
-                            </div>
-                    }
-                </Link>
-                <button onClick={handleLogout}>
-                   <FontAwesomeIcon icon={faArrowRightFromBracket} className='warning-hover'/>
-                </button>
-            </footer>
-        </section>
-    )
+        <button onClick={handleLogout} className="warning-hover">
+          <FontAwesomeIcon icon={faArrowRightFromBracket} />
+        </button>
+      </footer>
+    </section>
+  );
 }

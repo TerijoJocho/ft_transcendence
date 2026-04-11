@@ -1,5 +1,5 @@
 {
-  "id": "8edf833a-2f84-4397-a956-581fcce04a23",
+  "id": "2e9aa85f-06bd-4d8f-849b-fddc4383e541",
   "prevId": "1d1df7b2-eda1-489e-8e37-a6501fb1f5a6",
   "version": "7",
   "dialect": "postgresql",
@@ -44,6 +44,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'PENDING'"
+        },
+        "isFriend": {
+          "name": "isFriend",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
         }
       },
       "indexes": {},
@@ -174,95 +181,6 @@
           "value": "\"games\".\"gameStatus\" <> 'COMPLETED' OR (\"games\".\"totalNbMoves\" IS NOT NULL AND \"games\".\"winnerNbMoves\" IS NOT NULL)"
         }
       },
-      "isRLSEnabled": false
-    },
-    "public.messages": {
-      "name": "messages",
-      "schema": "",
-      "columns": {
-        "messageId": {
-          "name": "messageId",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "identity": {
-            "type": "always",
-            "name": "messages_messageId_seq",
-            "schema": "public",
-            "increment": "1",
-            "startWith": "1",
-            "minValue": "1",
-            "maxValue": "2147483647",
-            "cache": "1",
-            "cycle": false
-          }
-        },
-        "senderId": {
-          "name": "senderId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "receiverId": {
-          "name": "receiverId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "content": {
-          "name": "content",
-          "type": "varchar(1000)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "sentAt": {
-          "name": "sentAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "isRead": {
-          "name": "isRead",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "messages_senderId_players_playerId_fk": {
-          "name": "messages_senderId_players_playerId_fk",
-          "tableFrom": "messages",
-          "tableTo": "players",
-          "columnsFrom": [
-            "senderId"
-          ],
-          "columnsTo": [
-            "playerId"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "messages_receiverId_players_playerId_fk": {
-          "name": "messages_receiverId_players_playerId_fk",
-          "tableFrom": "messages",
-          "tableTo": "players",
-          "columnsFrom": [
-            "receiverId"
-          ],
-          "columnsTo": [
-            "playerId"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.participation": {

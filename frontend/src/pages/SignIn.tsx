@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { register } from "../api/api.ts";
+import {isValidMail} from "../utils/isValidMail.ts";
 
 export default function SignIn() {
   const [mail, setMail] = useState("");
@@ -14,11 +15,6 @@ export default function SignIn() {
   const navigate = useNavigate();
 
   //check si la form est valide
-  const isValidMail = (mail: string) => {
-    const regex = new RegExp("^[a-z0-9._-]+@[a-z0-9._-]+.[a-z0-9._-]+$");
-    if (!regex.test(mail)) return false;
-    return true;
-  };
   const isFilledInput: boolean = mail.length > 0 && password.length > 0 && pseudo.length > 0;
   const isValidForm = isFilledInput && isValidMail(mail);
 

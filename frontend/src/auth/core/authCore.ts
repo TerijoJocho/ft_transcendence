@@ -4,9 +4,10 @@ import { createContext } from "react";
 export type User = {
   id: number;
   pseudo: string;
-  elo: number,
-  status: string;
-  avatar: string;
+  email: string,
+  elo: number,//a supp
+  status: string;//a supp
+  avatarUrl: string;
 };
 
 export type AuthContextType = {
