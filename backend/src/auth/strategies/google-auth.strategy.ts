@@ -35,20 +35,18 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
         undefined,
         eq(playerTable.mailAddress, primaryEmail),
       )) as playerSelect[];
-
-      if (!isExist || isExist.length === 0) {
+      if (isExist.length > 0) {
+        console.log('Existing user found for email:', primaryEmail);
+        return isExist[0];
+      }
+    } catch (error) {
+      console.error('Database error during Google OAuth: cannot find player', error);
+      throw new ServiceUnavailableException('Database error during Google OAuth.');
+    }
         const user = await this.userService.registerPlayers(
           primaryEmail,
-          displayName,
+          displayName
         );
-        return user[0];
-      }
-      return isExist[0];
-    } catch (error) {
-      console.error('Google OAuth error:', error);
-      throw new ServiceUnavailableException(
-        'Cannot find or register new player with Google OAuth.',
-      );
-    }
+        return user;
   }
 }
