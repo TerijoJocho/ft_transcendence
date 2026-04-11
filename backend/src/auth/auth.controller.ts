@@ -4,7 +4,7 @@ import { PassportLocalGuard } from './guards/passport-local.guard';
 import { PassportJwtGuard } from './guards/passport-jwt.guard';
 import type { Response } from 'express';
 import { CurrentUser } from './decorator/current-user.decorator';
-import { ResponseLoginDto } from './dto/response-login.dto';
+import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
 import { PassportJwtRefreshGuard } from './guards/passport-jwt-refresh.guard';
 import { TwoFactorDto } from './dto/twoFactorDto';
@@ -16,7 +16,7 @@ export class AuthController {
 
   @Post('login')
   @UseGuards(PassportLocalGuard)
-  login(@CurrentUser() user: ResponseLoginDto, @Res() response: Response) {
+  login(@CurrentUser() user: LoginDto, @Res() response: Response) {
     return this.authService.logIn(user, response);
   }
 
@@ -32,7 +32,7 @@ export class AuthController {
 
   @Post('refresh')
   @UseGuards(PassportJwtRefreshGuard)
-  refresh(@CurrentUser() user: ResponseLoginDto, @Res() response: Response) {
+  refresh(@CurrentUser() user: LoginDto, @Res() response: Response) {
     return this.authService.renewAccessToken(user, response);
   }
 
@@ -43,7 +43,7 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(PassportGoogleAuthGuard)
   async googleAuthRedirect(
-    @CurrentUser() user: ResponseLoginDto,
+    @CurrentUser() user: LoginDto,
     @Res() response: Response,
   ) {
     return this.authService.logIn(user, response, true);
