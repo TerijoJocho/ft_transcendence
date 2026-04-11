@@ -5,6 +5,7 @@ import { UtilsService } from 'src/shared/services/utils.func.service';
 import { playerSelect, playerTable } from 'src/shared/db/schema';
 import { eq } from 'drizzle-orm';
 import { UserService } from 'src/users/user.service';
+import { LoginDto } from '../dto/login.dto';
 
 @Injectable()
 export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
@@ -20,15 +21,20 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  async validate(_accessToken: string, _refreshToken: string, profile: Profile) {
+  authorizationParams() {
+    return {
+      access_type: 'offline',
+      prompt: 'select_account consent',
+      include_granted_scopes: 'false',
+    };
+  }
+
+  async validate(accessToken: string, refreshToken: string, profile: Profile): Promise<LoginDto> {
     const displayName = profile.displayName;
     const primaryEmail = profile.emails?.[0]?.value;
-    console.log('Google profile:', profile);
-
     if (!primaryEmail) {
       throw new ServiceUnavailableException('Google profile email is missing.');
     }
-
     try {
       const isExist = (await this.utilsService.findPlayersBy(
         'and',
@@ -36,17 +42,25 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
         eq(playerTable.mailAddress, primaryEmail),
       )) as playerSelect[];
       if (isExist.length > 0) {
-        console.log('Existing user found for email:', primaryEmail);
-        return isExist[0];
+        return {
+          playerId: isExist[0].playerId,
+          identifier: isExist[0].playerName,
+          googleAccessToken: accessToken,
+          googleRefreshToken: refreshToken,
+        } as LoginDto;
       }
     } catch (error) {
-      console.error('Database error during Google OAuth: cannot find player', error);
       throw new ServiceUnavailableException('Database error during Google OAuth.');
     }
-        const user = await this.userService.registerPlayers(
-          primaryEmail,
-          displayName
-        );
-        return user;
+    const user = (await this.userService.registerPlayers(
+      primaryEmail,
+      displayName
+    ))[0] as playerSelect;
+    return {
+      playerId: user.playerId,
+      identifier: user.playerName,
+      googleAccessToken: accessToken,
+      googleRefreshToken: refreshToken,
+    } as LoginDto;
   }
 }
