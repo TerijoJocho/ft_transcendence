@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { playerTable } from '../shared/db/schema';
 import type { playerSelect } from '../shared/db/schema';
 import { Response } from 'express';
@@ -102,10 +102,7 @@ export class AuthService {
     return response.json(user);
   }
 
-  async verifyUser(
-    identifier: string,
-    password: string,
-  ): Promise<playerSelect> {
+  async verifyUser(identifier: string, password: string): Promise<playerSelect> {
     const normalized = identifier.trim();
     const user = (
       (await this.utilsService.findPlayersBy(
@@ -124,10 +121,7 @@ export class AuthService {
     return user;
   }
 
-  async verifyRefreshToken(
-    playerId: number,
-    refreshToken: string,
-  ): Promise<ResponseLoginDto> {
+  async verifyRefreshToken(playerId: number, refreshToken: string): Promise<ResponseLoginDto> {
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is missing.');
     }
@@ -173,38 +167,26 @@ export class AuthService {
       throw new UnauthorizedException('User not found.');
     }
 
-    const stats = (
-      await this.utilsService.getGamesResCounts(user[0].playerId)
-    )[0];
+    const stats = (await this.utilsService.getGamesResCounts(user[0].playerId))[0];
     const lvlVal: number = stats?.totalWins ?? 0;
     const lossVal: number = stats?.totalLosses ?? 0;
     const drawVal: number = stats?.totalDraws ?? 0;
     const gameVal: number = stats?.totalGames ?? 0;
     const winrateVal: number = stats?.winRate ?? 0;
     
-    const color = (
-      await this.utilsService.getFavouriteColor(user[0].playerId)
-    )[0];
+    const color = (await this.utilsService.getFavouriteColor(user[0].playerId))[0];
     const colorVal: string = color?.playerColor ?? 'unknown';
 
-    const gm = (
-      await this.utilsService.getFavouriteGameMode(user[0].playerId)
-    )[0];
+    const gm = (await this.utilsService.getFavouriteGameMode(user[0].playerId))[0];
     const gameModeVal: string = gm?.gameMode ?? 'unknown';
 
-    const cws = (
-      await this.utilsService.getCurrentWinStreak(user[0].playerId)
-    )[0];
+    const cws = (await this.utilsService.getCurrentWinStreak(user[0].playerId))[0];
     const cwsVal: number = cws?.currentStreak ?? 0;
 
-    const lws = (
-      await this.utilsService.getLongestWinStreak(user[0].playerId)
-    )[0];
+    const lws = (await this.utilsService.getLongestWinStreak(user[0].playerId))[0];
     const lwsVal: number = lws?.longestStreak ?? 0;
 
-    const gameHistory = await this.utilsService.getGameHistory(
-      user[0].playerId,
-    );
+    const gameHistory = await this.utilsService.getGameHistory(user[0].playerId, 10);
     const historyVal = gameHistory ? gameHistory : undefined;
 
     return {
@@ -224,5 +206,23 @@ export class AuthService {
       gameHistoryList: historyVal,
       avatar: user[0].avatarUrl,
     };
+  }
+
+  async weeklyWinrate(playerId: number) {
+    try {
+    const user = (await this.utilsService.findPlayersBy(
+      'and',
+      undefined,
+      eq(playerTable.playerId, playerId),
+    )) as playerSelect[];
+    if (user.length === 0) {
+      throw new UnauthorizedException('User not found.');
+    }
+    const winrate = await this.utilsService.getWeeklyWinrate(user[0].playerId);
+    return winrate;
+    } catch (error) {
+      this.logger.error('Error fetching weekly winrate:', error);
+      throw new ServiceUnavailableException('Cannot fetch weekly winrate.');
+    }
   }
 }
