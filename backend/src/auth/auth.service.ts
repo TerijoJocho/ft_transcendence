@@ -23,11 +23,7 @@ export class AuthService {
     private readonly redisService: RedisService,
   ) {}
 
-  async logIn(
-    user: ResponseLoginDto,
-    response: Response,
-    redirect = false,
-  ): Promise<Response> {
+  async logIn(user: ResponseLoginDto, response: Response, redirect = false): Promise<Response> {
     try {
       const redisClient = this.redisService.getClient();
       const accessExpirationMs = parseInt(
@@ -112,10 +108,7 @@ export class AuthService {
     return response.json(user);
   }
 
-  async verifyUser(
-    identifier: string,
-    password: string,
-  ): Promise<playerSelect> {
+  async verifyUser(identifier: string, password: string): Promise<playerSelect> {
     const normalized = identifier.trim();
     const user = (
       (await this.utilsService.findPlayersBy(
@@ -134,10 +127,7 @@ export class AuthService {
     return user;
   }
 
-  async verifyRefreshToken(
-    playerId: number,
-    refreshToken: string,
-  ): Promise<ResponseLoginDto> {
+  async verifyRefreshToken(playerId: number, refreshToken: string): Promise<ResponseLoginDto> {
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is missing.');
     }
