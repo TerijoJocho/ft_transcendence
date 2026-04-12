@@ -8,7 +8,7 @@ import {
   participationInsert,
   participationTable,
 } from '../db/schema';
-import { and, or, eq, ne, sql, SQLWrapper, desc } from 'drizzle-orm';
+import { and, or, eq, ne, sql, SQLWrapper, desc, gte, lt } from 'drizzle-orm';
 import { SelectedFieldsFlat, PgTable } from 'drizzle-orm/pg-core';
 import { DatabaseService } from './db.service';
 import { Injectable } from '@nestjs/common';
@@ -365,28 +365,6 @@ export class UtilsService {
   };
 
   //miscellaneous functions
-  // query to calculate a player winrate depending on conditions  (=> [gameName, winrate])
-  getWinrate = async (playerId?: number) => {
-    let query = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        winrate: sql<number>`( COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN') + 0.5 * COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW'))
-/ NULLIF(COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING'), 0)::float`,
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .groupBy(playerTable.playerName);
-    if (playerId) {
-      query = query.where(
-        eq(participationTable.playerId, playerId),
-      ) as typeof query;
-    }
-    return query;
-  };
-
   //query to calculate average number of moves to win for a player
   getAverageWinMoves = async (playerId?: number) => {
     let query = this.Database.getDb()
@@ -454,12 +432,16 @@ export class UtilsService {
     return query;
   };
 
-  //query to return total number of games played by a player
-  getTotalGamesPlayed = async (playerId?: number) => {
+  //query to return total number of games, nb of wins, loss and draws for a player
+  getGamesResCounts = async (playerId?: number) => {
     let query = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,
+        winRate: sql<number>`( COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN') + 0.5 * COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW')) / NULLIF(COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING'), 0)::float`,
         totalGames: sql<number>`COUNT(${participationTable.gameId})::int`,
+        totalWins: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`,
+        totalLosses: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'LOSE')::int`,
+        totalDraws: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW')::int`,
       })
       .from(playerTable)
       .leftJoin(
@@ -469,90 +451,6 @@ export class UtilsService {
       .groupBy(playerTable.playerName, playerTable.playerId);
     if (playerId) {
       query = query.where(eq(playerTable.playerId, playerId)) as typeof query;
-    }
-    return query;
-  };
-
-  //query to return total number of wins by a player
-  getTotalWins = async (playerId?: number) => {
-    let query = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        totalWins: sql<number>`COALESCE(COUNT(*), 0)::int`,
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .groupBy(playerTable.playerName, playerTable.playerId);
-    if (playerId) {
-      query = query.where(
-        and(
-          eq(participationTable.playerId, playerId),
-          eq(participationTable.playerResult, 'WIN'),
-        ),
-      ) as typeof query;
-    } else {
-      query = query.where(
-        eq(participationTable.playerResult, 'WIN'),
-      ) as typeof query;
-    }
-    return query;
-  };
-
-  //query to return total number of losses by a player
-  getTotalLosses = async (playerId?: number) => {
-    let query = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        totalLosses: sql<number>`COALESCE(COUNT(*), 0)::int`,
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .groupBy(playerTable.playerName, playerTable.playerId);
-    if (playerId) {
-      query = query.where(
-        and(
-          eq(participationTable.playerId, playerId),
-          eq(participationTable.playerResult, 'LOSE'),
-        ),
-      ) as typeof query;
-    } else {
-      query = query.where(
-        eq(participationTable.playerResult, 'LOSE'),
-      ) as typeof query;
-    }
-    return query;
-  };
-
-  //query to return total number of draws by a player
-  getTotalDraws = async (playerId?: number) => {
-    let query = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        totalDraws: sql<number>`COALESCE(COUNT(*), 0)::int`,
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .groupBy(playerTable.playerName, playerTable.playerId);
-    if (playerId) {
-      query = query.where(
-        and(
-          eq(participationTable.playerId, playerId),
-          eq(participationTable.playerResult, 'DRAW'),
-        ),
-      ) as typeof query;
-    } else {
-      query = query.where(
-        eq(participationTable.playerResult, 'DRAW'),
-      ) as typeof query;
     }
     return query;
   };
@@ -685,7 +583,7 @@ export class UtilsService {
     return query;
   };
 
-  getGameHistory = async (playerId: number) => {
+  getGameHistory = async (playerId: number, nb: number) => {
     const allGames = this.Database.getDb()
       .select({
         gameId: participationTable.gameId,
@@ -693,6 +591,7 @@ export class UtilsService {
       .from(participationTable)
       .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
       .where(eq(participationTable.playerId, playerId))
+      .limit(nb)
       .orderBy(desc(gameTable.gameCreatedAt))
       .as('all_games');
     const opponentsNamesQuery = this.Database.getDb()
@@ -731,4 +630,73 @@ export class UtilsService {
       .orderBy(desc(gameTable.gameCreatedAt));
     return query;
   };
+
+  getWeeklyWinrate = async (playerId: number) => {
+    const currentWeekStart = new Date();
+    currentWeekStart.setUTCHours(0, 0, 0, 0);
+    currentWeekStart.setUTCDate(
+      currentWeekStart.getUTCDate() - ((currentWeekStart.getUTCDay() + 6) % 7),
+    );
+    const nextWeekStart = new Date(currentWeekStart);
+    nextWeekStart.setUTCDate(nextWeekStart.getUTCDate() + 7);
+
+    const weeklyRows = await this.Database.getDb()
+      .select({
+        dayDate: sql<string>`DATE_TRUNC('day', ${gameTable.gameCreatedAt})::date`.as(
+          'dayDate',
+        ),
+        wins:
+          sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`.as(
+            'wins',
+          ),
+        games:
+          sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING')::int`.as(
+            'games',
+          ),
+      })
+      .from(participationTable)
+      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+      .where(
+        and(
+          eq(participationTable.playerId, playerId),
+          gte(gameTable.gameCreatedAt, currentWeekStart),
+          lt(gameTable.gameCreatedAt, nextWeekStart),
+        ),
+      )
+      .groupBy(sql`DATE_TRUNC('day', ${gameTable.gameCreatedAt})`)
+      .orderBy(sql`DATE_TRUNC('day', ${gameTable.gameCreatedAt})`);
+
+    const byDate = new Map<string, { wins: number; games: number }>();
+    for (const row of weeklyRows) {
+      const dateIso = row.dayDate.slice(0, 10);
+      byDate.set(dateIso, { wins: row.wins, games: row.games });
+    }
+
+    let cumulativeWins = 0;
+    let cumulativeGames = 0;
+    const points: { dayIndex: number; date: string; winrate: number }[] = [];
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(currentWeekStart);
+      date.setUTCDate(currentWeekStart.getUTCDate() + i);
+      const dateIso = date.toISOString().slice(0, 10);
+      const stats = byDate.get(dateIso) ?? { wins: 0, games: 0 };
+      cumulativeWins += stats.wins;
+      cumulativeGames += stats.games;
+
+      const winrate =
+        cumulativeGames === 0
+          ? 0
+          : Number(((cumulativeWins * 100) / cumulativeGames).toFixed(2));
+
+      points.push({ dayIndex: i + 1, date: dateIso, winrate });
+    }
+
+    return {
+      timezone: 'UTC',
+      weekStart: currentWeekStart.toISOString().slice(0, 10),
+      points,
+    };
+  };
+
 }
