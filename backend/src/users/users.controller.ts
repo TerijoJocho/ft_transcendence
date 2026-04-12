@@ -8,7 +8,7 @@ import {
   Get,
   Post,
 } from '@nestjs/common';
-import { UserService } from './user.service';
+import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/updateDto';
 import { PassportJwtGuard } from 'src/auth/guards/passport-jwt.guard';
 import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
@@ -17,7 +17,7 @@ import { registerDto } from './dto/user_dto';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly UserService: UserService) {}
+  constructor(private readonly UserService: UsersService) {}
 
   @Post('register')
   register(@Body() bodyDto: registerDto) {
