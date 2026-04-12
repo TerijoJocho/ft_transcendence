@@ -25,7 +25,10 @@ export class JwtRefreshStrategy extends PassportStrategy(
     });
   }
 
-  async validate(request: Request, payload: { sub: number; pseudo: string }): Promise<LoginDto> {
+  async validate(
+    request: Request,
+    payload: { sub: number; pseudo: string },
+  ): Promise<LoginDto> {
     const refreshToken = extractRefreshToken(request);
     if (!refreshToken)
       throw new UnauthorizedException('Refresh token is missing.');
