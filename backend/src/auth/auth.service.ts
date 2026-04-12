@@ -1,4 +1,9 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { playerTable } from '../shared/db/schema';
 import type { playerSelect } from '../shared/db/schema';
 import { Response } from 'express';
@@ -8,6 +13,8 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { RedisService } from '../shared/services/redis.service';
 import { ResponseLoginDto } from './dto/response-login.dto';
 import { LogoutDto } from './dto/logout.dto';
+import { DoubleFactorService } from '../double_factor/double_factor.service';
+import { TwoFactorDto } from './dto/twoFactorDto';
 
 type AuthTokenPayload = {
   sub: number;
@@ -21,9 +28,13 @@ export class AuthService {
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
+    private readonly twoFactor: DoubleFactorService,
   ) {}
 
-  async logIn(user: ResponseLoginDto, response: Response): Promise<Response> {
+  async finalizeLogin(
+    user: ResponseLoginDto,
+    response: Response,
+  ): Promise<Response> {
     try {
       const redisClient = this.redisService.getClient();
       const accessExpirationMs = parseInt(
@@ -75,6 +86,47 @@ export class AuthService {
         'Login failed. Please check your credentials and try again.',
       );
     }
+  }
+
+  async logIn(user: ResponseLoginDto, response: Response): Promise<Response> {
+    try {
+      const check2fa = (await this.utilsService.findPlayersBy(
+        `and`,
+        {
+          twofa: playerTable.twoFactorEnabled,
+        },
+        eq(playerTable.playerId, user.playerId),
+      )) as Array<{ twofa: boolean }>;
+      if (!check2fa?.length) throw new NotFoundException('Player not found');
+      if (check2fa[0].twofa)
+        return response.json({
+          requiresTwoFactor: true,
+          message: '2FA required',
+        });
+
+      return this.finalizeLogin(user, response);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new UnauthorizedException('Login failed');
+    }
+  }
+
+  async logInTwoFactor(
+    user: ResponseLoginDto,
+    response: Response,
+    data: TwoFactorDto,
+  ): Promise<Response> {
+    await this.twoFactor.verify2faForLogin(
+      { userId: user.playerId },
+      data.reply_code,
+    );
+    return this.finalizeLogin(
+      {
+        identifier: user.identifier,
+        playerId: user.playerId,
+      },
+      response,
+    );
   }
 
   renewAccessToken(user: ResponseLoginDto, response: Response): Response {
