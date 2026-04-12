@@ -49,13 +49,10 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
           googleRefreshToken: refreshToken,
         } as LoginDto;
       }
-    } catch (error) {
+    } catch {
       throw new ServiceUnavailableException('Database error during Google OAuth.');
     }
-    const user = (await this.userService.registerPlayers(
-      primaryEmail,
-      displayName
-    ))[0] as playerSelect;
+    const user = (await this.userService.registerPlayers(primaryEmail, displayName))[0] as playerSelect;
     return {
       playerId: user.playerId,
       identifier: user.playerName,
