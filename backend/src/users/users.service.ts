@@ -1,7 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
-  UnauthorizedException,
+  ServiceUnavailableException,
   NotFoundException,
 } from '@nestjs/common';
 import { UtilsService } from 'src/shared/services/utils.func.service';
@@ -11,11 +11,11 @@ import {
   playerInsert,
   friendshipTable,
   participationTable,
+  playerSelect,
 } from 'src/shared/db/schema';
 import { UpdateUserDto } from './dto/updateDto';
 import { RedisService } from 'src/shared/services/redis.service';
 import { Response } from 'express';
-import { deleteDto } from './dto/deleteDTO';
 
 @Injectable()
 export class UserService {
@@ -57,25 +57,13 @@ export class UserService {
     return player[0];
   }
 
-  async deleteUserbyId(playerId: number, data: deleteDto, response: Response) {
-    if (!data?.password) {
-      throw new UnauthorizedException('Mot de passe requis');
-    }
-
-    const passwordRows = (await this.utils.findPlayersBy(
+  async deleteUserbyId(playerId: number, response: Response) {
+    const user = (await this.utils.findPlayersBy(
       'and',
-      {
-        playerId: playerTable.playerId,
-        pass: playerTable.pwd,
-      },
+      undefined,
       eq(playerTable.playerId, playerId),
-    )) as Array<{ playerId: number; pass: string }>;
-
-    const password = passwordRows[0];
-    if (!password) throw new NotFoundException('Player not found');
-
-    if (password.pass !== data.password)
-      throw new UnauthorizedException('Mauvais mot de passe');
+    )) as playerSelect[];
+    if (user.length === 0) throw new NotFoundException('Player not found');
 
     await this.utils.deleteParticipationsBy(
       'and',
@@ -92,11 +80,7 @@ export class UserService {
 
     await this.utils.deletePlayersBy(
       'and',
-      {
-        playerId: playerTable.playerId,
-        gameName: playerTable.playerName,
-        mailAddress: playerTable.mailAddress,
-      },
+      undefined,
       eq(playerTable.playerId, playerId),
     );
     await this.redisService.getClient().del('refreshToken:' + playerId);
@@ -127,7 +111,27 @@ export class UserService {
         updatePayload.avatarUrl = userData.avatar;
       }
 
-      const result = await this.utils.updatePlayersBy(
+      const playerNameCheck = await this.utils.findPlayersBy(
+        'and',
+        undefined,
+        eq(playerTable.playerName, userData.pseudo || ''),
+        eq(playerTable.playerId, userId),
+      );
+      if (playerNameCheck.length > 0) {
+        throw new InternalServerErrorException('Pseudo already exists');
+      }
+
+      const emailCheck = await this.utils.findPlayersBy(
+        'and',
+        undefined,
+        eq(playerTable.mailAddress, userData.email || ''),
+        eq(playerTable.playerId, userId),
+      );
+      if (emailCheck.length > 0) {
+        throw new InternalServerErrorException('Email already exists');
+      }
+
+      await this.utils.updatePlayersBy(
         updatePayload,
         'and',
         {
@@ -137,11 +141,9 @@ export class UserService {
         },
         eq(playerTable.playerId, userId),
       );
-      if (!result.length) throw new Error(`User  not Found`);
-      return `User updated successfully`;
-    } catch (err) {
-      console.error(err);
-      throw new InternalServerErrorException(`Failed to update user`);
+      return 'User updated successfully';
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Failed to update user');
     }
   }
 }
