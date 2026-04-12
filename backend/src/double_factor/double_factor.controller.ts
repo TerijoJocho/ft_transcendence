@@ -36,10 +36,13 @@ export class DoubleFactorController {
   @Patch('active')
   @UseGuards(PassportJwtGuard)
   update(
-    @CurrentUser() user: UpdateDoubleFactorDto,
+    @CurrentUser() user: { playerId: number },
     @Body() data: { reply_code: string },
   ) {
-    return this.doubleFactorService.active2fa(user, data.reply_code);
+    return this.doubleFactorService.active2fa(
+      { userId: user.playerId },
+      data.reply_code,
+    );
   }
 
   @Delete('delete')
