@@ -7,8 +7,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { DoubleFactorService } from './double_factor.service';
-import { CreateDoubleFactorDto } from './dto/create-double_factor.dto';
-import { UpdateDoubleFactorDto } from './dto/UpdateDoubleFactorDto';
 import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
 import { PassportJwtGuard } from 'src/auth/guards/passport-jwt.guard';
 import { deleteDoubleFactorDto } from './dto/deleteDoubleFactorDto';

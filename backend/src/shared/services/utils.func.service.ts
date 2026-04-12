@@ -444,22 +444,11 @@ export class UtilsService {
       .as('color_ranking');
     const query = this.Database.getDb()
       .select({
-        playerName: colorRanking.playerName,
-        playerColor: colorRanking.playerColor,
-      })
-      .from(colorRanking)
-      .where(eq(colorRanking.ranking, 1));
-    return query;
-  };
-
-    const query = this.Database.getDb()
-      .select({
         playerName: subquery.playerName,
         gameMode: subquery.gameMode,
       })
       .from(subquery)
       .where(eq(subquery.ranking, 1));
-
     return query;
   };
 
