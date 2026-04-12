@@ -8,7 +8,7 @@ import https from 'https';
 import {
   backTokenByApprole,
   loadDbCredentialsFromVault,
-} from './utils/function';
+} from './utilsVault/function';
 
 async function bootstrap() {
   const vaultCaCertPath = process.env.VAULT_CACERT;
@@ -24,9 +24,7 @@ async function bootstrap() {
       rejectUnauthorized: true,
     });
   } else {
-    console.warn(
-      'Vault CA cert not found. Set VAULT_CACERT in dev.',
-    );
+    console.warn('Vault CA cert not found. Set VAULT_CACERT in dev.');
     process.exit(1);
   }
 

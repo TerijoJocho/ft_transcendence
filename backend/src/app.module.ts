@@ -6,9 +6,17 @@ import { SharedModule } from './shared/shared.module';
 import { SigninModule } from './signin/signin.module';
 import { GameModule } from './game/game.module';
 import { FriendshipModule } from './friendship/friendship.module';
+import { DoubleFactorModule } from './double_factor/double_factor.module';
 
 @Module({
-  imports: [SharedModule, AuthModule, SigninModule, GameModule, FriendshipModule],
+  imports: [
+    SharedModule,
+    AuthModule,
+    SigninModule,
+    GameModule,
+    FriendshipModule,
+    DoubleFactorModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
