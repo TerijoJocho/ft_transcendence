@@ -19,8 +19,8 @@ export class DoubleFactorController {
 
   @Post('generate')
   @UseGuards(PassportJwtGuard)
-  generate(@CurrentUser() user: CreateDoubleFactorDto) {
-    return this.doubleFactorService.setup2fa(user.userId);
+  generate(@CurrentUser() user: { playerId: number }) {
+    return this.doubleFactorService.setup2fa(user.playerId);
   }
 
   // @Get()
