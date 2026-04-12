@@ -80,6 +80,10 @@ if [ "$initialized" != "true" ]; then
   if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null; then
     vault secrets enable -version=2 -path=secret kv
   fi
+  if ! vault secrets list -format=json | jq -e 'has("transit/")' >/dev/null; then
+    vault secrets enable transit
+  fi
+  vault write -f transit/keys/totp-secrets
   if [ -z "${POSTGRES_PASSWORD:-}" ] || [ -z "${POSTGRES_USER:-}" ]; then
     echo "Error: POSTGRES_USER and POSTGRES_PASSWORD must be set and non-empty before storing database credentials in Vault."
     exit 1
@@ -133,6 +137,10 @@ else
   fi
   if ! vault policy read backend-policy >/dev/null 2>&1; then
     vault policy write backend-policy /backend-policy.hcl
+  fi
+  if ! vault secrets list -format=json | jq -e 'has("transit/")' >/dev/null; then
+    vault secrets enable transit
+    vault write -f transit/keys/totp-secrets
   fi
   vault write auth/approle/role/backend \
   token_policies="backend-policy" \
