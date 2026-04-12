@@ -4,13 +4,13 @@ import { Profile, Strategy } from 'passport-google-oauth20';
 import { UtilsService } from 'src/shared/services/utils.func.service';
 import { playerSelect, playerTable } from 'src/shared/db/schema';
 import { eq } from 'drizzle-orm';
-import { UserService } from 'src/users/user.service';
+import { UsersService } from 'src/users/users.service';
 import { LoginDto } from '../dto/login.dto';
 
 @Injectable()
 export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
-    private readonly userService: UserService,
+    private readonly userService: UsersService,
     private readonly utilsService: UtilsService,
   ) {
     super({
