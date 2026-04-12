@@ -22,9 +22,25 @@ type AuthTokenPayload = {
   pseudo: string;
 };
 
+type UserStatsResponse = {
+  id: number;
+  pseudo: string;
+  status: string;
+  elo: number;
+  winCount: number;
+  lossCount: number;
+  drawCount: number;
+  totalGames: number;
+  winrate: number;
+  favColor: string;
+  favGameMode: string;
+  currentWinStreak: number;
+  longestWinStreak: number;
+  gameHistoryList?: any[]; // Adjust type based on actual game history structure
+};
+
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
   constructor(
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtService,
@@ -69,11 +85,16 @@ export class AuthService {
         EX: refreshExpirationMs / 1000,
       });
 
-      const googleTokenToRevoke: string = user.googleRefreshToken || user.googleAccessToken;
+      const googleTokenToRevoke: string =
+        user.googleRefreshToken || user.googleAccessToken;
       if (googleTokenToRevoke) {
-        await redisClient.set('googleToken:' + user.playerId, googleTokenToRevoke, {
-          EX: refreshExpirationMs / 1000,
-        });
+        await redisClient.set(
+          'googleToken:' + user.playerId,
+          googleTokenToRevoke,
+          {
+            EX: refreshExpirationMs / 1000,
+          },
+        );
       }
 
       response.cookie('Access', accessToken, {
@@ -90,14 +111,18 @@ export class AuthService {
 
       if (redirect) {
         const redirectUrl = new URL(process.env.AUTH_UI_REDIRECT);
+        if (!redirectUrl)
+          throw new ServiceUnavailableException(
+            'Login succeeded, but redirect is unavailable because the server is misconfigured.',
+          );
         response.redirect(redirectUrl.toString());
         return response;
       }
 
       return response.json(user);
     } catch (error) {
-      this.logger.error('Login error:', error);
       throw new UnauthorizedException(
+        error,
         'Login failed. Please check your credentials and try again.',
       );
     }
@@ -169,7 +194,10 @@ export class AuthService {
     return response.json(user);
   }
 
-  async verifyUser(identifier: string, password: string): Promise<playerSelect> {
+  async verifyUser(
+    identifier: string,
+    password: string,
+  ): Promise<playerSelect> {
     const normalized = identifier.trim();
     const user = (
       (await this.utilsService.findPlayersBy(
@@ -182,50 +210,50 @@ export class AuthService {
         eq(playerTable.pwd, password),
       )) as playerSelect[]
     )[0];
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials.');
-    }
+    if (!user) throw new UnauthorizedException('Invalid credentials.');
     return user;
   }
 
-  async verifyRefreshToken(playerId: number, refreshToken: string): Promise<LoginDto> {
-    if (!refreshToken) {
+  async verifyRefreshToken(
+    playerId: number,
+    refreshToken: string,
+  ): Promise<LoginDto> {
+    if (!refreshToken)
       throw new UnauthorizedException('Refresh token is missing.');
-    }
     const redisClient = this.redisService.getClient();
     const storedRefreshToken = await redisClient.get(
       'refreshToken:' + playerId,
     );
     if (!storedRefreshToken)
       throw new UnauthorizedException('Refresh token not found in cache.');
-    if (storedRefreshToken !== refreshToken) {
+    if (storedRefreshToken !== refreshToken)
       throw new UnauthorizedException('Refresh token does not match cache.');
-    }
     let decoded: AuthTokenPayload;
     try {
       decoded = this.jwtService.verify<AuthTokenPayload>(refreshToken, {
         secret: process.env.JWT_REFRESH_TOKEN_SECRET,
       });
     } catch (error) {
-      this.logger.error('Refresh token verification error:', error);
-      throw new UnauthorizedException('Cannot decode refresh token.');
+      throw new UnauthorizedException(error, 'Cannot decode refresh token.');
     }
-    if (!decoded?.sub || !decoded?.pseudo || decoded.sub !== playerId) {
+    if (!decoded?.sub || !decoded?.pseudo || decoded.sub !== playerId)
       throw new UnauthorizedException('Invalid refresh token payload.');
-    }
     return { identifier: decoded.pseudo, playerId: decoded.sub };
   }
 
-  async logOut(user: LogoutDto, response: Response) {
+  async logOut(user: LogoutDto, response: Response): Promise<void> {
     const redisClient = this.redisService.getClient();
 
-    const googleToken = (await redisClient.get('googleToken:' + user.playerId)) as string;
+    const googleToken = (await redisClient.get(
+      'googleToken:' + user.playerId,
+    )) as string;
     if (googleToken) {
       try {
         await this.revokeGoogleToken(googleToken);
       } catch (error) {
-        this.logger.warn(
-          `Failed to revoke Google token for player ${user.playerId}: ${(error as Error).message}`,
+        throw new ServiceUnavailableException(
+          error,
+          'Failed to revoke Google token',
         );
       }
     }
@@ -245,9 +273,6 @@ export class AuthService {
       },
       body: new URLSearchParams({ token }),
     });
-
-    if (!revokeResponse.ok) {
-      throw new Error(`Google revoke failed with status ${revokeResponse.status}.`);
-    }
+    if (!revokeResponse.ok) throw new Error('Google revoke failed.');
   }
 }
