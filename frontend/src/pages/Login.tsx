@@ -1,8 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { login } from "../api/api.ts";
 import { useAuth } from "../auth/useAuth";
+
+import * as api from "../api/api.ts";
 
 function Login() {
   const [identifier, setIdentifier] = useState("");
@@ -23,7 +24,7 @@ function Login() {
     setErrorMessage(null);
 
     try {
-      const user = await login({
+      const user = await api.login({
         identifier,
         password,
       });
@@ -95,6 +96,10 @@ function Login() {
           {loading ? "Connexion..." : "Se connecter"}
         </button>
       </form>
+
+      <button onClick={api.google} className="p-2 bg-white w-fit text-black rounded-lg mb-6 self-center hover:text-white hover:bg-black">
+        Se connecter avec Google
+      </button>
 
       <p className="text-xs font-medium self-center">
         Pas encore de compte ?{" "}
