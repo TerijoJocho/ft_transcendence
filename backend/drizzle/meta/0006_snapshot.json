@@ -1,6 +1,6 @@
 {
-  "id": "f925a1fc-debd-4ef4-b90c-42f834f14dda",
-  "prevId": "2ef40094-b954-4e19-a586-95459334e22c",
+  "id": "2ef40094-b954-4e19-a586-95459334e22c",
+  "prevId": "f45f49c6-9dc3-4d2a-bdfa-fa6e25259f34",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -33,12 +33,6 @@
         },
         "player2Id": {
           "name": "player2Id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "requesterId": {
-          "name": "requesterId",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -78,15 +72,6 @@
           "columnsTo": ["playerId"],
           "onDelete": "restrict",
           "onUpdate": "cascade"
-        },
-        "friendship_requesterId_players_playerId_fk": {
-          "name": "friendship_requesterId_players_playerId_fk",
-          "tableFrom": "friendship",
-          "tableTo": "players",
-          "columnsFrom": ["requesterId"],
-          "columnsTo": ["playerId"],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -106,10 +91,6 @@
         "ordered_player_ids": {
           "name": "ordered_player_ids",
           "value": "\"friendship\".\"player1Id\" < \"friendship\".\"player2Id\""
-        },
-        "requester_in_friendship": {
-          "name": "requester_in_friendship",
-          "value": "\"friendship\".\"requesterId\" = \"friendship\".\"player1Id\" OR \"friendship\".\"requesterId\" = \"friendship\".\"player2Id\""
         }
       },
       "isRLSEnabled": false
@@ -222,7 +203,7 @@
           "name": "playerId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "gameId": {
           "name": "gameId",
@@ -338,7 +319,7 @@
           "name": "pwd",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "playerCreatedAt": {
           "name": "playerCreatedAt",
