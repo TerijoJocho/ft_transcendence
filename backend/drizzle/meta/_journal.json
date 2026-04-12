@@ -36,6 +36,13 @@
       "when": 1774545279108,
       "tag": "0004_short_scarlet_witch",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1775668202164,
+      "tag": "0005_robust_nextwave",
+      "breakpoints": true
     }
   ]
 }
