@@ -25,7 +25,7 @@ function Dashboard() {
             <HeaderPlayerInfos user={user} setUser={setUser}/>
             <section className="m-4 grid grid-cols-4 gap-6">
                 <StatsCards user={user}/>
-                <EloGraph user={user}/>
+                <EloGraph />
                 <LastMatches user={user}/>
                 <LeaderBoard />
                 <DailyPuzzle />

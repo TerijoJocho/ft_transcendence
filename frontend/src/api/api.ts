@@ -49,6 +49,13 @@ export function userStats() {
   });
 }
 
+//recupere les winrate de la semaine
+export function weeklyWinrate() {
+  return request("/api/auth/weeklyWinrate", {
+    method: "GET",
+  })
+}
+
 export function register(data: {
   pseudo: string;
   mail: string;
