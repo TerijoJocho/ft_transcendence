@@ -18,7 +18,7 @@ import { RedisService } from 'src/shared/services/redis.service';
 import { Response } from 'express';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(
     private readonly utils: UtilsService,
     private readonly redisService: RedisService,
