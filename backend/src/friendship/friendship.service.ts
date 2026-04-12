@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { UtilsService } from 'src/shared/services/utils.func.service';
-import { eq, or, ilike, ne } from 'drizzle-orm';
+import { eq, or, ilike, ne, and } from 'drizzle-orm';
 import { friendshipTable, playerTable } from 'src/shared/db/schema';
 import { FriendResponseDto } from './dto/FriendResponseDto';
 // import { BlockList } from 'net';
@@ -57,6 +57,7 @@ export class FriendshipService {
       {
         player1Id,
         player2Id,
+        requesterId: CurrentUserId,
         friendshipStatus: 'PENDING',
         isFriend: false,
       },
@@ -86,25 +87,34 @@ export class FriendshipService {
   ////////////////////////////////////// get ///////////////////////////////////////////////////////////////
   async list(CurrentUserId: number) {
     const friendships = (await this.utilsService.findFriendshipsBy(
-      'and',
+      'or',
       {
         friendshipId: friendshipTable.friendshipId,
         player1Id: friendshipTable.player1Id,
         player2Id: friendshipTable.player2Id,
+        requesterId: friendshipTable.requesterId,
         isFriend: friendshipTable.isFriend,
       },
-      or(
-        eq(friendshipTable.friendshipStatus, 'PENDING'),
-        eq(friendshipTable.friendshipStatus, 'ADDED'),
+      and(
+        or(
+          eq(friendshipTable.player1Id, CurrentUserId),
+          eq(friendshipTable.player2Id, CurrentUserId),
+        ),
+        eq(friendshipTable.isFriend, true),
       ),
-      or(
-        eq(friendshipTable.player1Id, CurrentUserId),
-        eq(friendshipTable.player2Id, CurrentUserId),
+      and(
+        or(
+          eq(friendshipTable.player1Id, CurrentUserId),
+          eq(friendshipTable.player2Id, CurrentUserId),
+        ),
+        ne(friendshipTable.requesterId, CurrentUserId),
+        eq(friendshipTable.friendshipStatus, 'PENDING'),
       ),
     )) as Array<{
       friendshipId: number;
       player1Id: number;
       player2Id: number;
+      requesterId: number;
       isFriend: boolean;
       isBlocked: boolean;
       isFavFriend: boolean;
@@ -184,6 +194,7 @@ export class FriendshipService {
       undefined,
       eq(friendshipTable.player1Id, player1Id),
       eq(friendshipTable.player2Id, player2Id),
+      ne(friendshipTable.requesterId, CurrentUserId),
       eq(friendshipTable.friendshipStatus, 'PENDING'),
     );
     if (pending.length === 0)
@@ -194,6 +205,7 @@ export class FriendshipService {
       undefined,
       eq(friendshipTable.player1Id, player1Id),
       eq(friendshipTable.player2Id, player2Id),
+      ne(friendshipTable.requesterId, CurrentUserId),
       eq(friendshipTable.friendshipStatus, 'PENDING'),
       eq(friendshipTable.isFriend, false),
     );
