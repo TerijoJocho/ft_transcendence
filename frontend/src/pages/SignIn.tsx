@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { register } from "../api/api.ts";
 import {isValidMail} from "../utils/isValidMail.ts";
+import * as api from "../api/api.ts";
 
 export default function SignIn() {
   const [mail, setMail] = useState("");
@@ -24,7 +24,7 @@ export default function SignIn() {
     setLoading(true);
     setErrorMessage(null);
 
-    register({
+    api.register({
       pseudo,
       mail,
       password,
@@ -107,6 +107,10 @@ export default function SignIn() {
           {loading ? "Inscription..." : "S'inscrire"}
         </button>
       </form>
+
+      <button onClick={api.google} className="p-2 bg-white w-fit text-black rounded-lg mb-6 self-center hover:text-white hover:bg-black">
+        Créer un compte avec Google
+      </button>
 
       <p className="text-xs font-medium self-center">
         Vous avez déjà un compte ? <Link to="/login" className="text-amber-600 hover:underline">Connectez-vous</Link>
