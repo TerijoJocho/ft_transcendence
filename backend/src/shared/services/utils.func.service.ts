@@ -366,9 +366,7 @@ export class UtilsService {
 
   //miscellaneous functions
   // query to calculate all/some players' winrate depending on conditions  (=> [playerName, winrate])
-  getWinrate = async (
-    playerId?: number
-  ) => {
+  getWinrate = async (playerId?: number) => {
     let query = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,

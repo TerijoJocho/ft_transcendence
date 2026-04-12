@@ -240,7 +240,7 @@ export class AuthService {
     const gameVal: number = gameNb?.totalGames ?? 0;
 
     const wr = (await this.utilsService.getWinrate(user[0].playerId))[0];
-    const winrateVal: number = wr?.winrate ?? 0;
+    const winrateVal: number = Number(wr?.winrate ?? 0);
 
     const color = (
       await this.utilsService.getFavouriteColor(user[0].playerId)
