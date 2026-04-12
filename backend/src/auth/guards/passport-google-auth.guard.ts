@@ -4,15 +4,21 @@ import type { Request, Response } from 'express';
 
 @Injectable()
 export class PassportGoogleAuthGuard extends AuthGuard('google') {
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  private getAccessDeniedRedirectUrl(): string {
+    const baseUrl =
+      process.env.BASE_URL ??
+      'https://localhost';
+    const loginUrl = new URL('/login', baseUrl);
+    loginUrl.searchParams.set('error', 'access_denied');
+    return loginUrl.toString();
+  }
+
+  canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
-
     if (request.query?.error === 'access_denied') {
-      response.redirect('https://localhost/login');
+      response.redirect(this.getAccessDeniedRedirectUrl());
       return false;
     }
-
-    return (await super.canActivate(context)) as boolean;
   }
 }
