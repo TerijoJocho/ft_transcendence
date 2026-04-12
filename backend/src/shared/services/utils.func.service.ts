@@ -441,7 +441,7 @@ export class UtilsService {
         gameTable.gameMode,
         participationTable.playerId,
       )
-      .as('color_ranking');
+      .as('mode_ranking');
     const query = this.Database.getDb()
       .select({
         playerName: subquery.playerName,
@@ -449,6 +449,27 @@ export class UtilsService {
       })
       .from(subquery)
       .where(eq(subquery.ranking, 1));
+    return query;
+  };
+
+  getWeeklyWinrate = async (playerId: number) => {
+    const query = this.Database.getDb()
+      .select({
+        playerId: participationTable.playerId,
+        winrate: sql<number>`(
+          COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')
+          + 0.5 * COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW')
+        ) / NULLIF(COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING'), 0)::float`,
+      })
+      .from(participationTable)
+      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+      .where(
+        and(
+          eq(participationTable.playerId, playerId),
+          sql`${gameTable.gameCreatedAt} >= NOW() - INTERVAL '7 days'`,
+        ),
+      )
+      .groupBy(participationTable.playerId);
     return query;
   };
 
