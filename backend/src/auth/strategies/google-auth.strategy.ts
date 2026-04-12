@@ -29,7 +29,11 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
     };
   }
 
-  async validate(accessToken: string, refreshToken: string, profile: Profile): Promise<LoginDto> {
+  async validate(
+    accessToken: string,
+    refreshToken: string,
+    profile: Profile,
+  ): Promise<LoginDto> {
     const displayName = profile.displayName;
     const primaryEmail = profile.emails?.[0]?.value;
     if (!primaryEmail) {
@@ -49,10 +53,15 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
           googleRefreshToken: refreshToken,
         } as LoginDto;
       }
-    } catch {
-      throw new ServiceUnavailableException('Database error during Google OAuth.');
+    } catch (error) {
+      throw new ServiceUnavailableException(
+        error,
+        'Database error during Google OAuth.',
+      );
     }
-    const user = (await this.userService.registerPlayers(primaryEmail, displayName))[0] as playerSelect;
+    const user = (
+      await this.userService.registerPlayers(primaryEmail, displayName)
+    )[0] as playerSelect;
     return {
       playerId: user.playerId,
       identifier: user.playerName,
