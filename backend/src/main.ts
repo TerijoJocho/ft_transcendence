@@ -31,6 +31,7 @@ async function bootstrap() {
   const backendToken = await backTokenByApprole(httpsAgent, vaultAddr);
   if (typeof backendToken !== 'string' || backendToken.length === 0)
     throw new Error('Invalid Vault token');
+  process.env.BACKEND_VAULT_TOKEN = backendToken;
   console.log('VAULT_TOKEN loaded from Vault by Approle');
 
   try {
