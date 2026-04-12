@@ -6,7 +6,7 @@ import {
 import { playerTable } from '../shared/db/schema';
 import type { playerSelect } from '../shared/db/schema';
 import { Response } from 'express';
-import { eq, or } from 'drizzle-orm';
+import { eq, isNull, or } from 'drizzle-orm';
 import { UtilsService } from '../shared/services/utils.func.service';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { RedisService } from '../shared/services/redis.service';
@@ -153,6 +153,16 @@ export class AuthService {
     password: string,
   ): Promise<playerSelect> {
     const normalized = identifier.trim();
+    const pwdCheck = await this.utilsService.findPlayersBy(
+      'and',
+      undefined,
+      or(
+        eq(playerTable.playerName, normalized),
+        eq(playerTable.mailAddress, normalized),
+      ),
+      isNull(playerTable.pwd),
+    ) as playerSelect[];
+    if (pwdCheck.length > 0) throw new UnauthorizedException('Invalid credentials.');
     const user = (
       (await this.utilsService.findPlayersBy(
         'and',
