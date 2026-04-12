@@ -441,7 +441,16 @@ export class UtilsService {
         gameTable.gameMode,
         participationTable.playerId,
       )
-      .as('tmp');
+      .as('color_ranking');
+    const query = this.Database.getDb()
+      .select({
+        playerName: colorRanking.playerName,
+        playerColor: colorRanking.playerColor,
+      })
+      .from(colorRanking)
+      .where(eq(colorRanking.ranking, 1));
+    return query;
+  };
 
     const query = this.Database.getDb()
       .select({

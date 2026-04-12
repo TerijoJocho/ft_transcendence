@@ -154,10 +154,7 @@ export class AuthService {
     return response.json(user);
   }
 
-  async verifyUser(
-    identifier: string,
-    password: string,
-  ): Promise<playerSelect> {
+  async verifyUser(identifier: string, password: string): Promise<playerSelect> {
     const normalized = identifier.trim();
     const user = (
       (await this.utilsService.findPlayersBy(
@@ -176,10 +173,7 @@ export class AuthService {
     return user;
   }
 
-  async verifyRefreshToken(
-    playerId: number,
-    refreshToken: string,
-  ): Promise<ResponseLoginDto> {
+  async verifyRefreshToken(playerId: number, refreshToken: string): Promise<ResponseLoginDto> {
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is missing.');
     }
@@ -284,5 +278,23 @@ export class AuthService {
       gameHistoryList: historyVal,
       avatar: user[0].avatarUrl,
     };
+  }
+
+  async weeklyWinrate(playerId: number) {
+    try {
+    const user = (await this.utilsService.findPlayersBy(
+      'and',
+      undefined,
+      eq(playerTable.playerId, playerId),
+    )) as playerSelect[];
+    if (user.length === 0) {
+      throw new UnauthorizedException('User not found.');
+    }
+    const winrate = await this.utilsService.getWeeklyWinrate(user[0].playerId);
+    return winrate;
+    } catch (error) {
+      this.logger.error('Error fetching weekly winrate:', error);
+      throw new ServiceUnavailableException('Cannot fetch weekly winrate.');
+    }
   }
 }
