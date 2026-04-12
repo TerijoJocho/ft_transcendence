@@ -1,5 +1,5 @@
 import { AuthService } from './auth.service';
-import { Controller, Post, Res, UseGuards, Get } from '@nestjs/common';
+import { Controller, Post, Res, UseGuards, Get, Body } from '@nestjs/common';
 import { PassportLocalGuard } from './guards/passport-local.guard';
 import { PassportJwtGuard } from './guards/passport-jwt.guard';
 import type { Response } from 'express';
@@ -7,6 +7,7 @@ import { CurrentUser } from './decorator/current-user.decorator';
 import { ResponseLoginDto } from './dto/response-login.dto';
 import { LogoutDto } from './dto/logout.dto';
 import { PassportJwtRefreshGuard } from './guards/passport-jwt-refresh.guard';
+import { TwoFactorDto } from './dto/twoFactorDto';
 
 @Controller('auth')
 export class AuthController {
@@ -16,6 +17,16 @@ export class AuthController {
   @UseGuards(PassportLocalGuard)
   login(@CurrentUser() user: ResponseLoginDto, @Res() response: Response) {
     return this.authService.logIn(user, response);
+  }
+
+  @Post('login2fa')
+  @UseGuards(PassportLocalGuard)
+  login2fa(
+    @CurrentUser() user: ResponseLoginDto,
+    @Body() data: TwoFactorDto,
+    @Res() response: Response,
+  ) {
+    return this.authService.logInTwoFactor(user, response, data);
   }
 
   @Post('refresh')
