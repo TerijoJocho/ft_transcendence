@@ -7,11 +7,11 @@ export class SigninService {
   constructor(private readonly utils: UtilsService) {}
 
   @Post()
-  registerPlayers(mailAddress: string, playerName: string, pwd: string) {
+  registerPlayers(mailAddress: string, playerName: string, pwd?: string) {
     const currentPlayers: playerInsert = {
       playerName: playerName,
       mailAddress: mailAddress,
-      pwd: pwd,
+      pwd: pwd || undefined,
     };
     try {
       const result = this.utils.insertPlayers([currentPlayers], {
