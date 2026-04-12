@@ -140,6 +140,8 @@ else
   fi
   if ! vault secrets list -format=json | jq -e 'has("transit/")' >/dev/null; then
     vault secrets enable transit
+  fi
+  if ! vault read transit/keys/totp-secrets >/dev/null 2>&1; then
     vault write -f transit/keys/totp-secrets
   fi
   vault write auth/approle/role/backend \
