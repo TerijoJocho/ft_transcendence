@@ -111,7 +111,7 @@ export class DoubleFactorService {
           undefined,
           eq(playerTable.playerId, userId),
         );
-        if (!update)
+        if (!update?.length)
           throw new InternalServerErrorException(
             'Failed to persist 2FA lock state',
           );
