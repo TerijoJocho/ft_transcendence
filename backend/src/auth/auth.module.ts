@@ -9,10 +9,22 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { DoubleFactorModule } from 'src/double_factor/double_factor.module';
 import { GoogleAuthStrategy } from './strategies/google-auth.strategy';
 import { UsersModule } from '../users/users.module';
+import { DoubleFactorModule } from 'src/double_factor/double_factor.module';
 
 @Module({
+<<<<<<< HEAD
   imports: [PassportModule, JwtModule, DoubleFactorModule],
   providers: [AuthService, LocalStrategy, JwtStrategy, JwtRefreshStrategy, GoogleAuthStrategy],
   controllers: [AuthController],
+=======
+  imports: [PassportModule, JwtModule, UsersModule, DoubleFactorModule],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    GoogleAuthStrategy,
+  ],
+>>>>>>> a43accd (feat(2FA): ajout methode 2FA pour le login)
 })
 export class AuthModule {}
