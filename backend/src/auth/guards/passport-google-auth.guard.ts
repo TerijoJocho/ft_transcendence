@@ -13,12 +13,15 @@ export class PassportGoogleAuthGuard extends AuthGuard('google') {
     return loginUrl.toString();
   }
 
-  canActivate(context: ExecutionContext): boolean {
+  canActivate(context: ExecutionContext): boolean | Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
+
     if (request.query?.error === 'access_denied') {
       response.redirect(this.getAccessDeniedRedirectUrl());
       return false;
     }
+
+    return super.canActivate(context) as boolean | Promise<boolean>;
   }
 }
