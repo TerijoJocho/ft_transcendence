@@ -292,8 +292,7 @@ export class AuthService {
     const winrate = await this.utilsService.getWeeklyWinrate(user[0].playerId);
     return winrate;
     } catch (error) {
-      this.logger.error('Error fetching weekly winrate:', error);
-      throw new ServiceUnavailableException('Cannot fetch weekly winrate.');
+      throw new ServiceUnavailableException(error, 'Cannot fetch weekly winrate.');
     }
   }
 }
