@@ -9,6 +9,7 @@ import { LogoutDto } from './dto/logout.dto';
 import { PassportJwtRefreshGuard } from './guards/passport-jwt-refresh.guard';
 import { TwoFactorDto } from './dto/twoFactorDto';
 import { PassportGoogleAuthGuard } from './guards/passport-google-auth.guard';
+import { TwoFactorDto } from './dto/twoFactorDto';
 
 @Controller('auth')
 export class AuthController {
