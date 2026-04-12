@@ -33,7 +33,7 @@ type VaultDecryptResponse = {
 
 @Injectable()
 export class DoubleFactorService {
-  constructor(private readonly utilsService: UtilsService) { }
+  constructor(private readonly utilsService: UtilsService) {}
   private static readonly MAX_2FA_FAILED_ATTEMPTS = 3;
   private static readonly LOCKOUT_DURATION_MS = 1 * 60 * 1000;
 
