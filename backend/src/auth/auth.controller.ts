@@ -49,4 +49,10 @@ export class AuthController {
   async me(@CurrentUser() user: LogoutDto) {
     return this.authService.userStats(user.playerId);
   }
+
+  @Get('weeklyWinrate')
+  @UseGuards(PassportJwtGuard)
+  async weeklyWinrate(@CurrentUser() user: LogoutDto) {
+    return this.authService.weeklyWinrate(user.playerId);
+  }
 }
