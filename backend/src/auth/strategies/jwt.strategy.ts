@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -34,7 +34,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         )) as playerSelect[]
       )[0];
       return { playerId: user.playerId } as LogoutDto;
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid token.');
     }
   }
