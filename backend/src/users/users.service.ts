@@ -16,6 +16,7 @@ import {
 } from 'src/shared/db/schema';
 import { UpdateUserDto } from './dto/updateDto';
 import { RedisService } from 'src/shared/services/redis.service';
+import { AuthService } from 'src/auth/auth.service';
 import { Response } from 'express';
 
 type UserStatsResponse = {
@@ -40,18 +41,33 @@ export class UsersService {
   constructor(
     private readonly utilsService: UtilsService,
     private readonly redisService: RedisService,
+    private readonly authService: AuthService,
   ) {}
 
-  registerPlayers(mailAddress: string, gameName: string, pwd?: string) {
+  async registerPlayers(mailAddress: string, gameName: string, pwd?: string): Promise<playerSelect[]> {
+    const existingUser = await this.utilsService.findPlayersBy(
+      'or',
+      undefined,
+      eq(playerTable.mailAddress, mailAddress),
+      eq(playerTable.playerName, gameName),
+    ) as playerSelect[];
+    if (existingUser.length > 0) throw new InternalServerErrorException('User already exists');
+
+    let isGoogle = false;
+    if (!pwd)
+      isGoogle = true;
+
     const currentPlayers: playerInsert = {
       playerName: gameName,
       mailAddress: mailAddress,
       pwd: pwd || undefined,
+      isGoogleUser: isGoogle,
     };
-    return this.utilsService.insertPlayers([currentPlayers], {
+
+    return (await this.utilsService.insertPlayers([currentPlayers], {
       id: playerTable.playerId,
       pseudo: playerTable.playerName,
-    });
+    })) as playerSelect[];
   }
 
   async getDataUser(playerId: number) {
@@ -62,14 +78,10 @@ export class UsersService {
         pseudo: playerTable.playerName,
         email: playerTable.mailAddress,
         avatarUrl: playerTable.avatarUrl,
+        isGoogleUser: playerTable.isGoogleUser,
       },
       eq(playerTable.playerId, playerId),
-    )) as Array<{
-      id: number;
-      pseudo: string;
-      email: string;
-      avatarUrl: string;
-    }>;
+    )) as playerSelect[];
 
     if (!player.length) throw new NotFoundException('Player not found');
     return player[0];
@@ -101,6 +113,22 @@ export class UsersService {
       undefined,
       eq(playerTable.playerId, playerId),
     );
+
+    const googleToken = (await this.redisService.getClient().get(
+      'googleToken:' + playerId,
+    )) as string;
+    if (googleToken) {
+      try {
+        await this.authService.revokeGoogleToken(googleToken);
+      } catch (error) {
+        throw new ServiceUnavailableException(
+          error,
+          'Failed to revoke Google token',
+        );
+      }
+    }
+    
+    await this.redisService.getClient().del('googleToken:' + playerId);
     await this.redisService.getClient().del('refreshToken:' + playerId);
     response.clearCookie('Access');
     response.clearCookie('Refresh');
@@ -114,11 +142,19 @@ export class UsersService {
     userData: UpdateUserDto,
   ): Promise<string> {
     try {
-      const updatePayload: Partial<playerInsert> = {};
+      let updatePayload: Partial<playerInsert> = {};
       updatePayload.playerName = userData.pseudo;
-      updatePayload.mailAddress = userData.email;
 
-      if (userData.newPassword !== undefined) {
+      const user = (await this.utilsService.findPlayersBy(
+        'and',
+        undefined,
+        eq(playerTable.playerId, userId),
+      ))[0] as playerSelect;
+
+      if (user.isGoogleUser === false)  
+        updatePayload.mailAddress = userData.email;
+
+      if (userData.newPassword !== undefined && user.isGoogleUser === false) {
         updatePayload.pwd = userData.newPassword;
       }
       if (userData.avatar !== undefined) {
@@ -128,7 +164,7 @@ export class UsersService {
       const playerNameCheck = await this.utilsService.findPlayersBy(
         'and',
         undefined,
-        eq(playerTable.playerName, userData.pseudo || ''),
+        eq(playerTable.playerName, userData.pseudo),
         ne(playerTable.playerId, userId),
       );
       if (playerNameCheck.length > 0) {
@@ -138,7 +174,7 @@ export class UsersService {
       const emailCheck = await this.utilsService.findPlayersBy(
         'and',
         undefined,
-        eq(playerTable.mailAddress, userData.email || ''),
+        eq(playerTable.mailAddress, userData.email),
         ne(playerTable.playerId, userId),
       );
       if (emailCheck.length > 0) {
