@@ -44,18 +44,22 @@ export class UsersService {
     private readonly authService: AuthService,
   ) {}
 
-  async registerPlayers(mailAddress: string, gameName: string, pwd?: string): Promise<playerSelect[]> {
-    const existingUser = await this.utilsService.findPlayersBy(
+  async registerPlayers(
+    mailAddress: string,
+    gameName: string,
+    pwd?: string,
+  ): Promise<playerSelect[]> {
+    const existingUser = (await this.utilsService.findPlayersBy(
       'or',
       undefined,
       eq(playerTable.mailAddress, mailAddress),
       eq(playerTable.playerName, gameName),
-    ) as playerSelect[];
-    if (existingUser.length > 0) throw new InternalServerErrorException('User already exists');
+    )) as playerSelect[];
+    if (existingUser.length > 0)
+      throw new InternalServerErrorException('User already exists');
 
     let isGoogle = false;
-    if (!pwd)
-      isGoogle = true;
+    if (!pwd) isGoogle = true;
 
     const currentPlayers: playerInsert = {
       playerName: gameName,
@@ -114,9 +118,9 @@ export class UsersService {
       eq(playerTable.playerId, playerId),
     );
 
-    const googleToken = (await this.redisService.getClient().get(
-      'googleToken:' + playerId,
-    )) as string;
+    const googleToken = (await this.redisService
+      .getClient()
+      .get('googleToken:' + playerId)) as string;
     if (googleToken) {
       try {
         await this.authService.revokeGoogleToken(googleToken);
@@ -127,7 +131,7 @@ export class UsersService {
         );
       }
     }
-    
+
     await this.redisService.getClient().del('googleToken:' + playerId);
     await this.redisService.getClient().del('refreshToken:' + playerId);
     response.clearCookie('Access');
@@ -142,16 +146,18 @@ export class UsersService {
     userData: UpdateUserDto,
   ): Promise<string> {
     try {
-      let updatePayload: Partial<playerInsert> = {};
+      const updatePayload: Partial<playerInsert> = {};
       updatePayload.playerName = userData.pseudo;
 
-      const user = (await this.utilsService.findPlayersBy(
-        'and',
-        undefined,
-        eq(playerTable.playerId, userId),
-      ))[0] as playerSelect;
+      const user = (
+        await this.utilsService.findPlayersBy(
+          'and',
+          undefined,
+          eq(playerTable.playerId, userId),
+        )
+      )[0] as playerSelect;
 
-      if (user.isGoogleUser === false)  
+      if (user.isGoogleUser === false)
         updatePayload.mailAddress = userData.email;
 
       if (userData.newPassword !== undefined && user.isGoogleUser === false) {
@@ -206,26 +212,39 @@ export class UsersService {
 
     if (user.length === 0) throw new UnauthorizedException('User not found.');
 
-    const stats = (await this.utilsService.getGamesResCounts(user[0].playerId))[0];
+    const stats = (
+      await this.utilsService.getGamesResCounts(user[0].playerId)
+    )[0];
     const lvlVal: number = stats?.totalWins ?? 0;
     const lossVal: number = stats?.totalLosses ?? 0;
     const drawVal: number = stats?.totalDraws ?? 0;
     const gameVal: number = stats?.totalGames ?? 0;
     const winrateVal: number = stats?.winRate ?? 0;
-    
-    const color = (await this.utilsService.getFavouriteColor(user[0].playerId))[0];
+
+    const color = (
+      await this.utilsService.getFavouriteColor(user[0].playerId)
+    )[0];
     const colorVal: string = color?.playerColor ?? 'unknown';
 
-    const gm = (await this.utilsService.getFavouriteGameMode(user[0].playerId))[0];
+    const gm = (
+      await this.utilsService.getFavouriteGameMode(user[0].playerId)
+    )[0];
     const gameModeVal: string = gm?.gameMode ?? 'unknown';
 
-    const cws = (await this.utilsService.getCurrentWinStreak(user[0].playerId))[0];
+    const cws = (
+      await this.utilsService.getCurrentWinStreak(user[0].playerId)
+    )[0];
     const cwsVal: number = cws?.currentStreak ?? 0;
 
-    const lws = (await this.utilsService.getLongestWinStreak(user[0].playerId))[0];
+    const lws = (
+      await this.utilsService.getLongestWinStreak(user[0].playerId)
+    )[0];
     const lwsVal: number = lws?.longestStreak ?? 0;
 
-    const gameHistory = await this.utilsService.getGameHistory(user[0].playerId, 10);
+    const gameHistory = await this.utilsService.getGameHistory(
+      user[0].playerId,
+      10,
+    );
     const historyVal = gameHistory ? gameHistory : undefined;
 
     return {
@@ -248,19 +267,23 @@ export class UsersService {
 
   async weeklyWinrate(playerId: number) {
     try {
-    const user = (await this.utilsService.findPlayersBy(
-      'and',
-      undefined,
-      eq(playerTable.playerId, playerId),
-    )) as playerSelect[];
-    if (user.length === 0) {
-      throw new UnauthorizedException('User not found.');
-    }
-    const winrate = await this.utilsService.getWeeklyWinrate(user[0].playerId);
-    return winrate;
+      const user = (await this.utilsService.findPlayersBy(
+        'and',
+        undefined,
+        eq(playerTable.playerId, playerId),
+      )) as playerSelect[];
+      if (user.length === 0) {
+        throw new UnauthorizedException('User not found.');
+      }
+      const winrate = await this.utilsService.getWeeklyWinrate(
+        user[0].playerId,
+      );
+      return winrate;
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Cannot fetch weekly winrate.');
+      throw new ServiceUnavailableException(
+        error,
+        'Cannot fetch weekly winrate.',
+      );
     }
   }
 }
-

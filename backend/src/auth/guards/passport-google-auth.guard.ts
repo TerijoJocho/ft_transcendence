@@ -5,9 +5,7 @@ import type { Request, Response } from 'express';
 @Injectable()
 export class PassportGoogleAuthGuard extends AuthGuard('google') {
   private getAccessDeniedRedirectUrl(): string {
-    const baseUrl =
-      process.env.BASE_URL ??
-      'https://localhost';
+    const baseUrl = process.env.BASE_URL ?? 'https://localhost';
     const loginUrl = new URL('/login', baseUrl);
     loginUrl.searchParams.set('error', 'access_denied');
     return loginUrl.toString();
