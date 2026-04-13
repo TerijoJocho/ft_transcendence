@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsStrongPassword } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 
 export class LoginDto {
   @IsNotEmpty()
@@ -6,7 +6,14 @@ export class LoginDto {
   readonly identifier!: string;
 
   @IsNotEmpty()
+  @IsNumber()
+  readonly playerId!: number;
+
+  @IsOptional()
   @IsString()
-  @IsStrongPassword()
-  readonly password!: string;
+  readonly googleAccessToken?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly googleRefreshToken?: string;
 }

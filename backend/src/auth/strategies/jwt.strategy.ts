@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -23,7 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       secretOrKey: process.env.JWT_ACCESS_TOKEN_SECRET,
     });
   }
-  private readonly logger = new Logger(JwtStrategy.name);
 
   async validate(payload: { sub: number }): Promise<LogoutDto> {
     try {
@@ -36,8 +35,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       )[0];
       return { playerId: user.playerId } as LogoutDto;
     } catch (error) {
-      this.logger.error('Access token verification error:', error);
-      throw new UnauthorizedException('Invalid token.');
+      throw new UnauthorizedException(error, 'Invalid token.');
     }
   }
 }

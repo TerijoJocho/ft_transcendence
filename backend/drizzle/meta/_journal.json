@@ -1,47 +1,61 @@
 {
-  "version": "7",
+  "version": "6",
   "dialect": "postgresql",
   "entries": [
     {
       "idx": 0,
-      "version": "7",
+      "version": "6",
       "when": 1770311928173,
       "tag": "0000_faulty_shinobi_shaw",
       "breakpoints": true
     },
     {
       "idx": 1,
-      "version": "7",
+      "version": "6",
       "when": 1770741284538,
       "tag": "0001_wet_nightcrawler",
       "breakpoints": true
     },
     {
       "idx": 2,
-      "version": "7",
+      "version": "6",
       "when": 1770768278986,
       "tag": "0002_productive_shinko_yamashiro",
       "breakpoints": true
     },
     {
       "idx": 3,
-      "version": "7",
+      "version": "6",
       "when": 1774375013892,
       "tag": "0003_cuddly_the_hunter",
       "breakpoints": true
     },
     {
       "idx": 4,
-      "version": "7",
+      "version": "6",
       "when": 1774545279108,
       "tag": "0004_short_scarlet_witch",
       "breakpoints": true
     },
     {
       "idx": 5,
-      "version": "7",
+      "version": "6",
       "when": 1775208928412,
       "tag": "0005_loving_the_fallen",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1775756076706,
+      "tag": "0006_romantic_invaders",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1775756076707,
+      "tag": "0007_sweet_pete_wisdom",
       "breakpoints": true
     }
   ]

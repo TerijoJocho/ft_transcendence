@@ -90,14 +90,10 @@ export function updateProfile(data: {
     avatar?: string;
   } = {};
 
-  if (data.pseudo?.trim()) 
-    payload.pseudo = data.pseudo.trim();
-  if (data.email?.trim()) 
-    payload.email = data.email.trim();
-  if (data.newPassword?.trim()) 
-    payload.newPassword = data.newPassword;
-  if (data.avatar?.trim()) 
-    payload.avatar = data.avatar.trim();
+  if (data.pseudo?.trim()) payload.pseudo = data.pseudo.trim();
+  if (data.email?.trim()) payload.email = data.email.trim();
+  if (data.newPassword?.trim()) payload.newPassword = data.newPassword;
+  if (data.avatar?.trim()) payload.avatar = data.avatar.trim();
 
   return request("/api/users/update", {
     method: "PATCH",
@@ -106,10 +102,9 @@ export function updateProfile(data: {
 }
 
 //pour supp le compte
-export function deleteAccount(data: {password: string}) {
+export function deleteAccount() {
   return request("/api/users/delete", {
     method: "DELETE",
-    body: JSON.stringify(data),
   });
 }
 
@@ -158,4 +153,9 @@ export function searchUser(data: {
   return request(`/api/friendship/search?${params.toString()}`, {
     method: "GET",
   });
+}
+
+// Lance le flux OAuth Google via une navigation complète du navigateur.
+export function google() {
+  window.location.assign(`${API_URL}/api/auth/google`);
 }

@@ -8,17 +8,16 @@ import {
   Get,
   Post,
 } from '@nestjs/common';
-import { UserService } from './user.service';
+import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/updateDto';
 import { PassportJwtGuard } from 'src/auth/guards/passport-jwt.guard';
 import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
 import type { Response } from 'express';
 import { registerDto } from './dto/user_dto';
-import { deleteDto } from './dto/deleteDTO';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly UserService: UserService) {}
+  constructor(private readonly UserService: UsersService) {}
 
   @Post('register')
   register(@Body() bodyDto: registerDto) {
@@ -41,10 +40,8 @@ export class UsersController {
   deleteUser(
     @CurrentUser() user: { playerId: number },
     @Res() response: Response,
-    @Body() data: deleteDto,
   ) {
-    const playerId = user.playerId;
-    return this.UserService.deleteUserbyId(playerId, data, response);
+    return this.UserService.deleteUserbyId(user.playerId, response);
   }
 
   @UseGuards(PassportJwtGuard)
@@ -56,5 +53,17 @@ export class UsersController {
     const playerId = user.playerId;
     const result = await this.UserService.updateUserData(playerId, Data);
     return { message: result };
+  }
+
+  @Get('userStats')
+  @UseGuards(PassportJwtGuard)
+  async me(@CurrentUser() user: { playerId: number }) {
+    return this.UserService.userStats(user.playerId);
+  }
+
+  @Get('weeklyWinrate')
+  @UseGuards(PassportJwtGuard)
+  async weeklyWinrate(@CurrentUser() user: { playerId: number }) {
+    return this.UserService.weeklyWinrate(user.playerId);
   }
 }
