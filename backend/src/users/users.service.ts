@@ -115,6 +115,8 @@ export class UsersService {
   ): Promise<string> {
     try {
       const updatePayload: Partial<playerInsert> = {};
+      updatePayload.playerName = userData.pseudo;
+      updatePayload.mailAddress = userData.email;
 
       if (userData.newPassword !== undefined) {
         updatePayload.pwd = userData.newPassword;
