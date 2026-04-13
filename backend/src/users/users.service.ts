@@ -16,7 +16,6 @@ import {
 } from 'src/shared/db/schema';
 import { UpdateUserDto } from './dto/updateDto';
 import { RedisService } from 'src/shared/services/redis.service';
-import { AuthService } from 'src/auth/auth.service';
 import { Response } from 'express';
 
 type UserStatsResponse = {
@@ -41,7 +40,6 @@ export class UsersService {
   constructor(
     private readonly utilsService: UtilsService,
     private readonly redisService: RedisService,
-    private readonly authService: AuthService,
   ) {}
 
   async registerPlayers(
@@ -123,7 +121,14 @@ export class UsersService {
       .get('googleToken:' + playerId)) as string;
     if (googleToken) {
       try {
-        await this.authService.revokeGoogleToken(googleToken);
+        const revokeResponse = await fetch('https://oauth2.googleapis.com/revoke', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({ token: googleToken }),
+        });
+      if (!revokeResponse.ok) throw new Error('Google revoke failed.');
       } catch (error) {
         throw new ServiceUnavailableException(
           error,
