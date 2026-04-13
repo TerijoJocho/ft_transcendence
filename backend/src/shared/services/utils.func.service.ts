@@ -642,13 +642,13 @@ export class UtilsService {
 
     const weeklyRows = await this.Database.getDb()
       .select({
-        dayDate: sql<string>`DATE_TRUNC('day', ${gameTable.gameCreatedAt})::date`.as(
-          'dayDate',
-        ),
-        wins:
-          sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`.as(
-            'wins',
+        dayDate:
+          sql<string>`DATE_TRUNC('day', ${gameTable.gameCreatedAt})::date`.as(
+            'dayDate',
           ),
+        wins: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`.as(
+          'wins',
+        ),
         games:
           sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING')::int`.as(
             'games',
@@ -698,5 +698,4 @@ export class UtilsService {
       points,
     };
   };
-
 }

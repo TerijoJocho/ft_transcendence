@@ -50,24 +50,25 @@ export const friendshipStatusEnum = pgEnum('friendship_status_enum', [
 ]);
 export type friendshipStatus = 'PENDING' | 'ADDED';
 
-export const playerTable = pgTable('players', 
+export const playerTable = pgTable(
+  'players',
   {
-  playerId: integer().primaryKey().generatedAlwaysAsIdentity(),
-  mailAddress: varchar().notNull().unique(),
-  playerName: varchar().notNull().unique(),
-  pwd: varchar(),
-  playerCreatedAt: timestamp().notNull().defaultNow(),
-  avatarUrl: varchar()
-    .notNull()
-    .default(
-      'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http://www.w3.org/2000/svg%22%20viewBox%3D%220%200%20640%20640%22%3E%3Cpath%20d%3D%22M463%20448.2C440.9%20409.8%20399.4%20384%20352%20384L288%20384C240.6%20384%20199.1%20409.8%20177%20448.2C212.2%20487.4%20263.2%20512%20320%20512C376.8%20512%20427.8%20487.3%20463%20448.2zM64%20320C64%20178.6%20178.6%2064%20320%2064C461.4%2064%20576%20178.6%20576%20320C576%20461.4%20461.4%20576%20320%20576C178.6%20576%2064%20461.4%2064%20320zM320%20336C359.8%20336%20392%20303.8%20392%20264C392%20224.2%20359.8%20192%20320%20192C280.2%20192%20248%20224.2%20248%20264C248%20303.8%20280.2%20336%20320%20336z%22/%3E%3C/svg%3E',
-    ),
-  isGoogleUser: boolean().notNull().default(false)
+    playerId: integer().primaryKey().generatedAlwaysAsIdentity(),
+    mailAddress: varchar().notNull().unique(),
+    playerName: varchar().notNull().unique(),
+    pwd: varchar(),
+    playerCreatedAt: timestamp().notNull().defaultNow(),
+    avatarUrl: varchar()
+      .notNull()
+      .default(
+        'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http://www.w3.org/2000/svg%22%20viewBox%3D%220%200%20640%20640%22%3E%3Cpath%20d%3D%22M463%20448.2C440.9%20409.8%20399.4%20384%20352%20384L288%20384C240.6%20384%20199.1%20409.8%20177%20448.2C212.2%20487.4%20263.2%20512%20320%20512C376.8%20512%20427.8%20487.3%20463%20448.2zM64%20320C64%20178.6%20178.6%2064%20320%2064C461.4%2064%20576%20178.6%20576%20320C576%20461.4%20461.4%20576%20320%20576C178.6%20576%2064%20461.4%2064%20320zM320%20336C359.8%20336%20392%20303.8%20392%20264C392%20224.2%20359.8%20192%20320%20192C280.2%20192%20248%20224.2%20248%20264C248%20303.8%20280.2%20336%20320%20336z%22/%3E%3C/svg%3E',
+      ),
+    isGoogleUser: boolean().notNull().default(false),
   },
-  (pgTable) => [
+  (table) => [
     check(
       'pwd_required_for_non_google_users',
-      sql`${playerTable.isGoogleUser} = true OR ${playerTable.pwd} IS NOT NULL`
+      sql`${table.isGoogleUser} = true OR ${table.pwd} IS NOT NULL`,
     ),
   ],
 );
