@@ -6,7 +6,6 @@ import TournamentHistory from "../components/TournamentHistory.tsx";
 import DailyPuzzle from "../components/DailyPuzzle.tsx";
 import Achievement from "../components/Achievement.tsx";
 import LeaderBoard from "../components/LeaderBoard.tsx";
-import { useEffect } from "react";
 
 function Dashboard() {
     return (

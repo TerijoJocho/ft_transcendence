@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
   ServiceUnavailableException,
-  ForbiddenException
+  ForbiddenException,
 } from '@nestjs/common';
 import { UtilsService } from '../shared/services/utils.func.service';
 import { NewGameDto } from './dto/new-game.dto';
