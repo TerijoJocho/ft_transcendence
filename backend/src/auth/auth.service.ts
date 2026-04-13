@@ -1,11 +1,13 @@
 import {
+  HttpException,
   Injectable,
   Logger,
   NotFoundException,
   ServiceUnavailableException,
   Logger,
-  NotFoundException,
+  ServiceUnavailableException,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { playerTable } from '../shared/db/schema';
 import type { playerSelect } from '../shared/db/schema';
@@ -24,25 +26,9 @@ type AuthTokenPayload = {
   pseudo: string;
 };
 
-type UserStatsResponse = {
-  id: number;
-  pseudo: string;
-  status: string;
-  elo: number;
-  winCount: number;
-  lossCount: number;
-  drawCount: number;
-  totalGames: number;
-  winrate: number;
-  favColor: string;
-  favGameMode: string;
-  currentWinStreak: number;
-  longestWinStreak: number;
-  gameHistoryList?: any[]; // Adjust type based on actual game history structure
-};
-
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtService,
@@ -123,8 +109,8 @@ export class AuthService {
 
       return response.json(user);
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new UnauthorizedException(
-        error,
         'Login failed. Please check your credentials and try again.',
       );
     }
@@ -201,7 +187,7 @@ export class AuthService {
     password: string,
   ): Promise<playerSelect> {
     const normalized = identifier.trim();
-    const pwdCheck = await this.utilsService.findPlayersBy(
+    const pwdCheck = (await this.utilsService.findPlayersBy(
       'and',
       undefined,
       or(
@@ -209,8 +195,9 @@ export class AuthService {
         eq(playerTable.mailAddress, normalized),
       ),
       isNull(playerTable.pwd),
-    ) as playerSelect[];
-    if (pwdCheck.length > 0) throw new UnauthorizedException('Invalid credentials.');
+    )) as playerSelect[];
+    if (pwdCheck.length > 0)
+      throw new UnauthorizedException('Invalid credentials.');
     const user = (
       (await this.utilsService.findPlayersBy(
         'and',

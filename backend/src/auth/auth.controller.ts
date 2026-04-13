@@ -23,7 +23,7 @@ export class AuthController {
   @Post('login2fa')
   @UseGuards(PassportLocalGuard)
   login2fa(
-    @CurrentUser() user: ResponseLoginDto,
+    @CurrentUser() user: LoginDto,
     @Body() data: TwoFactorDto,
     @Res() response: Response,
   ) {

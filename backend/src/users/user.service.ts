@@ -1,43 +1,61 @@
 import {
   Injectable,
   InternalServerErrorException,
-  UnauthorizedException,
+  ServiceUnavailableException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UtilsService } from 'src/shared/services/utils.func.service';
-import { eq } from 'drizzle-orm';
+import { eq, ne } from 'drizzle-orm';
 import {
   playerTable,
   playerInsert,
   friendshipTable,
   participationTable,
+  playerSelect,
 } from 'src/shared/db/schema';
 import { UpdateUserDto } from './dto/updateDto';
 import { RedisService } from 'src/shared/services/redis.service';
 import { Response } from 'express';
-import { deleteDto } from './dto/deleteDTO';
+
+type UserStatsResponse = {
+  id: number;
+  pseudo: string;
+  status: string;
+  elo: number;
+  winCount: number;
+  lossCount: number;
+  drawCount: number;
+  totalGames: number;
+  winrate: number;
+  favColor: string;
+  favGameMode: string;
+  currentWinStreak: number;
+  longestWinStreak: number;
+  gameHistoryList?: any[]; // Adjust type based on actual game history structure
+};
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(
-    private readonly utils: UtilsService,
+    private readonly utilsService: UtilsService,
     private readonly redisService: RedisService,
   ) {}
 
-  registerPlayers(mailAddress: string, gameName: string, pwd: string) {
+  registerPlayers(mailAddress: string, gameName: string, pwd?: string) {
     const currentPlayers: playerInsert = {
       playerName: gameName,
       mailAddress: mailAddress,
-      pwd: pwd,
+      pwd: pwd || undefined,
     };
-    return this.utils.insertPlayers([currentPlayers], {
+    return this.utilsService.insertPlayers([currentPlayers], {
       id: playerTable.playerId,
       pseudo: playerTable.playerName,
     });
   }
 
   async getDataUser(playerId: number) {
-    const player = (await this.utils.findPlayersBy(
+    const player = (await this.utilsService.findPlayersBy(
       'and',
       {
         id: playerTable.playerId,
@@ -57,46 +75,30 @@ export class UserService {
     return player[0];
   }
 
-  async deleteUserbyId(playerId: number, data: deleteDto, response: Response) {
-    if (!data?.password) {
-      throw new UnauthorizedException('Mot de passe requis');
-    }
-
-    const passwordRows = (await this.utils.findPlayersBy(
+  async deleteUserbyId(playerId: number, response: Response) {
+    const user = (await this.utilsService.findPlayersBy(
       'and',
-      {
-        playerId: playerTable.playerId,
-        pass: playerTable.pwd,
-      },
+      undefined,
       eq(playerTable.playerId, playerId),
-    )) as Array<{ playerId: number; pass: string }>;
+    )) as playerSelect[];
+    if (user.length === 0) throw new NotFoundException('Player not found');
 
-    const password = passwordRows[0];
-    if (!password) throw new NotFoundException('Player not found');
-
-    if (password.pass !== data.password)
-      throw new UnauthorizedException('Mauvais mot de passe');
-
-    await this.utils.deleteParticipationsBy(
+    await this.utilsService.deleteParticipationsBy(
       'and',
       undefined,
       eq(participationTable.playerId, playerId),
     );
 
-    await this.utils.deleteFriendshipsBy(
+    await this.utilsService.deleteFriendshipsBy(
       'or',
       undefined,
       eq(friendshipTable.player1Id, playerId),
       eq(friendshipTable.player2Id, playerId),
     );
 
-    await this.utils.deletePlayersBy(
+    await this.utilsService.deletePlayersBy(
       'and',
-      {
-        playerId: playerTable.playerId,
-        gameName: playerTable.playerName,
-        mailAddress: playerTable.mailAddress,
-      },
+      undefined,
       eq(playerTable.playerId, playerId),
     );
     await this.redisService.getClient().del('refreshToken:' + playerId);
@@ -113,13 +115,9 @@ export class UserService {
   ): Promise<string> {
     try {
       const updatePayload: Partial<playerInsert> = {};
+      updatePayload.playerName = userData.pseudo;
+      updatePayload.mailAddress = userData.email;
 
-      if (userData.pseudo !== undefined) {
-        updatePayload.playerName = userData.pseudo;
-      }
-      if (userData.email !== undefined) {
-        updatePayload.mailAddress = userData.email;
-      }
       if (userData.newPassword !== undefined) {
         updatePayload.pwd = userData.newPassword;
       }
@@ -127,7 +125,27 @@ export class UserService {
         updatePayload.avatarUrl = userData.avatar;
       }
 
-      const result = await this.utils.updatePlayersBy(
+      const playerNameCheck = await this.utilsService.findPlayersBy(
+        'and',
+        undefined,
+        eq(playerTable.playerName, userData.pseudo || ''),
+        ne(playerTable.playerId, userId),
+      );
+      if (playerNameCheck.length > 0) {
+        throw new InternalServerErrorException('Pseudo already exists');
+      }
+
+      const emailCheck = await this.utilsService.findPlayersBy(
+        'and',
+        undefined,
+        eq(playerTable.mailAddress, userData.email || ''),
+        ne(playerTable.playerId, userId),
+      );
+      if (emailCheck.length > 0) {
+        throw new InternalServerErrorException('Email already exists');
+      }
+
+      await this.utilsService.updatePlayersBy(
         updatePayload,
         'and',
         {
@@ -137,11 +155,93 @@ export class UserService {
         },
         eq(playerTable.playerId, userId),
       );
-      if (!result.length) throw new Error(`User  not Found`);
-      return `User updated successfully`;
-    } catch (err) {
-      console.error(err);
-      throw new InternalServerErrorException(`Failed to update user`);
+      return 'User updated successfully';
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Failed to update user');
+    }
+  }
+
+  async userStats(playerId: number): Promise<UserStatsResponse> {
+    const user = (await this.utilsService.findPlayersBy(
+      'and',
+      undefined,
+      eq(playerTable.playerId, playerId),
+    )) as playerSelect[];
+
+    if (user.length === 0) throw new UnauthorizedException('User not found.');
+
+    const stats = (
+      await this.utilsService.getGamesResCounts(user[0].playerId)
+    )[0];
+    const lvlVal: number = stats?.totalWins ?? 0;
+    const lossVal: number = stats?.totalLosses ?? 0;
+    const drawVal: number = stats?.totalDraws ?? 0;
+    const gameVal: number = stats?.totalGames ?? 0;
+    const winrateVal: number = stats?.winRate ?? 0;
+
+    const color = (
+      await this.utilsService.getFavouriteColor(user[0].playerId)
+    )[0];
+    const colorVal: string = color?.playerColor ?? 'unknown';
+
+    const gm = (
+      await this.utilsService.getFavouriteGameMode(user[0].playerId)
+    )[0];
+    const gameModeVal: string = gm?.gameMode ?? 'unknown';
+
+    const cws = (
+      await this.utilsService.getCurrentWinStreak(user[0].playerId)
+    )[0];
+    const cwsVal: number = cws?.currentStreak ?? 0;
+
+    const lws = (
+      await this.utilsService.getLongestWinStreak(user[0].playerId)
+    )[0];
+    const lwsVal: number = lws?.longestStreak ?? 0;
+
+    const gameHistory = await this.utilsService.getGameHistory(
+      user[0].playerId,
+      10,
+    );
+    const historyVal = gameHistory ? gameHistory : undefined;
+
+    return {
+      id: user[0].playerId,
+      pseudo: user[0].playerName,
+      status: 'ONLINE', // This is a placeholder. Track user status with websockets.
+      elo: 2000, // Placeholder. Implement ELO calculation based on game results or remove from frontend.
+      winCount: lvlVal,
+      lossCount: lossVal,
+      drawCount: drawVal,
+      totalGames: gameVal,
+      winrate: winrateVal,
+      favColor: colorVal,
+      favGameMode: gameModeVal,
+      currentWinStreak: cwsVal,
+      longestWinStreak: lwsVal,
+      gameHistoryList: historyVal,
+    } as UserStatsResponse;
+  }
+
+  async weeklyWinrate(playerId: number) {
+    try {
+      const user = (await this.utilsService.findPlayersBy(
+        'and',
+        undefined,
+        eq(playerTable.playerId, playerId),
+      )) as playerSelect[];
+      if (user.length === 0) {
+        throw new UnauthorizedException('User not found.');
+      }
+      const winrate = await this.utilsService.getWeeklyWinrate(
+        user[0].playerId,
+      );
+      return winrate;
+    } catch (error) {
+      throw new ServiceUnavailableException(
+        error,
+        'Cannot fetch weekly winrate.',
+      );
     }
   }
 }
