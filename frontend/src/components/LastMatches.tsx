@@ -21,7 +21,7 @@ function formatGameDuration(duration) {
 
 export default function LastMatches({ user }) {
   // display match history items
-  const displayData = user?.gameHistoryList.map((data) => {
+  const displayData = (user?.gameHistoryList ?? []).slice(0, 10).map((data) => {
     return (
       <li
         key={data.gameId}
@@ -40,7 +40,7 @@ export default function LastMatches({ user }) {
 
   return (
     <section className="grid-style col-span-2">
-      <h3>Historique des derniers matches</h3>
+      <h3>Historique des dix derniers matches</h3>
       <div className="border rounded-md m-2 p-1 bg-violet-100">
         <div className="grid grid-cols-5 gap-4 border-b-2 border-black m-1 p-2 font-semibold text-sm">
           <p>Adversaire</p>

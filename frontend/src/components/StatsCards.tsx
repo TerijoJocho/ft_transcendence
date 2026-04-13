@@ -3,7 +3,7 @@ export default function StatsCards({user}) {
         <section className="grid-style col-span-4 flex flex-row justify-between">
             <article className="stat-style">
                 <h3>Latest WinRate</h3>
-                <p className="">{user?.winrate}%</p>
+                <p className="">{user?.winrate}</p>
             </article>
             <article className="stat-style">
                 <h3>Win Streak</h3>
