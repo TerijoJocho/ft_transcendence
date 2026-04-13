@@ -27,7 +27,6 @@ function Profil() {
   const [deleteInput, setDeleteInput] = useState<string>("");
   const CONFIRM_PHRASE = `Je confirme vouloir supprimer mon compte: ${user.pseudo}`;
   const [wantToDelete, setWantToDelete] = useState<boolean>(false);
-  const [passwordInput, setPasswordInput] = useState<string>("");
   const [checked, setChecked] = useState(false);
 
 
@@ -87,19 +86,8 @@ function Profil() {
   }
 
   function handleDelete() {
-    if (passwordInput.trim().length <= 0) {
-      setPasswordInput("");
-      setDeleteInput("");
-      setFeedback({
-        message: "Veuillez entrer votre mot de passe",
-        type: "error",
-      });
-      return;
-    }
-
     if (deleteInput !== CONFIRM_PHRASE) {
       setDeleteInput("");
-      setPasswordInput("");
       setFeedback({
         message: "Veuillez écrire la bonne phrase",
         type: "error",
@@ -107,9 +95,8 @@ function Profil() {
       return;
     }
 
-    const password = passwordInput;
     api
-      .deleteAccount({ password })
+      .deleteAccount()
       .then(() =>
         setFeedback({
           message: "Votre compte a été supprimé.",
@@ -125,9 +112,8 @@ function Profil() {
       .finally(
         () => (
           setWantToDelete(false),
-          setDeleteInput(""),
-          setPasswordInput("")
-        ),
+          setDeleteInput("")
+        )
       );
   }
 
@@ -171,8 +157,6 @@ function Profil() {
           setWantToDelete={setWantToDelete}
           deleteInput={deleteInput}
           setDeleteInput={setDeleteInput}
-          passwordInput={passwordInput}
-          setPasswordInput={setPasswordInput}
           CONFIRM_PHRASE={CONFIRM_PHRASE}
           handleDelete={handleDelete}
         />
