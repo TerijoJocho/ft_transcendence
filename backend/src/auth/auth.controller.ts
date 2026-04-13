@@ -43,16 +43,4 @@ export class AuthController {
   logout(@CurrentUser() user: LogoutDto, @Res() response: Response) {
     return this.authService.logOut(user, response);
   }
-
-  @Get('userStats')
-  @UseGuards(PassportJwtGuard)
-  async me(@CurrentUser() user: LogoutDto) {
-    return this.authService.userStats(user.playerId);
-  }
-
-  @Get('weeklyWinrate')
-  @UseGuards(PassportJwtGuard)
-  async weeklyWinrate(@CurrentUser() user: LogoutDto) {
-    return this.authService.weeklyWinrate(user.playerId);
-  }
 }
