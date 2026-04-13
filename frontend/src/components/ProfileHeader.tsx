@@ -1,7 +1,4 @@
-import { useAuth } from "../auth/useAuth";
-
-export default function ProfileHeader() {
-    const {user} = useAuth();
+export default function ProfileHeader({user}) {
 
     return(
         <section className="border rounded-full">

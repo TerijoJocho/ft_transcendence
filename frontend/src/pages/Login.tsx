@@ -24,12 +24,13 @@ function Login() {
     setErrorMessage(null);
 
     try {
-      const user = await api.login({
+      const rawUser = await api.login({
         identifier,
         password,
       });
-      console.log("Utilisateur connecté: ", user);
-      loginAuth(user);
+      const fullUser = await api.me();
+      console.log("Utilisateur connecté: ", rawUser);
+      loginAuth(fullUser);
       navigate("/dashboard");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erreur serveur";

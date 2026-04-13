@@ -126,7 +126,7 @@ function Profil() {
     <div className="border rounded-md bg-white text-black h-full relative">
       <Header title="Page de profil" />
       <div className="flex flex-col items-center gap-12">
-        <ProfileHeader />
+        <ProfileHeader user={user}/>
         <ProfileInfos
           form={form}
           handleChange={handleChange}
