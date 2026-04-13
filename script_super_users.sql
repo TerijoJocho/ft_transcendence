@@ -9,18 +9,18 @@ BEGIN;
 SET search_path TO public;
 
 -- 0) Reset the dashboard dataset for these two players
-DELETE FROM public.participation p
-WHERE p."playerId" IN (
-  SELECT "playerId"
-  FROM public.players
-  WHERE "playerName" IN ('Terijo', 'Hyona')
-);
+-- First, collect all gameIds where Terijo (3) or Hyona (5) participate
+DELETE FROM public.participation
+WHERE "playerId" IN (3, 5);
 
-DELETE FROM public.games g
-WHERE NOT EXISTS (
-  SELECT 1
-  FROM public.participation
-  WHERE "gameId" = g."gameId"
+-- Then, delete those specific games (they should have no participation records anymore)
+DELETE FROM public.games
+WHERE "gameId" IN (
+  SELECT g."gameId"
+  FROM public.games g
+  LEFT JOIN public.participation p ON g."gameId" = p."gameId"
+  GROUP BY g."gameId"
+  HAVING COUNT(p."gameId") = 0
 );
 
 -- 1) Ensure both players exist (only inserted if missing)
@@ -112,7 +112,7 @@ inserted_games AS (
 ),
 all_target_games AS (
   SELECT
-    g."gameId",
+    ig."gameId",
     s.terijo_color,
     CASE
       WHEN s.game_result = 'DRAW'::game_result_enum THEN 'DRAW'::player_result_enum
@@ -124,10 +124,10 @@ all_target_games AS (
       WHEN s.terijo_wins THEN 'LOSE'::player_result_enum
       ELSE 'WIN'::player_result_enum
     END AS hyona_result
-  FROM public.games g
+  FROM inserted_games ig
   INNER JOIN seed_rows s
-    ON g."gameCreatedAt" = s.created_at
-   AND g."gameMode" = s.game_mode
+    ON ig."gameCreatedAt" = s.created_at
+   AND ig."gameMode" = s.game_mode
 )
 INSERT INTO public.participation ("playerId", "gameId", "playerResult", "playerColor")
 SELECT p.terijo_id, tg."gameId", tg.terijo_result, tg.terijo_color
