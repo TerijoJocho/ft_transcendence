@@ -26,7 +26,7 @@ export default function SideBar() {
   }
 
   const toggleMenu = () => setIsSmallMenu((prev) => !prev);
-  const displayName = user.pseudo?.trim();
+  const displayName = <p>{user.pseudo.slice(0,6) + '...'}</p>
 
   return (
     <section
@@ -77,10 +77,10 @@ export default function SideBar() {
           <div className={`flex gap-2 items-center`}>
             <img
               src={user.avatarUrl}
-              alt={`${displayName} avatar`}
+              alt={`${user.pseudo} avatar`}
               className={`rounded-full object-cover ${isSmallMenu ? "w-8 h-8" : "w-12 h-12"}`}
             />
-            {!isSmallMenu && <p>{displayName}</p>}
+            {!isSmallMenu && displayName}
           </div>
         </Link>
 
