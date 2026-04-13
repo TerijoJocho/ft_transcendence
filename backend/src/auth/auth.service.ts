@@ -212,7 +212,7 @@ export class AuthService {
     response.status(200).json({ message: 'successfully logged out' });
   }
 
-  private async revokeGoogleToken(token: string): Promise<void> {
+  async revokeGoogleToken(token: string): Promise<void> {
     const revokeResponse = await fetch('https://oauth2.googleapis.com/revoke', {
       method: 'POST',
       headers: {
