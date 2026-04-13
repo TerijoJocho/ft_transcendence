@@ -54,4 +54,16 @@ export class UsersController {
     const result = await this.UserService.updateUserData(playerId, Data);
     return { message: result };
   }
+
+  @Get('userStats')
+  @UseGuards(PassportJwtGuard)
+  async me(@CurrentUser() user: { playerId: number }) {
+    return this.UserService.userStats(user.playerId);
+  }
+
+  @Get('weeklyWinrate')
+  @UseGuards(PassportJwtGuard)
+  async weeklyWinrate(@CurrentUser() user: { playerId: number }) {
+    return this.UserService.weeklyWinrate(user.playerId);
+  }
 }
