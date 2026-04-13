@@ -26,33 +26,7 @@ export default function SideBar() {
   }
 
   const toggleMenu = () => setIsSmallMenu((prev) => !prev);
-  const displayName = user.pseudo?.trim() || "Profil";
-  const userInitial = displayName.charAt(0).toUpperCase();
-  const hasAvatar = typeof user.avatarUrl === "string" && user.avatarUrl.trim().length > 0;
-
-  const userAvatar = hasAvatar ? (
-    <img
-      src={user.avatarUrl}
-      alt={`${displayName} avatar`}
-      className="w-10 h-10 rounded-full object-cover"
-    />
-  ) : (
-    <div className="w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center font-semibold">
-      {userInitial}
-    </div>
-  );
-
-  const miniUserAvatar = hasAvatar ? (
-    <img
-      src={user.avatarUrl}
-      alt={`${displayName} avatar`}
-      className="w-6 h-6 rounded-full object-cover"
-    />
-  ) : (
-    <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-semibold">
-      {userInitial}
-    </div>
-  );
+  const displayName = user.pseudo?.trim();
 
   return (
     <section
@@ -98,22 +72,23 @@ export default function SideBar() {
       </nav>
 
       {/* footer pour cliquer sur la page de profile et se logout */}
-      <footer className={`p-4`}>
-        <div className="global-hover cursor-pointer">
-          {isSmallMenu ? (
-            <Link to={"/profil"}>{miniUserAvatar}</Link>
-          ) : (
-            <Link to={"/profil"}>
-              <div className="flex items-center gap-2">
-                {userAvatar} <p>{displayName}</p>
-              </div>
-            </Link>
-          )}
-        </div>
+      <footer className={`flex w-full ${isSmallMenu ? "justify-center" : "justify-between"}`}>
+        <Link to={"/profil"} className="global-hover">
+          <div className={`flex gap-2 items-center`}>
+            <img
+              src={user.avatarUrl}
+              alt={`${displayName} avatar`}
+              className={`rounded-full object-cover ${isSmallMenu ? "w-8 h-8" : "w-12 h-12"}`}
+            />
+            {!isSmallMenu && <p>{displayName}</p>}
+          </div>
+        </Link>
 
-        <button onClick={handleLogout} className="warning-hover">
-          <FontAwesomeIcon icon={faArrowRightFromBracket} />
-        </button>
+        {!isSmallMenu && (
+          <button onClick={handleLogout} className="warning-hover ml-2">
+            <FontAwesomeIcon icon={faArrowRightFromBracket} />
+          </button>
+        )}
       </footer>
     </section>
   );
