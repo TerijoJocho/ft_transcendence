@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { UtilsService } from 'src/shared/services/utils.func.service';
-import { eq } from 'drizzle-orm';
+import { eq, ne } from 'drizzle-orm';
 import {
   playerTable,
   playerInsert,
@@ -98,12 +98,6 @@ export class UsersService {
     try {
       const updatePayload: Partial<playerInsert> = {};
 
-      if (userData.pseudo !== undefined) {
-        updatePayload.playerName = userData.pseudo;
-      }
-      if (userData.email !== undefined) {
-        updatePayload.mailAddress = userData.email;
-      }
       if (userData.newPassword !== undefined) {
         updatePayload.pwd = userData.newPassword;
       }
@@ -115,7 +109,7 @@ export class UsersService {
         'and',
         undefined,
         eq(playerTable.playerName, userData.pseudo || ''),
-        eq(playerTable.playerId, userId),
+        ne(playerTable.playerId, userId),
       );
       if (playerNameCheck.length > 0) {
         throw new InternalServerErrorException('Pseudo already exists');
@@ -125,7 +119,7 @@ export class UsersService {
         'and',
         undefined,
         eq(playerTable.mailAddress, userData.email || ''),
-        eq(playerTable.playerId, userId),
+        ne(playerTable.playerId, userId),
       );
       if (emailCheck.length > 0) {
         throw new InternalServerErrorException('Email already exists');
