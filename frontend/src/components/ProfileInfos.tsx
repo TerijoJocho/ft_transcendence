@@ -1,4 +1,5 @@
 import { type ChangeEvent, useState } from "react";
+import {type User} from '../auth/core/authCore.ts';
 interface ProfileInfosForm {
     pseudo: string;
     email: string;
@@ -10,8 +11,9 @@ interface ProfileInfosProps {
     form: ProfileInfosForm;
     handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
     handleSubmit: () => void;
+    user: User;
 }
-export default function ProfileInfos({form, handleChange, handleSubmit}: ProfileInfosProps) {
+export default function ProfileInfos({form, handleChange, handleSubmit, user}: ProfileInfosProps) {
     const [canNotWrite, setCanNotWrite] = useState<boolean>(true);
 
     function activateForm() {
@@ -38,8 +40,8 @@ export default function ProfileInfos({form, handleChange, handleSubmit}: Profile
                 <input 
                     type="email" 
                     id="email" 
-                    disabled={canNotWrite} 
-                    className='input-style border-b border-b-violet-300'
+                    disabled={user.isGoogleUser ?  true : canNotWrite} 
+                    className={`input-style border-b border-b-violet-300 ${user.isGoogleUser ? "cursor-not-allowed" : ""}`}
                     value={form.email}
                     name="email"
                     onChange={(e) => handleChange(e)}
@@ -53,8 +55,8 @@ export default function ProfileInfos({form, handleChange, handleSubmit}: Profile
                             <input 
                                 type="password" 
                                 id="password" 
-                                disabled={canNotWrite} 
-                                className='input-style border-b border-b-violet-300'
+                                disabled={user.isGoogleUser ?  true : canNotWrite}  
+                                className={`input-style border-b border-b-violet-300 ${user.isGoogleUser ? "cursor-not-allowed" : ""}`}
                                 value={form.newPassword}
                                 name="newPassword"
                                 onChange={(e) => handleChange(e)}
@@ -65,8 +67,8 @@ export default function ProfileInfos({form, handleChange, handleSubmit}: Profile
                             <input 
                                 type="password" 
                                 id="confirmPassword" 
-                                disabled={canNotWrite}
-                                className='input-style border-b border-b-violet-300'
+                                disabled={user.isGoogleUser ?  true : canNotWrite} 
+                                className={`input-style border-b border-b-violet-300 ${user.isGoogleUser ? "cursor-not-allowed" : ""}`}
                                 value={form.confirmNewPassword}
                                 name="confirmNewPassword"
                                 onChange={(e) => handleChange(e)}

@@ -136,7 +136,7 @@ export class AuthService {
     password: string,
   ): Promise<playerSelect> {
     const normalized = identifier.trim();
-    const pwdCheck = await this.utilsService.findPlayersBy(
+    const pwdCheck = (await this.utilsService.findPlayersBy(
       'and',
       undefined,
       or(
@@ -144,8 +144,9 @@ export class AuthService {
         eq(playerTable.mailAddress, normalized),
       ),
       isNull(playerTable.pwd),
-    ) as playerSelect[];
-    if (pwdCheck.length > 0) throw new UnauthorizedException('Invalid credentials.');
+    )) as playerSelect[];
+    if (pwdCheck.length > 0)
+      throw new UnauthorizedException('Invalid credentials.');
     const user = (
       (await this.utilsService.findPlayersBy(
         'and',
@@ -212,7 +213,7 @@ export class AuthService {
     response.status(200).json({ message: 'successfully logged out' });
   }
 
-  private async revokeGoogleToken(token: string): Promise<void> {
+  async revokeGoogleToken(token: string): Promise<void> {
     const revokeResponse = await fetch('https://oauth2.googleapis.com/revoke', {
       method: 'POST',
       headers: {
