@@ -7,8 +7,6 @@ import { useAuth } from "../auth/useAuth.ts";
 import * as api from "../api/api.ts";
 import { isValidMail } from "../utils/isValidMail.ts";
 
-import { Checkbox } from "primereact/checkbox";
-
 function Profil() {
   const { user } = useAuth();
 
@@ -158,9 +156,16 @@ function Profil() {
           <div className="card flex justify-content-center">
             <div className="flex items-center gap-2">
               <label htmlFor="2FA">
-                {`${checked ? 'Désactiver' : 'Activer'} la double authentification (2FA)`}
+                {`${checked ? "Desactiver" : "Activer"} la double authentification (2FA)`}
               </label>
-              <input type="checkbox" name="double" id="double" checked={checked} onChange={(e) => setChecked(e.currentTarget.checked)} className="w-6 h-6"/>
+              <input
+                type="checkbox"
+                name="double"
+                id="double"
+                checked={checked}
+                onChange={(e) => setChecked(e.currentTarget.checked)}
+                className="w-6 h-6"
+              />
             </div>
           </div>
           <button
