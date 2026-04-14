@@ -8,19 +8,7 @@ import {
   participationInsert,
   participationTable,
 } from '../db/schema';
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { and, or, eq, ne, sql, SQLWrapper, desc } from 'drizzle-orm';
-=======
-<<<<<<< HEAD
 import { and, or, eq, ne, sql, SQLWrapper, desc, gte, lt } from 'drizzle-orm';
-=======
-import { and, or, eq, ne, sql, SQLWrapper, sum, desc } from 'drizzle-orm';
->>>>>>> 2745606 (feat: added util fun to retrieve a player's game history, modifiied other stat related funcs to accept only one playerId as parameter. tested with  auth/me route)
->>>>>>> 331fdc5 (feat: added util fun to retrieve a player's game history, modifiied other stat related funcs to accept only one playerId as parameter. tested with  auth/me route)
-=======
-import { and, or, eq, ne, sql, SQLWrapper, desc, gte, lt } from 'drizzle-orm';
->>>>>>> de2a20b (fix: linting for PR review)
 import { SelectedFieldsFlat, PgTable } from 'drizzle-orm/pg-core';
 import { DatabaseService } from './db.service';
 import { Injectable } from '@nestjs/common';
@@ -377,28 +365,6 @@ export class UtilsService {
   };
 
   //miscellaneous functions
-  // query to calculate all/some players' winrate depending on conditions  (=> [playerName, winrate])
-  getWinrate = async (playerId?: number) => {
-    let query = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        winrate: sql`( COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN') + 0.5 * COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW'))
-/ NULLIF(COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING'), 0)::float`,
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .groupBy(playerTable.playerName);
-    if (playerId) {
-      query = query.where(
-        eq(participationTable.playerId, playerId),
-      ) as typeof query;
-    }
-    return query;
-  };
-
   //query to calculate average number of moves to win for a player
   getAverageWinMoves = async (playerId?: number) => {
     let query = this.Database.getDb()
@@ -453,7 +419,8 @@ export class UtilsService {
         gameTable.gameMode,
         participationTable.playerId,
       )
-      .as('mode_ranking');
+      .as('tmp');
+
     const query = this.Database.getDb()
       .select({
         playerName: subquery.playerName,
@@ -465,33 +432,16 @@ export class UtilsService {
     return query;
   };
 
-  getWeeklyWinrate = async (playerId: number) => {
-    const query = this.Database.getDb()
-      .select({
-        playerId: participationTable.playerId,
-        winrate: sql<number>`(
-          COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')
-          + 0.5 * COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW')
-        ) / NULLIF(COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING'), 0)::float`,
-      })
-      .from(participationTable)
-      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
-      .where(
-        and(
-          eq(participationTable.playerId, playerId),
-          sql`${gameTable.gameCreatedAt} >= NOW() - INTERVAL '7 days'`,
-        ),
-      )
-      .groupBy(participationTable.playerId);
-    return query;
-  };
-
-  //query to return total number of games played by a player
-  getTotalGamesPlayed = async (playerId?: number) => {
+  //query to return total number of games, nb of wins, loss and draws for a player
+  getGamesResCounts = async (playerId?: number) => {
     let query = this.Database.getDb()
       .select({
         playerName: playerTable.playerName,
+        winRate: sql<number>`( COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN') + 0.5 * COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW')) / NULLIF(COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING'), 0)::float`,
         totalGames: sql<number>`COUNT(${participationTable.gameId})::int`,
+        totalWins: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`,
+        totalLosses: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'LOSE')::int`,
+        totalDraws: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW')::int`,
       })
       .from(playerTable)
       .leftJoin(
@@ -501,90 +451,6 @@ export class UtilsService {
       .groupBy(playerTable.playerName, playerTable.playerId);
     if (playerId) {
       query = query.where(eq(playerTable.playerId, playerId)) as typeof query;
-    }
-    return query;
-  };
-
-  //query to return total number of wins by a player
-  getTotalWins = async (playerId?: number) => {
-    let query = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        totalWins: sql<number>`COALESCE(COUNT(*), 0)::int`,
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .groupBy(playerTable.playerName, playerTable.playerId);
-    if (playerId) {
-      query = query.where(
-        and(
-          eq(participationTable.playerId, playerId),
-          eq(participationTable.playerResult, 'WIN'),
-        ),
-      ) as typeof query;
-    } else {
-      query = query.where(
-        eq(participationTable.playerResult, 'WIN'),
-      ) as typeof query;
-    }
-    return query;
-  };
-
-  //query to return total number of losses by a player
-  getTotalLosses = async (playerId?: number) => {
-    let query = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        totalLosses: sql<number>`COALESCE(COUNT(*), 0)::int`,
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .groupBy(playerTable.playerName, playerTable.playerId);
-    if (playerId) {
-      query = query.where(
-        and(
-          eq(participationTable.playerId, playerId),
-          eq(participationTable.playerResult, 'LOSE'),
-        ),
-      ) as typeof query;
-    } else {
-      query = query.where(
-        eq(participationTable.playerResult, 'LOSE'),
-      ) as typeof query;
-    }
-    return query;
-  };
-
-  //query to return total number of draws by a player
-  getTotalDraws = async (playerId?: number) => {
-    let query = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        totalDraws: sql<number>`COALESCE(COUNT(*), 0)::int`,
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .groupBy(playerTable.playerName, playerTable.playerId);
-    if (playerId) {
-      query = query.where(
-        and(
-          eq(participationTable.playerId, playerId),
-          eq(participationTable.playerResult, 'DRAW'),
-        ),
-      ) as typeof query;
-    } else {
-      query = query.where(
-        eq(participationTable.playerResult, 'DRAW'),
-      ) as typeof query;
     }
     return query;
   };
@@ -717,7 +583,7 @@ export class UtilsService {
     return query;
   };
 
-  getGameHistory = async (playerId: number) => {
+  getGameHistory = async (playerId: number, nb: number) => {
     const allGames = this.Database.getDb()
       .select({
         gameId: participationTable.gameId,
@@ -725,6 +591,7 @@ export class UtilsService {
       .from(participationTable)
       .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
       .where(eq(participationTable.playerId, playerId))
+      .limit(nb)
       .orderBy(desc(gameTable.gameCreatedAt))
       .as('all_games');
     const opponentsNamesQuery = this.Database.getDb()
@@ -763,8 +630,6 @@ export class UtilsService {
       .orderBy(desc(gameTable.gameCreatedAt));
     return query;
   };
-<<<<<<< HEAD
-=======
 
   getWeeklyWinrate = async (playerId: number) => {
     const currentWeekStart = new Date();
@@ -833,5 +698,4 @@ export class UtilsService {
       points,
     };
   };
->>>>>>> 38e1b97 (feat(2FA): conflit regler, utilisation de redis pour 2fa a venir)
 }

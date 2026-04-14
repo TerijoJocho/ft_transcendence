@@ -9,11 +9,16 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { DoubleFactorModule } from 'src/double_factor/double_factor.module';
 import { GoogleAuthStrategy } from './strategies/google-auth.strategy';
 import { UsersModule } from '../users/users.module';
-import { DoubleFactorModule } from 'src/double_factor/double_factor.module';
 
 @Module({
-  imports: [PassportModule, JwtModule, DoubleFactorModule],
-  providers: [AuthService, LocalStrategy, JwtStrategy, JwtRefreshStrategy, GoogleAuthStrategy],
+  imports: [PassportModule, JwtModule, DoubleFactorModule, UsersModule],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    GoogleAuthStrategy,
+  ],
   controllers: [AuthController],
 })
 export class AuthModule {}

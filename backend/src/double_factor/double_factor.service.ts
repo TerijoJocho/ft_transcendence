@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { UpdateDoubleFactorDto } from './dto/UpdateDoubleFactorDto';
 import { UtilsService } from 'src/shared/services/utils.func.service';
+import { RedisService } from 'src/shared/services/redis.service';
 import speakeasy from 'speakeasy';
 import { eq } from 'drizzle-orm';
 import axios from 'axios';
@@ -33,30 +34,85 @@ type VaultDecryptResponse = {
 
 @Injectable()
 export class DoubleFactorService {
-  constructor(private readonly utilsService: UtilsService) {}
+  constructor(
+    private readonly utilsService: UtilsService,
+    private readonly redisService: RedisService,
+  ) {}
   private static readonly MAX_2FA_FAILED_ATTEMPTS = 3;
   private static readonly LOCKOUT_DURATION_MS = 1 * 60 * 1000;
+  private static readonly FAILED_ATTEMPTS_KEY_PREFIX =
+    'twoFactor:failedAttempts:';
+  private static readonly LOCK_UNTIL_KEY_PREFIX = 'twoFactor:lockUntil:';
+
+  private getFailedAttemptsKey(userId: number) {
+    return `${DoubleFactorService.FAILED_ATTEMPTS_KEY_PREFIX}${userId}`;
+  }
+
+  private getLockUntilKey(userId: number) {
+    return `${DoubleFactorService.LOCK_UNTIL_KEY_PREFIX}${userId}`;
+  }
+
+  private getRedisClient() {
+    return this.redisService.getClient();
+  }
+
+  private async getTwoFactorState(userId: number) {
+    const redisClient = this.getRedisClient();
+    const [failedAttemptsRaw, lockUntilRaw] = await Promise.all([
+      redisClient.get(this.getFailedAttemptsKey(userId)),
+      redisClient.get(this.getLockUntilKey(userId)),
+    ]);
+
+    return {
+      failedAttempts: Number(failedAttemptsRaw ?? 0),
+      lockUntil: lockUntilRaw ? new Date(String(lockUntilRaw)) : null,
+    };
+  }
+
+  private async setFailedAttempts(userId: number, failedAttempts: number) {
+    await this.getRedisClient().set(
+      this.getFailedAttemptsKey(userId),
+      String(failedAttempts),
+    );
+  }
+
+  private async setLockUntil(userId: number, lockUntil: Date | null) {
+    const redisClient = this.getRedisClient();
+    if (!lockUntil) {
+      await redisClient.del(this.getLockUntilKey(userId));
+      return;
+    }
+
+    await redisClient.set(
+      this.getLockUntilKey(userId),
+      lockUntil.toISOString(),
+    );
+  }
+
+  private async resetTwoFactorState(userId: number) {
+    const redisClient = this.getRedisClient();
+    await Promise.all([
+      redisClient.del(this.getFailedAttemptsKey(userId)),
+      redisClient.del(this.getLockUntilKey(userId)),
+    ]);
+  }
 
   private async verify2faCodeForUser(userId: number, reply_code: string) {
     const ciphertext = (await this.utilsService.findPlayersBy(
       'and',
       {
         ciphertextInDb: playerTable.twoFactorSecretCiphertext,
-        twoFactorFailedAttempts: playerTable.twoFactorFailedAttempts,
-        twoFactorLockUntil: playerTable.twoFactorLockUntil,
       },
       eq(playerTable.playerId, userId),
     )) as Array<{
       ciphertextInDb: string;
-      twoFactorFailedAttempts: number;
-      twoFactorLockUntil: Date | null;
     }>;
 
     if (!ciphertext?.length)
       throw new NotFoundException('2FA secret not found');
 
+    const { failedAttempts, lockUntil } = await this.getTwoFactorState(userId);
     const now = Date.now();
-    const lockUntil = ciphertext[0].twoFactorLockUntil;
 
     if (lockUntil && lockUntil.getTime() > now) {
       const remainingMs = lockUntil.getTime() - now;
@@ -97,24 +153,16 @@ export class DoubleFactorService {
     });
 
     if (!match) {
-      const newFailedAttempts = ciphertext[0].twoFactorFailedAttempts + 1;
+      const newFailedAttempts = failedAttempts + 1;
 
       if (newFailedAttempts >= DoubleFactorService.MAX_2FA_FAILED_ATTEMPTS) {
-        const update = await this.utilsService.updatePlayersBy(
-          {
-            twoFactorFailedAttempts: newFailedAttempts,
-            twoFactorLockUntil: new Date(
-              Date.now() + DoubleFactorService.LOCKOUT_DURATION_MS,
-            ),
-          },
-          'and',
-          undefined,
-          eq(playerTable.playerId, userId),
+        const newLockUntil = new Date(
+          Date.now() + DoubleFactorService.LOCKOUT_DURATION_MS,
         );
-        if (!update?.length)
-          throw new InternalServerErrorException(
-            'Failed to persist 2FA lock state',
-          );
+        await Promise.all([
+          this.setFailedAttempts(userId, newFailedAttempts),
+          this.setLockUntil(userId, newLockUntil),
+        ]);
 
         throw new HttpException(
           'Too many failed attempts',
@@ -122,16 +170,7 @@ export class DoubleFactorService {
         );
       }
 
-      const update = await this.utilsService.updatePlayersBy(
-        { twoFactorFailedAttempts: newFailedAttempts },
-        'and',
-        undefined,
-        eq(playerTable.playerId, userId),
-      );
-      if (!update)
-        throw new InternalServerErrorException(
-          'Failed to persist failed attempts',
-        );
+      await this.setFailedAttempts(userId, newFailedAttempts);
 
       throw new HttpException('Invalid 2FA code', HttpStatus.UNAUTHORIZED);
     }
@@ -196,6 +235,8 @@ export class DoubleFactorService {
       if (!update)
         throw new InternalServerErrorException('Failed to store 2FA secret');
 
+      await this.resetTwoFactorState(userId);
+
       return {
         otpauthUrl: secret.otpauth_url,
         base32: secret.base32,
@@ -212,17 +253,16 @@ export class DoubleFactorService {
       await this.verify2faCodeForUser(data.userId, reply_code);
 
       const update = await this.utilsService.updatePlayersBy(
-        {
-          twoFactorFailedAttempts: 0,
-          twoFactorEnabled: true,
-          twoFactorLockUntil: null,
-        },
+        { twoFactorEnabled: true },
         'and',
         undefined,
         eq(playerTable.playerId, data.userId),
       );
       if (!update)
         throw new InternalServerErrorException('Failed to enable 2FA');
+
+      await this.resetTwoFactorState(data.userId);
+
       return { success: true };
     } catch (error) {
       if (error instanceof HttpException) throw error;
@@ -234,17 +274,7 @@ export class DoubleFactorService {
     try {
       await this.verify2faCodeForUser(data.userId, reply_code);
 
-      const update = await this.utilsService.updatePlayersBy(
-        {
-          twoFactorFailedAttempts: 0,
-          twoFactorLockUntil: null,
-        },
-        'and',
-        undefined,
-        eq(playerTable.playerId, data.userId),
-      );
-      if (!update)
-        throw new InternalServerErrorException('Failed to validate login 2FA');
+      await this.resetTwoFactorState(data.userId);
 
       return { success: true };
     } catch (error) {
@@ -260,17 +290,13 @@ export class DoubleFactorService {
         {
           pass: playerTable.pwd,
           twoFactorEnabled: playerTable.twoFactorEnabled,
-          twoFactorLockUntil: playerTable.twoFactorLockUntil,
           ciphertextInDb: playerTable.twoFactorSecretCiphertext,
-          twoFactorFailedAttempts: playerTable.twoFactorFailedAttempts,
         },
         eq(playerTable.playerId, id),
       )) as Array<{
         pass: string;
         twoFactorEnabled: boolean;
-        twoFactorLockUntil: Date | null;
         ciphertextInDb: string;
-        twoFactorFailedAttempts: number;
       }>;
       if (!userRows?.length)
         throw new HttpException('Player not found', HttpStatus.NOT_FOUND);
@@ -279,12 +305,10 @@ export class DoubleFactorService {
         throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
       if (!user.twoFactorEnabled)
         throw new HttpException('2FA not active', HttpStatus.CONFLICT);
-      if (
-        user.twoFactorLockUntil &&
-        user.twoFactorLockUntil.getTime() > Date.now()
-      ) {
+      const { failedAttempts, lockUntil } = await this.getTwoFactorState(id);
+      if (lockUntil && lockUntil.getTime() > Date.now()) {
         const remainingSec = Math.ceil(
-          (user.twoFactorLockUntil.getTime() - Date.now()) / 1000,
+          (lockUntil.getTime() - Date.now()) / 1000,
         );
         throw new HttpException(
           `Too many failed attempts, retry in ${remainingSec}s`,
@@ -322,49 +346,29 @@ export class DoubleFactorService {
         window: 1,
       });
       if (!match) {
-        const newFailedAttempts = user.twoFactorFailedAttempts + 1;
+        const newFailedAttempts = failedAttempts + 1;
 
         if (newFailedAttempts >= DoubleFactorService.MAX_2FA_FAILED_ATTEMPTS) {
-          const update = await this.utilsService.updatePlayersBy(
-            {
-              twoFactorFailedAttempts: newFailedAttempts,
-              twoFactorLockUntil: new Date(
-                Date.now() + DoubleFactorService.LOCKOUT_DURATION_MS,
-              ),
-            },
-            'and',
-            undefined,
-            eq(playerTable.playerId, id),
+          const newLockUntil = new Date(
+            Date.now() + DoubleFactorService.LOCKOUT_DURATION_MS,
           );
-          if (!update)
-            throw new InternalServerErrorException(
-              'Failed to persist 2FA lock state',
-            );
+          await Promise.all([
+            this.setFailedAttempts(id, newFailedAttempts),
+            this.setLockUntil(id, newLockUntil),
+          ]);
           throw new HttpException(
             'Too many failed attempts',
             HttpStatus.TOO_MANY_REQUESTS,
           );
         }
-        const update = await this.utilsService.updatePlayersBy(
-          {
-            twoFactorFailedAttempts: newFailedAttempts,
-          },
-          'and',
-          undefined,
-          eq(playerTable.playerId, id),
-        );
-        if (!update)
-          throw new InternalServerErrorException(
-            'Failed to persist failed attempts',
-          );
+
+        await this.setFailedAttempts(id, newFailedAttempts);
         throw new HttpException('Invalid 2FA code', HttpStatus.UNAUTHORIZED);
       }
 
       const update = await this.utilsService.updatePlayersBy(
         {
-          twoFactorFailedAttempts: 0,
           twoFactorEnabled: false,
-          twoFactorLockUntil: null,
           twoFactorSecretCiphertext: null,
         },
         'and',
@@ -373,14 +377,13 @@ export class DoubleFactorService {
       );
       if (!update)
         throw new InternalServerErrorException('Failed to disable 2FA');
+
+      await this.resetTwoFactorState(id);
+
       return { success: true };
     } catch (error) {
       if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException('Failed to disable 2FA');
     }
   }
-
-  // get(data: UpdateDoubleFactorDto) {
-  //   return `This action updates a #${id} doubleFactor`;
-  // }
 }
