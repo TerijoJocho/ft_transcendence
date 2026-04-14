@@ -41,7 +41,7 @@ export default function ProfileInfos({form, handleChange, handleSubmit, user}: P
                     type="email" 
                     id="email" 
                     disabled={user.isGoogleUser ?  true : canNotWrite} 
-                    className='input-style border-b border-b-violet-300'
+                    className={`input-style border-b border-b-violet-300 ${user.isGoogleUser ? "cursor-not-allowed" : ""}`}
                     value={form.email}
                     name="email"
                     onChange={(e) => handleChange(e)}
@@ -55,8 +55,8 @@ export default function ProfileInfos({form, handleChange, handleSubmit, user}: P
                             <input 
                                 type="password" 
                                 id="password" 
-                                disabled={canNotWrite} 
-                                className='input-style border-b border-b-violet-300'
+                                disabled={user.isGoogleUser ?  true : canNotWrite}  
+                                className={`input-style border-b border-b-violet-300 ${user.isGoogleUser ? "cursor-not-allowed" : ""}`}
                                 value={form.newPassword}
                                 name="newPassword"
                                 onChange={(e) => handleChange(e)}
@@ -67,8 +67,8 @@ export default function ProfileInfos({form, handleChange, handleSubmit, user}: P
                             <input 
                                 type="password" 
                                 id="confirmPassword" 
-                                disabled={canNotWrite}
-                                className='input-style border-b border-b-violet-300'
+                                disabled={user.isGoogleUser ?  true : canNotWrite} 
+                                className={`input-style border-b border-b-violet-300 ${user.isGoogleUser ? "cursor-not-allowed" : ""}`}
                                 value={form.confirmNewPassword}
                                 name="confirmNewPassword"
                                 onChange={(e) => handleChange(e)}
