@@ -61,7 +61,7 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
     }
     const user = (
       await this.userService.registerPlayers(primaryEmail, displayName)
-    )[0] as playerSelect;
+    )[0];
     return {
       playerId: user.playerId,
       identifier: user.playerName,

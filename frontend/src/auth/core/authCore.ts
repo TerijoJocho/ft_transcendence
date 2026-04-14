@@ -8,6 +8,7 @@ export type User = {
   elo: number,//a supp
   status: string;//a supp
   avatarUrl: string;
+  isGoogleUser: boolean;
 };
 
 export type AuthContextType = {

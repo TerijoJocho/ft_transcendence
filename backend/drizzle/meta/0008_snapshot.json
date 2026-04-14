@@ -1,14 +1,6 @@
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-  "id": "20983ddb-3bd9-4110-a252-fede22673a8e",
-=======
-  "id": "c9cd21cb-e52b-4690-86bd-42e8a986e8c9",
->>>>>>> 126f783 (feat(auth): integrate Google OAuth strategy and update user registration flow + add the frontend)
-=======
-  "id": "2ef40094-b954-4e19-a586-95459334e22c",
->>>>>>> main
-  "prevId": "f45f49c6-9dc3-4d2a-bdfa-fa6e25259f34",
+  "id": "d2e32de4-1576-4214-a6c6-31ab7cb8fa65",
+  "prevId": "f925a1fc-debd-4ef4-b90c-42f834f14dda",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -45,6 +37,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "requesterId": {
+          "name": "requesterId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
         "friendshipStatus": {
           "name": "friendshipStatus",
           "type": "friendship_status_enum",
@@ -67,17 +65,12 @@
           "name": "friendship_player1Id_players_playerId_fk",
           "tableFrom": "friendship",
           "tableTo": "players",
-<<<<<<< HEAD
           "columnsFrom": [
             "player1Id"
           ],
           "columnsTo": [
             "playerId"
           ],
-=======
-          "columnsFrom": ["player1Id"],
-          "columnsTo": ["playerId"],
->>>>>>> main
           "onDelete": "restrict",
           "onUpdate": "cascade"
         },
@@ -85,17 +78,25 @@
           "name": "friendship_player2Id_players_playerId_fk",
           "tableFrom": "friendship",
           "tableTo": "players",
-<<<<<<< HEAD
           "columnsFrom": [
             "player2Id"
           ],
           "columnsTo": [
             "playerId"
           ],
-=======
-          "columnsFrom": ["player2Id"],
-          "columnsTo": ["playerId"],
->>>>>>> main
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        },
+        "friendship_requesterId_players_playerId_fk": {
+          "name": "friendship_requesterId_players_playerId_fk",
+          "tableFrom": "friendship",
+          "tableTo": "players",
+          "columnsFrom": [
+            "requesterId"
+          ],
+          "columnsTo": [
+            "playerId"
+          ],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         }
@@ -105,14 +106,10 @@
         "friendship_player1Id_player2Id_unique": {
           "name": "friendship_player1Id_player2Id_unique",
           "nullsNotDistinct": false,
-<<<<<<< HEAD
           "columns": [
             "player1Id",
             "player2Id"
           ]
-=======
-          "columns": ["player1Id", "player2Id"]
->>>>>>> main
         }
       },
       "policies": {},
@@ -124,6 +121,10 @@
         "ordered_player_ids": {
           "name": "ordered_player_ids",
           "value": "\"friendship\".\"player1Id\" < \"friendship\".\"player2Id\""
+        },
+        "requester_in_friendship": {
+          "name": "requester_in_friendship",
+          "value": "\"friendship\".\"requesterId\" = \"friendship\".\"player1Id\" OR \"friendship\".\"requesterId\" = \"friendship\".\"player2Id\""
         }
       },
       "isRLSEnabled": false
@@ -236,11 +237,7 @@
           "name": "playerId",
           "type": "integer",
           "primaryKey": false,
-<<<<<<< HEAD
           "notNull": true
-=======
-          "notNull": false
->>>>>>> main
         },
         "gameId": {
           "name": "gameId",
@@ -287,17 +284,12 @@
           "name": "participation_playerId_players_playerId_fk",
           "tableFrom": "participation",
           "tableTo": "players",
-<<<<<<< HEAD
           "columnsFrom": [
             "playerId"
           ],
           "columnsTo": [
             "playerId"
           ],
-=======
-          "columnsFrom": ["playerId"],
-          "columnsTo": ["playerId"],
->>>>>>> main
           "onDelete": "restrict",
           "onUpdate": "cascade"
         },
@@ -305,17 +297,12 @@
           "name": "participation_gameId_games_gameId_fk",
           "tableFrom": "participation",
           "tableTo": "games",
-<<<<<<< HEAD
           "columnsFrom": [
             "gameId"
           ],
           "columnsTo": [
             "gameId"
           ],
-=======
-          "columnsFrom": ["gameId"],
-          "columnsTo": ["gameId"],
->>>>>>> main
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -325,26 +312,18 @@
         "participation_playerId_gameId_unique": {
           "name": "participation_playerId_gameId_unique",
           "nullsNotDistinct": false,
-<<<<<<< HEAD
           "columns": [
             "playerId",
             "gameId"
           ]
-=======
-          "columns": ["playerId", "gameId"]
->>>>>>> main
         },
         "participation_gameId_playerColor_unique": {
           "name": "participation_gameId_playerColor_unique",
           "nullsNotDistinct": false,
-<<<<<<< HEAD
           "columns": [
             "gameId",
             "playerColor"
           ]
-=======
-          "columns": ["gameId", "playerColor"]
->>>>>>> main
         }
       },
       "policies": {},
@@ -388,15 +367,7 @@
           "name": "pwd",
           "type": "varchar",
           "primaryKey": false,
-<<<<<<< HEAD
-<<<<<<< HEAD
-          "notNull": true
-=======
           "notNull": false
->>>>>>> 126f783 (feat(auth): integrate Google OAuth strategy and update user registration flow + add the frontend)
-=======
-          "notNull": false
->>>>>>> main
         },
         "playerCreatedAt": {
           "name": "playerCreatedAt",
@@ -411,40 +382,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http://www.w3.org/2000/svg%22%20viewBox%3D%220%200%20640%20640%22%3E%3Cpath%20d%3D%22M463%20448.2C440.9%20409.8%20399.4%20384%20352%20384L288%20384C240.6%20384%20199.1%20409.8%20177%20448.2C212.2%20487.4%20263.2%20512%20320%20512C376.8%20512%20427.8%20487.3%20463%20448.2zM64%20320C64%20178.6%20178.6%2064%20320%2064C461.4%2064%20576%20178.6%20576%20320C576%20461.4%20461.4%20576%20320%20576C178.6%20576%2064%20461.4%2064%20320zM320%20336C359.8%20336%20392%20303.8%20392%20264C392%20224.2%20359.8%20192%20320%20192C280.2%20192%20248%20224.2%20248%20264C248%20303.8%20280.2%20336%20320%20336z%22/%3E%3C/svg%3E'"
-<<<<<<< HEAD
-<<<<<<< HEAD
         },
-        "twoFactorSecretCiphertext": {
-          "name": "twoFactorSecretCiphertext",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false,
-          "default": null
-        },
-        "twoFactorFailedAttempts": {
-          "name": "twoFactorFailedAttempts",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "twoFactorEnabled": {
-          "name": "twoFactorEnabled",
+        "isGoogleUser": {
+          "name": "isGoogleUser",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
           "default": false
-        },
-        "twoFactorLockUntil": {
-          "name": "twoFactorLockUntil",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": null
-=======
->>>>>>> 126f783 (feat(auth): integrate Google OAuth strategy and update user registration flow + add the frontend)
-=======
->>>>>>> main
         }
       },
       "indexes": {},
@@ -454,38 +398,25 @@
         "players_mailAddress_unique": {
           "name": "players_mailAddress_unique",
           "nullsNotDistinct": false,
-<<<<<<< HEAD
           "columns": [
             "mailAddress"
           ]
-=======
-          "columns": ["mailAddress"]
->>>>>>> main
         },
         "players_playerName_unique": {
           "name": "players_playerName_unique",
           "nullsNotDistinct": false,
-<<<<<<< HEAD
           "columns": [
             "playerName"
           ]
-<<<<<<< HEAD
-        },
-        "players_twoFactorSecretCiphertext_unique": {
-          "name": "players_twoFactorSecretCiphertext_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "twoFactorSecretCiphertext"
-          ]
-=======
->>>>>>> 126f783 (feat(auth): integrate Google OAuth strategy and update user registration flow + add the frontend)
-=======
-          "columns": ["playerName"]
->>>>>>> main
         }
       },
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "pwd_required_for_non_google_users": {
+          "name": "pwd_required_for_non_google_users",
+          "value": "\"players\".\"isGoogleUser\" = true OR \"players\".\"pwd\" IS NOT NULL"
+        }
+      },
       "isRLSEnabled": false
     }
   },
@@ -493,79 +424,55 @@
     "public.friendship_status_enum": {
       "name": "friendship_status_enum",
       "schema": "public",
-<<<<<<< HEAD
       "values": [
         "PENDING",
         "ADDED"
       ]
-=======
-      "values": ["PENDING", "ADDED"]
->>>>>>> main
     },
     "public.game_mode_enum": {
       "name": "game_mode_enum",
       "schema": "public",
-<<<<<<< HEAD
       "values": [
         "CLASSIC",
         "BLITZ",
         "BULLET"
       ]
-=======
-      "values": ["CLASSIC", "BLITZ", "BULLET"]
->>>>>>> main
     },
     "public.game_result_enum": {
       "name": "game_result_enum",
       "schema": "public",
-<<<<<<< HEAD
       "values": [
         "WIN",
         "DRAW",
         "PENDING"
       ]
-=======
-      "values": ["WIN", "DRAW", "PENDING"]
->>>>>>> main
     },
     "public.game_status_enum": {
       "name": "game_status_enum",
       "schema": "public",
-<<<<<<< HEAD
       "values": [
         "PENDING",
         "ONGOING",
         "COMPLETED"
       ]
-=======
-      "values": ["PENDING", "ONGOING", "COMPLETED"]
->>>>>>> main
     },
     "public.player_color_enum": {
       "name": "player_color_enum",
       "schema": "public",
-<<<<<<< HEAD
       "values": [
         "WHITE",
         "BLACK"
       ]
-=======
-      "values": ["WHITE", "BLACK"]
->>>>>>> main
     },
     "public.player_result_enum": {
       "name": "player_result_enum",
       "schema": "public",
-<<<<<<< HEAD
       "values": [
         "PENDING",
         "WIN",
         "LOSE",
         "DRAW"
       ]
-=======
-      "values": ["PENDING", "WIN", "LOSE", "DRAW"]
->>>>>>> main
     }
   },
   "schemas": {},
@@ -578,8 +485,4 @@
     "schemas": {},
     "tables": {}
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> main

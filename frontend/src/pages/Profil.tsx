@@ -2,13 +2,11 @@ import Header from "../components/Header.tsx";
 import ProfileHeader from "../components/ProfileHeader.tsx";
 import ProfileInfos from "../components/ProfileInfos.tsx";
 import DeleteAccountModal from "../components/DeleteAccountModal.tsx";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/useAuth.ts";
 import * as api from "../api/api.ts";
 import { isValidMail } from "../utils/isValidMail.ts";
 
-import { Checkbox } from 'primereact/checkbox';
-        
 function Profil() {
   const { user } = useAuth();
 
@@ -20,6 +18,17 @@ function Profil() {
     confirmNewPassword: "",
     avatar: "",
   });
+  const initialForm = useMemo(
+    () => ({
+      id: user.id,
+      pseudo: user.pseudo,
+      email: user.email,
+      newPassword: "",
+      confirmNewPassword: "",
+      avatar: "",
+    }),
+    [user.id, user.pseudo, user.email],
+  );
   const [feedback, setFeedback] = useState<{
     message: string;
     type: "pending" | "success" | "error";
@@ -28,7 +37,6 @@ function Profil() {
   const CONFIRM_PHRASE = `Je confirme vouloir supprimer mon compte: ${user.pseudo}`;
   const [wantToDelete, setWantToDelete] = useState<boolean>(false);
   const [checked, setChecked] = useState(false);
-
 
   useEffect(() => {
     if (!feedback) return;
@@ -63,12 +71,23 @@ function Profil() {
       return;
     }
 
+    const hasChanges =
+      form.pseudo.trim() !== initialForm.pseudo.trim() ||
+      form.email.trim() !== initialForm.email.trim() ||
+      form.avatar !== initialForm.avatar ||
+      form.newPassword.length > 0 ||
+      form.confirmNewPassword.length > 0;
+
+    if (!hasChanges) {
+      setFeedback({ message: "Aucun changement detecte", type: "pending" });
+      return;
+    }
+
     setFeedback({ message: "Chargement", type: "pending" });
     api
       .updateProfile(form)
       .then(() => {
         setFeedback({ message: "Changement effectué", type: "success" });
-          setTimeout(() => window.location.reload(), 2000);
       })
       .catch((e) =>
         setFeedback({
@@ -83,6 +102,8 @@ function Profil() {
           confirmNewPassword: "",
         })),
       );
+
+    setTimeout(() => window.location.reload(), 1000);
   }
 
   function handleDelete() {
@@ -109,16 +130,14 @@ function Profil() {
           type: "error",
         }),
       )
-      .finally(
-        () => (
-          setWantToDelete(false),
-          setDeleteInput("")
-        )
-      );
+      .finally(() => (setWantToDelete(false), setDeleteInput("")));
   }
 
-  const isPasswordChange = form.newPassword.length > 0 || form.confirmNewPassword.length > 0;
-  const isPasswordValid = form.newPassword === form.confirmNewPassword || form.newPassword.length >= 8;
+  const isPasswordChange =
+    form.newPassword.length > 0 || form.confirmNewPassword.length > 0;
+  const isPasswordValid =
+    form.newPassword === form.confirmNewPassword ||
+    form.newPassword.length >= 8;
   const isUsernameValid = form.pseudo?.length >= 4;
   const resValidMail = isValidMail(form.email);
 
@@ -126,16 +145,28 @@ function Profil() {
     <div className="border rounded-md bg-white text-black h-full relative">
       <Header title="Page de profil" />
       <div className="flex flex-col items-center gap-12">
-        <ProfileHeader user={user}/>
+        <ProfileHeader user={user} />
         <ProfileInfos
           form={form}
           handleChange={handleChange}
           handleSubmit={handleSubmit}
+          user={user}
         />
         <div className="w-full flex justify-between items-center">
           <div className="card flex justify-content-center">
-            <label htmlFor="2FA">Activer la double authentification (2FA)</label>
-            <Checkbox inputId='2FA' onChange={e => setChecked(e.checked)} checked={checked}></Checkbox>
+            <div className="flex items-center gap-2">
+              <label htmlFor="2FA">
+                {`${checked ? "Desactiver" : "Activer"} la double authentification (2FA)`}
+              </label>
+              <input
+                type="checkbox"
+                name="double"
+                id="double"
+                checked={checked}
+                onChange={(e) => setChecked(e.currentTarget.checked)}
+                className="w-6 h-6"
+              />
+            </div>
           </div>
           <button
             className="m-2 bg-red-600 text-white warning-hover hover:bg-white"
