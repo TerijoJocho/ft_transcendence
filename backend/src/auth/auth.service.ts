@@ -1,7 +1,6 @@
 import {
   HttpException,
   Injectable,
-  Logger,
   ServiceUnavailableException,
   UnauthorizedException,
   NotFoundException,
@@ -25,7 +24,6 @@ type AuthTokenPayload = {
 
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
   constructor(
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtService,
@@ -108,6 +106,7 @@ export class AuthService {
     } catch (error) {
       if (error instanceof HttpException) throw error;
       throw new UnauthorizedException(
+        error,
         'Login failed. Please check your credentials and try again.',
       );
     }
@@ -258,7 +257,7 @@ export class AuthService {
     response.status(200).json({ message: 'successfully logged out' });
   }
 
-  private async revokeGoogleToken(token: string): Promise<void> {
+  async revokeGoogleToken(token: string): Promise<void> {
     const revokeResponse = await fetch('https://oauth2.googleapis.com/revoke', {
       method: 'POST',
       headers: {
