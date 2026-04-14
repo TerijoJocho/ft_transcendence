@@ -156,14 +156,12 @@ function Profil() {
         />
         <div className="w-full flex justify-between items-center">
           <div className="card flex justify-content-center">
-            <label htmlFor="2FA">
-              Activer la double authentification (2FA)
-            </label>
-            <Checkbox
-              inputId="2FA"
-              onChange={(e) => setChecked(e.checked)}
-              checked={checked}
-            ></Checkbox>
+            <div className="flex items-center gap-2">
+              <label htmlFor="2FA">
+                {`${checked ? 'Désactiver' : 'Activer'} la double authentification (2FA)`}
+              </label>
+              <input type="checkbox" name="double" id="double" checked={checked} onChange={(e) => setChecked(e.currentTarget.checked)} className="w-6 h-6"/>
+            </div>
           </div>
           <button
             className="m-2 bg-red-600 text-white warning-hover hover:bg-white"
