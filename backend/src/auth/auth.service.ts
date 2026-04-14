@@ -2,9 +2,6 @@ import {
   HttpException,
   Injectable,
   Logger,
-  NotFoundException,
-  ServiceUnavailableException,
-  Logger,
   ServiceUnavailableException,
   UnauthorizedException,
   NotFoundException,
@@ -37,9 +34,9 @@ export class AuthService {
   ) {}
 
   async finalizeLogin(
-    user: ResponseLoginDto,
+    user: LoginDto,
     response: Response,
-    redirect = false
+    redirect = false,
   ): Promise<Response> {
     try {
       const redisClient = this.redisService.getClient();
@@ -116,7 +113,11 @@ export class AuthService {
     }
   }
 
-  async logIn(user: ResponseLoginDto, response: Response): Promise<Response> {
+  async logIn(
+    user: LoginDto,
+    response: Response,
+    redirect = false,
+  ): Promise<Response> {
     try {
       const check2fa = (await this.utilsService.findPlayersBy(
         `and`,
@@ -131,8 +132,7 @@ export class AuthService {
           requiresTwoFactor: true,
           message: '2FA required',
         });
-
-      return this.finalizeLogin(user, response);
+      return this.finalizeLogin(user, response, redirect);
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
       throw new UnauthorizedException('Login failed');
@@ -140,7 +140,7 @@ export class AuthService {
   }
 
   async logInTwoFactor(
-    user: ResponseLoginDto,
+    user: LoginDto,
     response: Response,
     data: TwoFactorDto,
   ): Promise<Response> {
@@ -148,16 +148,10 @@ export class AuthService {
       { userId: user.playerId },
       data.reply_code,
     );
-    return this.finalizeLogin(
-      {
-        identifier: user.identifier,
-        playerId: user.playerId,
-      },
-      response,
-    );
+    return this.finalizeLogin(user, response, data.redirect);
   }
 
-  renewAccessToken(user: ResponseLoginDto, response: Response): Response {
+  renewAccessToken(user: LoginDto, response: Response): Response {
     const accessExpirationMs = parseInt(
       process.env.JWT_ACCESS_TOKEN_EXPIRATION_MS,
     );

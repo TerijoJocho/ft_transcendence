@@ -96,10 +96,9 @@ export function updateProfile(data: {
 }
 
 //pour supp le compte
-export function deleteAccount(data: { password: string }) {
+export function deleteAccount() {
   return request("/api/users/delete", {
     method: "DELETE",
-    body: JSON.stringify(data),
   });
 }
 
