@@ -108,9 +108,10 @@ export class DoubleFactorService {
       ciphertextInDb: string;
     }>;
 
-    if (!ciphertext?.length)
-      throw new NotFoundException('2FA secret not found');
-
+  const row = ciphertext[0];
+  if (!row || typeof row.ciphertextInDb !== 'string' || row.ciphertextInDb.length === 0) 
+    throw new NotFoundException('2FA secret not found');
+  
     const { failedAttempts, lockUntil } = await this.getTwoFactorState(userId);
     const now = Date.now();
 
