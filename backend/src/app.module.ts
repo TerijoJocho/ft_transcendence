@@ -16,8 +16,6 @@ import { UsersModule } from './users/users.module';
     FriendshipModule,
     DoubleFactorModule,
     UsersModule,
-    DoubleFactorModule,
-    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
