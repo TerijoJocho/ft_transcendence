@@ -1,6 +1,6 @@
 {
-  "id": "d2e32de4-1576-4214-a6c6-31ab7cb8fa65",
-  "prevId": "f925a1fc-debd-4ef4-b90c-42f834f14dda",
+  "id": "c171e8dc-cc64-4fd6-b94c-0711bca159a7",
+  "prevId": "d2e32de4-1576-4214-a6c6-31ab7cb8fa65",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -376,6 +376,20 @@
           "notNull": true,
           "default": "now()"
         },
+        "twoFactorSecretCiphertext": {
+          "name": "twoFactorSecretCiphertext",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "twoFactorEnabled": {
+          "name": "twoFactorEnabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
         "avatarUrl": {
           "name": "avatarUrl",
           "type": "varchar",
@@ -407,6 +421,13 @@
           "nullsNotDistinct": false,
           "columns": [
             "playerName"
+          ]
+        },
+        "players_twoFactorSecretCiphertext_unique": {
+          "name": "players_twoFactorSecretCiphertext_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "twoFactorSecretCiphertext"
           ]
         }
       },

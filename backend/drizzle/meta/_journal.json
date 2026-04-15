@@ -39,29 +39,7 @@
     },
     {
       "idx": 5,
-<<<<<<< HEAD
-<<<<<<< HEAD
-      "version": "7",
-      "when": 1775668202164,
-      "tag": "0005_robust_nextwave",
-=======
       "version": "6",
-      "when": 1775208928412,
-      "tag": "0005_loving_the_fallen",
->>>>>>> 07d9f0b (fix: removed migration 7 from journal)
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "6",
-      "when": 1775756076706,
-      "tag": "0006_romantic_invaders",
-      "version": "7",
-      "when": 1775668202164,
-      "tag": "0005_robust_nextwave",
-=======
-      "version": "6",
->>>>>>> main
       "when": 1775208928412,
       "tag": "0005_loving_the_fallen",
       "breakpoints": true
@@ -83,8 +61,8 @@
     {
       "idx": 8,
       "version": "7",
-      "when": 1776102146818,
-      "tag": "0008_equal_slayback",
+      "when": 1776187187342,
+      "tag": "0008_pretty_black_crow",
       "breakpoints": true
     }
   ]
