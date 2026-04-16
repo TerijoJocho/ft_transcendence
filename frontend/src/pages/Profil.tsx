@@ -254,20 +254,22 @@ function Profil() {
         />
         <div className="w-full flex justify-between items-center">
           <div className="flex justify-content-center ml-2">
-            <div className="flex items-center gap-2">
-              <label htmlFor="double">
-                {`Double authentification (2FA): ${twoFactorEnabled ? "Activée" : "Desactivée"}`}
-              </label>
-              <input
-                type="checkbox"
-                name="double"
-                id="double"
-                checked={twoFactorEnabled}
-                onChange={(e) => handleChecked(e)}
-                className={`w-6 h-6 ${user.isGoogleUser ? "cursor-not-allowed" : ""}`}
-                disabled={user.isGoogleUser || isLoading}
-              />
-            </div>
+            {!user.isGoogleUser && 
+              <div className="flex items-center gap-2">
+                <label htmlFor="double">
+                  {`Double authentification (2FA): ${twoFactorEnabled ? "Activée" : "Desactivée"}`}
+                </label>
+                <input
+                  type="checkbox"
+                  name="double"
+                  id="double"
+                  checked={twoFactorEnabled}
+                  onChange={(e) => handleChecked(e)}
+                  className={`w-6 h-6 ${user.isGoogleUser ? "cursor-not-allowed" : ""}`}
+                  disabled={user.isGoogleUser || isLoading}
+                />
+              </div>
+            }
           </div>
           <button
             className="m-2 bg-red-600 text-white warning-hover hover:bg-white"
