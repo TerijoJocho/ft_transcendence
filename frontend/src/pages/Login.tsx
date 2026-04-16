@@ -8,6 +8,8 @@ import * as api from "../api/api.ts";
 function Login() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
   const [hasTouched, setHasTouched] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -24,17 +26,38 @@ function Login() {
     setErrorMessage(null);
 
     try {
-      const rawUser = await api.login({
-        identifier,
-        password,
-      });
+      if (requiresTwoFactor) {
+        if (!twoFactorCode.trim()) {
+          setErrorMessage("Code 2FA requis.");
+          return;
+        }
+        await api.login2fa({
+          identifier,
+          password,
+          reply_code: twoFactorCode.trim(),
+          redirect: false,
+        });
+      } else {
+        const rawUser = await api.login({
+          identifier,
+          password,
+        });
+        if ("requiresTwoFactor" in rawUser && rawUser.requiresTwoFactor) {
+          setRequiresTwoFactor(true);
+          setErrorMessage(null);
+          return;
+        }
+      }
       const fullUser = await api.me();
-      console.log("Utilisateur connecté: ", rawUser);
       loginAuth(fullUser);
       navigate("/dashboard");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erreur serveur";
-      setErrorMessage("Problème lors de la connexion, voir log.");
+      setErrorMessage(
+        requiresTwoFactor
+          ? "Code 2FA invalide ou expiré."
+          : "Problème lors de la connexion, voir log.",
+      );
       console.error(message);
     } finally {
       setLoading(false);
@@ -73,6 +96,22 @@ function Login() {
           onChange={(e) => setPassword(e.target.value)}
           className="input-style"
         />
+
+        {requiresTwoFactor && (
+          <>
+            <label htmlFor="twoFactorCode" className="label-style">
+              Code 2FA
+            </label>
+            <input
+              name="twoFactorCode"
+              type="text"
+              placeholder="123456"
+              value={twoFactorCode}
+              onChange={(e) => setTwoFactorCode(e.target.value)}
+              className="input-style"
+            />
+          </>
+        )}
         <div className="flex items-center">
           {hasTouched && password.length === 0 && (
             <span className="error-style">Champ requis</span>
@@ -90,15 +129,30 @@ function Login() {
 
         <button
           type="submit"
-          className={(!isFilledInput || loading) ? "disabled-button" : "button" }
-          disabled={(!isFilledInput || loading)}
-          aria-disabled={(!isFilledInput || loading)}
+          className={
+            !isFilledInput || loading || (requiresTwoFactor && !twoFactorCode)
+              ? "disabled-button"
+              : "button"
+          }
+          disabled={
+            !isFilledInput || loading || (requiresTwoFactor && !twoFactorCode)
+          }
+          aria-disabled={
+            !isFilledInput || loading || (requiresTwoFactor && !twoFactorCode)
+          }
         >
-          {loading ? "Connexion..." : "Se connecter"}
+          {loading
+            ? "Connexion..."
+            : requiresTwoFactor
+              ? "Valider la 2FA"
+              : "Se connecter"}
         </button>
       </form>
 
-      <button onClick={api.google} className="p-2 bg-white w-fit text-black rounded-lg mb-6 self-center hover:text-white hover:bg-black">
+      <button
+        onClick={api.google}
+        className="p-2 bg-white w-fit text-black rounded-lg mb-6 self-center hover:text-white hover:bg-black"
+      >
         Se connecter avec Google
       </button>
 

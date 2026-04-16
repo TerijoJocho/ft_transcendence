@@ -10,7 +10,7 @@ import { DoubleFactorService } from './double_factor.service';
 import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
 import { PassportJwtGuard } from 'src/auth/guards/passport-jwt.guard';
 import { deleteDoubleFactorDto } from './dto/deleteDoubleFactorDto';
-import { CreateDoubleFactorDto } from './dto/create-double_factor.dto';
+import { LogoutDto } from 'src/auth/dto/logout.dto';
 import { replyDoubleFactorDto } from './dto/replyDoubleFactorDto';
 
 @Controller('2FA')
@@ -25,10 +25,7 @@ export class DoubleFactorController {
 
   @Patch('active')
   @UseGuards(PassportJwtGuard)
-  update(
-    @CurrentUser() user: CreateDoubleFactorDto,
-    @Body() data: replyDoubleFactorDto,
-  ) {
+  update(@CurrentUser() user: LogoutDto, @Body() data: replyDoubleFactorDto) {
     return this.doubleFactorService.active2fa(
       { userId: user.playerId },
       data.reply_code,
@@ -37,10 +34,7 @@ export class DoubleFactorController {
 
   @Delete('delete')
   @UseGuards(PassportJwtGuard)
-  remove(
-    @CurrentUser() user: CreateDoubleFactorDto,
-    @Body() data: deleteDoubleFactorDto,
-  ) {
+  remove(@CurrentUser() user: LogoutDto, @Body() data: deleteDoubleFactorDto) {
     return this.doubleFactorService.remove(user.playerId, data);
   }
 }

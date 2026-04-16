@@ -1,4 +1,5 @@
 import {
+  BadGatewayException,
   Injectable,
   ConflictException,
   HttpException,
@@ -29,6 +30,26 @@ type VaultDecryptResponse = {
   };
 };
 
+type SpeakeasyGeneratedSecret = {
+  otpauth_url?: string;
+  base32?: string;
+};
+
+type SpeakeasyApi = {
+  generateSecret: (options: {
+    name: string;
+    length: number;
+  }) => SpeakeasyGeneratedSecret;
+  totp: {
+    verify: (options: {
+      secret: string;
+      encoding: 'base32';
+      token: string;
+      window: number;
+    }) => boolean;
+  };
+};
+
 /* reste a faire
   gerer l update, ajouter une colonne dans la db pour tocker le mdp crypter */
 
@@ -43,6 +64,19 @@ export class DoubleFactorService {
   private static readonly FAILED_ATTEMPTS_KEY_PREFIX =
     'twoFactor:failedAttempts:';
   private static readonly LOCK_UNTIL_KEY_PREFIX = 'twoFactor:lockUntil:';
+  private readonly speakeasyApi = speakeasy as unknown as SpeakeasyApi;
+
+  private extractVaultErrors(data: unknown): string[] | undefined {
+    if (!data || typeof data !== 'object' || !('errors' in data))
+      return undefined;
+
+    const rawErrors = data.errors;
+    if (!Array.isArray(rawErrors)) return undefined;
+
+    return rawErrors.filter(
+      (error): error is string => typeof error === 'string',
+    );
+  }
 
   private getFailedAttemptsKey(userId: number) {
     return `${DoubleFactorService.FAILED_ATTEMPTS_KEY_PREFIX}${userId}`;
@@ -54,6 +88,75 @@ export class DoubleFactorService {
 
   private getRedisClient() {
     return this.redisService.getClient();
+  }
+
+  private getVaultAddress(): string {
+    const rawVaultAddr = process.env.VAULT_ADDR;
+    if (!rawVaultAddr)
+      throw new InternalServerErrorException('VAULT_ADDR is not configured');
+
+    return rawVaultAddr.replace(/\/+$/, '');
+  }
+
+  private getVaultHttpsAgent(): https.Agent {
+    const caCertPath = process.env.VAULT_CACERT;
+    if (!caCertPath)
+      throw new InternalServerErrorException('VAULT_CACERT is not configured');
+
+    return new https.Agent({
+      ca: fs.readFileSync(caCertPath),
+      rejectUnauthorized: true,
+    });
+  }
+
+  private throwVaultRequestError(error: unknown, action: string): never {
+    if (!axios.isAxiosError(error)) {
+      throw new InternalServerErrorException(`Vault ${action} failed`);
+    }
+
+    const status = error.response?.status;
+    const vaultErrors = this.extractVaultErrors(error.response?.data);
+    const vaultMessage = Array.isArray(vaultErrors)
+      ? vaultErrors.join(', ')
+      : undefined;
+
+    if (status === 404) {
+      throw new BadGatewayException(
+        'Vault route not found. Ensure transit is enabled and key "totp-secrets" exists',
+      );
+    }
+
+    if (status === 401 || status === 403) {
+      throw new BadGatewayException(
+        'Vault token is invalid or lacks transit permissions',
+      );
+    }
+
+    throw new BadGatewayException(
+      vaultMessage ??
+        `Vault ${action} failed with status ${status ?? 'unknown'}`,
+    );
+  }
+
+  private async postToVault<TResponse>(
+    endpoint: string,
+    payload: Record<string, string>,
+    action: string,
+  ): Promise<TResponse> {
+    try {
+      const response = await axios.post<TResponse>(
+        `${this.getVaultAddress()}${endpoint}`,
+        payload,
+        {
+          headers: { 'X-Vault-Token': process.env.BACKEND_VAULT_TOKEN },
+          httpsAgent: this.getVaultHttpsAgent(),
+        },
+      );
+
+      return response.data;
+    } catch (error) {
+      this.throwVaultRequestError(error, action);
+    }
   }
 
   private async getTwoFactorState(userId: number) {
@@ -128,21 +231,13 @@ export class DoubleFactorService {
       );
     }
 
-    const httpsAgent = new https.Agent({
-      ca: fs.readFileSync(process.env.VAULT_CACERT),
-      rejectUnauthorized: true,
-    });
-
-    const response = await axios.post<VaultDecryptResponse>(
-      `${process.env.VAULT_ADDR}/v1/transit/decrypt/totp-secrets`,
+    const response = await this.postToVault<VaultDecryptResponse>(
+      '/v1/transit/decrypt/totp-secrets',
       { ciphertext: ciphertext[0].ciphertextInDb },
-      {
-        headers: { 'X-Vault-Token': process.env.BACKEND_VAULT_TOKEN },
-        httpsAgent,
-      },
+      'decrypt',
     );
 
-    const plaintextBase64 = response.data?.data?.plaintext;
+    const plaintextBase64 = response.data?.plaintext;
     if (!plaintextBase64)
       throw new InternalServerErrorException('Vault decrypt failed');
 
@@ -150,7 +245,7 @@ export class DoubleFactorService {
       'utf8',
     );
 
-    const match = speakeasy.totp.verify({
+    const match = this.speakeasyApi.totp.verify({
       secret: plaintextBase32,
       encoding: 'base32',
       token: reply_code,
@@ -196,7 +291,7 @@ export class DoubleFactorService {
       if (check2fa[0].twofa)
         throw new ConflictException('Two factor method is already active');
 
-      const secret = speakeasy.generateSecret({
+      const secret = this.speakeasyApi.generateSecret({
         name: 'Chess42',
         length: 20,
       });
@@ -210,21 +305,13 @@ export class DoubleFactorService {
         'base64',
       );
 
-      const httpsAgent = new https.Agent({
-        ca: fs.readFileSync(process.env.VAULT_CACERT),
-        rejectUnauthorized: true,
-      });
-
-      const encryptedResponse = await axios.post<VaultEncryptResponse>(
-        `${process.env.VAULT_ADDR}/v1/transit/encrypt/totp-secrets`,
+      const encryptedResponse = await this.postToVault<VaultEncryptResponse>(
+        '/v1/transit/encrypt/totp-secrets',
         { plaintext: plaintextBase64 },
-        {
-          headers: { 'X-Vault-Token': process.env.BACKEND_VAULT_TOKEN },
-          httpsAgent,
-        },
+        'encrypt',
       );
 
-      const ciphertext = encryptedResponse.data?.data?.ciphertext;
+      const ciphertext = encryptedResponse.data?.ciphertext;
       if (!ciphertext)
         throw new InternalServerErrorException(
           'Vault did not return ciphertext',
@@ -321,21 +408,13 @@ export class DoubleFactorService {
         );
       }
 
-      const httpsAgent = new https.Agent({
-        ca: fs.readFileSync(process.env.VAULT_CACERT),
-        rejectUnauthorized: true,
-      });
-
-      const response = await axios.post<VaultDecryptResponse>(
-        `${process.env.VAULT_ADDR}/v1/transit/decrypt/totp-secrets`,
+      const response = await this.postToVault<VaultDecryptResponse>(
+        '/v1/transit/decrypt/totp-secrets',
         { ciphertext: user.ciphertextInDb },
-        {
-          headers: { 'X-Vault-Token': process.env.BACKEND_VAULT_TOKEN },
-          httpsAgent,
-        },
+        'decrypt',
       );
 
-      const plaintextBase64 = response.data?.data?.plaintext;
+      const plaintextBase64 = response.data?.plaintext;
       if (!plaintextBase64)
         throw new InternalServerErrorException(
           'Vault decrypt returned empty plaintext',
@@ -344,7 +423,7 @@ export class DoubleFactorService {
         'utf8',
       );
 
-      const match = speakeasy.totp.verify({
+      const match = this.speakeasyApi.totp.verify({
         secret: plaintextBase32,
         encoding: 'base32',
         token: data.replyCode,

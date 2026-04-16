@@ -95,9 +95,9 @@ if [ "$initialized" != "true" ]; then
   fi
   vault write auth/approle/role/backend \
     token_policies="backend-policy" \
-    token_ttl="15m" \
-    token_max_ttl="1h" \
-    secret_id_ttl="24h" \
+    token_ttl="0" \
+    token_max_ttl="0" \
+    secret_id_ttl="0" \
     secret_id_num_uses=0
 
   vault read -format=json auth/approle/role/backend/role-id \
@@ -146,9 +146,9 @@ else
   fi
   vault write auth/approle/role/backend \
   token_policies="backend-policy" \
-  token_ttl="15m" \
-  token_max_ttl="1h" \
-  secret_id_ttl="24h" \
+  token_ttl="0" \
+  token_max_ttl="0" \
+  secret_id_ttl="0" \
   secret_id_num_uses=0
   if [ ! -f /vault/approle/backend_role_id ]; then
     vault read -format=json auth/approle/role/backend/role-id \
