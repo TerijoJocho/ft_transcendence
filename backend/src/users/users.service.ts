@@ -17,6 +17,7 @@ import {
 import { UpdateUserDto } from './dto/updateDto';
 import { RedisService } from 'src/shared/services/redis.service';
 import { Response } from 'express';
+import * as bcrypt from 'bcrypt';
 
 type UserStatsResponse = {
   id: number;
@@ -59,10 +60,13 @@ export class UsersService {
     let isGoogle = false;
     if (!pwd) isGoogle = true;
 
+    const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS ?? 12);
+    const hashedPassword = pwd ? await bcrypt.hash(pwd, saltRounds) : undefined;
+
     const currentPlayers: playerInsert = {
       playerName: gameName,
       mailAddress: mailAddress,
-      pwd: pwd || undefined,
+      pwd: hashedPassword || undefined,
       isGoogleUser: isGoogle,
     };
 
@@ -121,14 +125,17 @@ export class UsersService {
       .get('googleToken:' + playerId)) as string;
     if (googleToken) {
       try {
-        const revokeResponse = await fetch('https://oauth2.googleapis.com/revoke', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+        const revokeResponse = await fetch(
+          'https://oauth2.googleapis.com/revoke',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({ token: googleToken }),
           },
-          body: new URLSearchParams({ token: googleToken }),
-        });
-      if (!revokeResponse.ok) throw new Error('Google revoke failed.');
+        );
+        if (!revokeResponse.ok) throw new Error('Google revoke failed.');
       } catch (error) {
         throw new ServiceUnavailableException(
           error,
@@ -153,7 +160,7 @@ export class UsersService {
     try {
       const updatePayload: Partial<playerInsert> = {};
       updatePayload.playerName = userData.pseudo;
-
+      const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS ?? 12);
       const user = (
         await this.utilsService.findPlayersBy(
           'and',
@@ -166,11 +173,17 @@ export class UsersService {
         updatePayload.mailAddress = userData.email;
 
       if (userData.newPassword !== undefined && user.isGoogleUser === false) {
-        updatePayload.pwd = userData.newPassword;
+        const hashedPassword = await bcrypt.hash(
+          userData.newPassword,
+          saltRounds,
+        );
+        if (!hashedPassword)
+          throw new InternalServerErrorException('Error hashing password');
+        updatePayload.pwd = hashedPassword;
       }
-      if (userData.avatar !== undefined) {
+
+      if (userData.avatar !== undefined)
         updatePayload.avatarUrl = userData.avatar;
-      }
 
       const playerNameCheck = await this.utilsService.findPlayersBy(
         'and',
