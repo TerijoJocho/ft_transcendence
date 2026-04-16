@@ -81,6 +81,7 @@ export class UsersService {
         email: playerTable.mailAddress,
         avatarUrl: playerTable.avatarUrl,
         isGoogleUser: playerTable.isGoogleUser,
+        twoFactorEnabled: playerTable.twoFactorEnabled,
       },
       eq(playerTable.playerId, playerId),
     )) as playerSelect[];
