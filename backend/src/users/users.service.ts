@@ -174,13 +174,14 @@ export class UsersService {
         updatePayload.mailAddress = userData.email;
 
       if (userData.newPassword !== undefined && user.isGoogleUser === false) {
-        const hashedPassword = await bcrypt.hash(
-          userData.newPassword,
-          saltRounds,
-        );
-        if (!hashedPassword)
+        try {
+          updatePayload.pwd = await bcrypt.hash(
+            userData.newPassword,
+            saltRounds,
+          );
+        } catch {
           throw new InternalServerErrorException('Error hashing password');
-        updatePayload.pwd = hashedPassword;
+        }
       }
 
       if (userData.avatar !== undefined)
