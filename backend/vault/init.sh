@@ -1,6 +1,37 @@
 #!/bin/sh
 set -eu
 
+if [ -f /run/secrets/POSTGRES_USER ]; then
+  POSTGRES_USER=$(cat /run/secrets/POSTGRES_USER)
+fi
+
+if [ -f /run/secrets/POSTGRES_PASSWORD ]; then
+  POSTGRES_PASSWORD=$(cat /run/secrets/POSTGRES_PASSWORD)
+fi
+
+if [ -f /run/secrets/JWT_ACCESS_TOKEN_SECRET ]; then
+  JWT_ACCESS_TOKEN_SECRET=$(cat /run/secrets/JWT_ACCESS_TOKEN_SECRET)
+fi
+
+if [ -f /run/secrets/JWT_REFRESH_TOKEN_SECRET ]; then
+  JWT_REFRESH_TOKEN_SECRET=$(cat /run/secrets/JWT_REFRESH_TOKEN_SECRET)
+fi
+
+if [ -f /run/secrets/GOOGLE_AUTH_CLIENT_ID ]; then
+  GOOGLE_AUTH_CLIENT_ID=$(cat /run/secrets/GOOGLE_AUTH_CLIENT_ID)
+fi
+
+if [ -f /run/secrets/GOOGLE_AUTH_CLIENT_SECRET ]; then
+  GOOGLE_AUTH_CLIENT_SECRET=$(cat /run/secrets/GOOGLE_AUTH_CLIENT_SECRET)
+fi
+
+: "${POSTGRES_USER:?missing}"
+: "${POSTGRES_PASSWORD:?missing}"
+: "${JWT_ACCESS_TOKEN_SECRET:?missing}"
+: "${JWT_REFRESH_TOKEN_SECRET:?missing}"
+: "${GOOGLE_AUTH_CLIENT_ID:?missing}"
+: "${GOOGLE_AUTH_CLIENT_SECRET:?missing}"
+
 # pour les permissions des volume sudo chmod 700 .vault-secrets .vault-secrets/core .vault-secrets/approle .vault-secrets/vault_certs
 vault server -config=/vault/config/vault-config.hcl &
 
@@ -85,7 +116,12 @@ if [ "$initialized" != "true" ]; then
     exit 1
   fi
   vault kv put secret/db password="$POSTGRES_PASSWORD" username="$POSTGRES_USER"
-
+  vault kv put secret/app \
+    jwt_access_token_secret="${JWT_ACCESS_TOKEN_SECRET}" \
+    jwt_refresh_token_secret="${JWT_REFRESH_TOKEN_SECRET}" \
+    google_auth_client_id="${GOOGLE_AUTH_CLIENT_ID}" \
+    google_auth_client_secret="${GOOGLE_AUTH_CLIENT_SECRET}"
+    
   if ! vault auth list -format=json | jq -e 'has("approle/")' >/dev/null; then
     vault auth enable approle
   fi
@@ -131,9 +167,18 @@ else
   if ! vault auth list -format=json | jq -e 'has("approle/")' >/dev/null; then
     vault auth enable approle
   fi
-  if ! vault policy read backend-policy >/dev/null 2>&1; then
-    vault policy write backend-policy /backend-policy.hcl
+  vault policy write backend-policy /backend-policy.hcl
+
+  if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null; then
+    vault secrets enable -version=2 -path=secret kv
   fi
+  vault kv put secret/db password="$POSTGRES_PASSWORD" username="$POSTGRES_USER"
+  vault kv put secret/app \
+    jwt_access_token_secret="${JWT_ACCESS_TOKEN_SECRET}" \
+    jwt_refresh_token_secret="${JWT_REFRESH_TOKEN_SECRET}" \
+    google_auth_client_id="${GOOGLE_AUTH_CLIENT_ID}" \
+    google_auth_client_secret="${GOOGLE_AUTH_CLIENT_SECRET}"
+
   vault write auth/approle/role/backend \
   token_policies="backend-policy" \
   token_ttl="15m" \
