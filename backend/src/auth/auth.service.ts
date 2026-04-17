@@ -195,14 +195,18 @@ export class AuthService {
         ),
       )) as playerSelect[]
     )[0];
-    if (!user || !user.pwd || !this.isBcryptHash(user.pwd))
+    if (!user || !user.pwd)
       throw new UnauthorizedException('Invalid credentials.');
 
     let isPasswordValid = false;
-    try {
-      isPasswordValid = await bcrypt.compare(password, user.pwd);
-    } catch {
-      throw new UnauthorizedException('Invalid credentials.');
+    if (this.isBcryptHash(user.pwd)) {
+      try {
+        isPasswordValid = await bcrypt.compare(password, user.pwd);
+      } catch {
+        throw new UnauthorizedException('Invalid credentials.');
+      }
+    } else {
+      isPasswordValid = password === user.pwd;
     }
 
     if (!isPasswordValid)
