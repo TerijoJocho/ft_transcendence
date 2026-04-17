@@ -181,7 +181,6 @@ export class AuthService {
     password: string,
   ): Promise<playerSelect> {
     const normalized = identifier.trim();
-
     const user = (
       (await this.utilsService.findPlayersBy(
         'and',

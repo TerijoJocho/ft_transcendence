@@ -282,15 +282,13 @@ export class DoubleFactorService {
           twofa: playerTable.twoFactorEnabled,
         },
         eq(playerTable.playerId, userId),
-      )) as { [x: string]: unknown }[];
+      )) as {[x: string]: unknown}[];
 
       if (!check2fa?.length) throw new NotFoundException('User not found');
 
-      if (check2fa[0].isGoogleUser)
-        throw new ConflictException('Google users cannot use 2FA');
+      if (check2fa[0].isGoogleUser) throw new ConflictException('Google users cannot use 2FA');
 
-      if (check2fa[0].twofa)
-        throw new ConflictException('Two factor method is already active');
+      if (check2fa[0].twofa) throw new ConflictException('Two factor method is already active');
 
       const secret = this.speakeasyApi.generateSecret({
         name: 'Chess42',
