@@ -72,6 +72,10 @@ export const playerTable = pgTable(
       'pwd_required_for_non_google_users',
       sql`${table.isGoogleUser} = true OR ${table.pwd} IS NOT NULL`,
     ),
+    check(
+      'google_user_cannot_enable_2FA',
+      sql`${table.isGoogleUser} = false OR ${table.twoFactorEnabled} = false`,
+    ),
   ],
 );
 export type playerInsert = typeof playerTable.$inferInsert;
