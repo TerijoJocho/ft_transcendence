@@ -104,15 +104,26 @@ export class GameService {
 
   async joinGame(gameId: number, playerId: number) {
     //check if game exists and is pending
-    const gameRows: { [x: string]: unknown }[] | gameSelect[] =
+    const gameCheck: { [x: string]: unknown }[] | gameSelect[] =
       await this.utilsService.findGamesBy(
         'and',
         undefined,
         eq(gameTable.gameId, gameId),
         eq(gameTable.gameStatus, 'PENDING'),
       );
-    if (gameRows.length === 0)
+    if (gameCheck.length === 0)
       throw new NotFoundException('Game not found or already started.');
+    //check if player is already part of the game
+    const participationCheck:
+      | { [x: string]: unknown }[]
+      | participationSelect[] = await this.utilsService.findParticipationsBy(
+      'and',
+      undefined,
+      eq(participationTable.gameId, gameId),
+      eq(participationTable.playerId, playerId),
+    );
+    if (participationCheck.length > 0)
+      throw new ForbiddenException('Player is already part of this game.');
     //create new participation for second player
     let newGameDtoObject: NewGameDto;
     const participationRows: { [w: string]: any }[] =
@@ -325,21 +336,20 @@ export class GameService {
   }
 
   async getSession(gameId: number, playerId: number) {
-    const participationRows:
-      | { [x: string]: unknown }[]
-      | participationSelect[] = await this.utilsService.findParticipationsBy(
-      'and',
-      {
-        playerColor: participationTable.playerColor,
-      },
-      eq(participationTable.gameId, gameId),
-      eq(participationTable.playerId, playerId),
-    );
+    const participationRows: { [x: string]: unknown }[] =
+      await this.utilsService.findParticipationsBy(
+        'and',
+        {
+          playerColor: participationTable.playerColor,
+        },
+        eq(participationTable.gameId, gameId),
+        eq(participationTable.playerId, playerId),
+      );
 
     if (participationRows.length === 0)
       throw new ForbiddenException('Player is not part of this game.');
 
-    const gameRows: { [x: string]: unknown }[] | gameSelect[] =
+    const gameRows: { [x: string]: unknown }[] =
       await this.utilsService.findGamesBy(
         'and',
         {
@@ -360,6 +370,10 @@ export class GameService {
   }
 
   async listPendingGames(playerId: number) {
+    // const pendingGamesList: { [x: string]: unknown }[] =
+    //   await this.utilsService.getAllPendingGamesData(playerId);
+    // return pendingGamesList;
+
     type PendingGameRow = Pick<
       gameSelect,
       'gameId' | 'gameMode' | 'gameCreatedAt'
