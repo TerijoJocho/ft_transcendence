@@ -17,3 +17,4 @@ backend/vault/data
 !.vault-secrets/approle/.gitkeep
 !.vault-secrets/core/.gitkeep
 !.vault-secrets/vault_certs/.gitkeep
+secrets
