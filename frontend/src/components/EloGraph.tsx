@@ -57,7 +57,7 @@ const data = {
 
 export default function EloGraph() {
     return (
-        <section className="grid-style row-span-2 col-span-2 flex flex-col">
+        <section className="grid-style col-span-1 md:col-span-2 row-span-2 flex flex-col">
             <div className="border rounded-md m-2 p-1 flex-1">
                     <Line options={options} data={data} />
             </div>

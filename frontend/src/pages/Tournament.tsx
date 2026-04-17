@@ -2,7 +2,7 @@ import Header from "../components/Header.tsx";
 
 function Tournament() {
     return (
-        <div className="text-white border min-w-max">
+        <div className="text-white border w-full min-w-0">
             <Header 
                 title="Tournois disponible"
             />

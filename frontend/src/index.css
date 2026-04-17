@@ -24,7 +24,7 @@ html, body, #root {
 }
 
 .title-style {
-    @apply text-2xl tracking-widest font-medium mt-2 mb-8
+    @apply text-lg sm:text-2xl tracking-widest font-medium mt-2 mb-8
 }
 
 .input-style {

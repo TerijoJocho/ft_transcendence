@@ -35,9 +35,9 @@ function Friends() {
     <div className="border rounded-md bg-white text-black h-full">
       <Header title="Listes de vos relations" />
 
-      <section className="min-h-screen grid grid-cols-3 gap-4 m-3">
+      <section className="min-h-screen grid grid-cols-1 lg:grid-cols-3 gap-4 m-3">
         {/* colonne de gauche */}
-        <section className="border border-violet-300 max-h-screen overflow-y-auto">
+        <section className="border border-violet-300 h-auto lg:max-h-screen overflow-y-auto">
           <div className="sticky top-0 z-20 bg-white">
             {/* Titre */}
             <p className="p-2">Liste d'amis</p>
@@ -79,13 +79,13 @@ function Friends() {
         </section>
 
         {/* Recherche d'utilisateur */}
-        <section className="border border-gray-300 max-h-screen overflow-y-auto">
+        <section className="border border-gray-300 h-auto lg:max-h-screen overflow-y-auto">
           <p className="p-2 ">Ajouter de nouveaux amis</p>
           <AddFriend />
         </section>
 
         {/* Liste des utilisateurs en pending */}
-        <section className="border border-red-300 max-h-screen overflow-y-auto">
+        <section className="border border-red-300 h-auto lg:max-h-screen overflow-y-auto">
           <p className="p-2 ">Liste de demande d'amis</p>
           {
             filteredPendingList.map(f => {

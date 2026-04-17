@@ -5,7 +5,7 @@ export default function PrivateLayout() {
   return (
     <div className="flex min-h-screen">
       <SideBar />
-      <main className="flex-1 p-6 border">
+      <main className="flex-1 p-4 lg:p-6 border">
         <Outlet />
       </main>
     </div>

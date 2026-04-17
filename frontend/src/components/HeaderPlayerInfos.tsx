@@ -87,8 +87,8 @@ export default function HeaderPlayerInfos() {
     );
 
   return (
-    <header className="flex justify-end items-center m-2 relative text-[#141301]">
-      <p className="flex-1 title-style">Bienvenue sur ChessWar</p>
+    <header className="flex flex-col sm:flex-row justify-end items-start sm:items-center m-2 mt-7 relative text-[#141301] gap-2">
+      <p className="flex-1 title-style text-base sm:text-2xl">Bienvenue sur ChessWar</p>
       <div className="flex flex-col">
         <h3 className="text-sm self-end">
           {user.pseudo ? user.pseudo : "UserName"}

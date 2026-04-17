@@ -53,10 +53,10 @@ export default function Achievement() {
   });
 
   return (
-    <section className="grid-style col-span-1 row-span-1">
+    <section className="grid-style col-span-1">
       <h3>Réalisations</h3>
       <div className="border rounded-md m-2 p-1 bg-violet-100">
-        <ul className="max-h-48 overflow-scroll">{displayData}</ul>
+        <ul className="max-h-48 overflow-auto">{displayData}</ul>
       </div>
     </section>
   );

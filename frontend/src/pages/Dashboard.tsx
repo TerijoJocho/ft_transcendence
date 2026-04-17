@@ -11,7 +11,7 @@ function Dashboard() {
     return (
         <div className="border rounded-md bg-white text-black h-full">
             <HeaderPlayerInfos />
-            <section className="m-4 grid grid-cols-4 gap-6">
+            <section className="m-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatsCards />
                 <EloGraph />
                 <LastMatches />

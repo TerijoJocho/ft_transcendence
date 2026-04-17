@@ -79,15 +79,15 @@ export default function LeaderBoard() {
   });
 
   return (
-    <section className="grid-style col-span-2 row-span-1">
+    <section className="grid-style col-span-1 md:col-span-2">
       <h3>LeaderBoard</h3>
-      <div className="border rounded-md m-2 p-1 bg-violet-100">
+      <div className="border rounded-md m-2 p-1 bg-violet-100 overflow-x-auto">
         <div className="grid grid-cols-3 gap-4 border-b-2 border-black m-1 p-2 font-semibold">
-                    <p>Joueur</p>
-                    <p className="text-center">Rang</p>
-                    <p className="text-center">ELO</p>
-                </div>
-        <ul className="max-h-36 overflow-scroll">{displayData}</ul>
+          <p>Joueur</p>
+          <p className="text-center">Rang</p>
+          <p className="text-center">ELO</p>
+        </div>
+        <ul className="max-h-36 overflow-auto">{displayData}</ul>
       </div>
     </section>
   );
