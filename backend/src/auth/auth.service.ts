@@ -176,6 +176,10 @@ export class AuthService {
     return response.json(user);
   }
 
+  private isBcryptHash(value: string): boolean {
+    return /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(value);
+  }
+
   async verifyUser(
     identifier: string,
     password: string,
@@ -191,10 +195,16 @@ export class AuthService {
         ),
       )) as playerSelect[]
     )[0];
-    if (!user || !user.pwd)
+    if (!user || !user.pwd || !this.isBcryptHash(user.pwd))
       throw new UnauthorizedException('Invalid credentials.');
 
-    const isPasswordValid = await bcrypt.compare(password, user.pwd);
+    let isPasswordValid = false;
+    try {
+      isPasswordValid = await bcrypt.compare(password, user.pwd);
+    } catch {
+      throw new UnauthorizedException('Invalid credentials.');
+    }
+
     if (!isPasswordValid)
       throw new UnauthorizedException('Invalid credentials.');
     return user;
