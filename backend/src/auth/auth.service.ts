@@ -196,7 +196,7 @@ export class AuthService {
 
     const isPasswordValid = await bcrypt.compare(password, user.pwd);
     if (!isPasswordValid)
-      throw new UnauthorizedException('Error hash password');
+      throw new UnauthorizedException('Invalid credentials.');
     return user;
   }
 
