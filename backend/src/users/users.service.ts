@@ -121,14 +121,17 @@ export class UsersService {
       .get('googleToken:' + playerId)) as string;
     if (googleToken) {
       try {
-        const revokeResponse = await fetch('https://oauth2.googleapis.com/revoke', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+        const revokeResponse = await fetch(
+          'https://oauth2.googleapis.com/revoke',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({ token: googleToken }),
           },
-          body: new URLSearchParams({ token: googleToken }),
-        });
-      if (!revokeResponse.ok) throw new Error('Google revoke failed.');
+        );
+        if (!revokeResponse.ok) throw new Error('Google revoke failed.');
       } catch (error) {
         throw new ServiceUnavailableException(
           error,

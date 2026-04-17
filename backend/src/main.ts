@@ -14,13 +14,8 @@ import {
 
 function logBootstrapError(context: string, error: unknown): never {
   if (error instanceof HttpException) {
-    console.error(
-      context,
-      `status=${error.getStatus()}`,
-      error.message,
-    );
-  } else 
-    console.error(context, error instanceof Error ? error.message : error);
+    console.error(context, `status=${error.getStatus()}`, error.message);
+  } else console.error(context, error instanceof Error ? error.message : error);
   process.exit(1);
 }
 

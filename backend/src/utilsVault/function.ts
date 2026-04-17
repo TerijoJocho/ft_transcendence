@@ -1,7 +1,11 @@
 import fs from 'fs';
 import axios from 'axios';
 import https from 'https';
-import { HttpException, HttpStatus, InternalServerErrorException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  InternalServerErrorException,
+} from '@nestjs/common';
 
 type VaultAppRoleLoginResponse = {
   auth?: {
@@ -19,7 +23,7 @@ type VaultKvV2Response = {
   };
 };
 
-type VaultAppSecretsResponse  = {
+type VaultAppSecretsResponse = {
   data: {
     data: {
       jwt_access_token_secret: string;
@@ -28,7 +32,7 @@ type VaultAppSecretsResponse  = {
       google_auth_client_secret: string;
     };
   };
-}
+};
 
 export async function backTokenByApprole(
   httpsAgent: https.Agent,
@@ -90,7 +94,10 @@ export async function loadDbCredentialsFromVault(
     const dbPassword = vaultResponse.data.data.data.password;
 
     if (typeof dbUsername !== 'string' || typeof dbPassword !== 'string') {
-      throw new HttpException('Invalid Vault DB secret format', HttpStatus.CONFLICT);
+      throw new HttpException(
+        'Invalid Vault DB secret format',
+        HttpStatus.CONFLICT,
+      );
     }
 
     process.env.DB_USERNAME = dbUsername;
@@ -146,22 +153,30 @@ export async function loadAppSecretsFromVault(
       },
     );
 
-    const jwt_access_token_secret = vaultResponse.data.data.data.jwt_access_token_secret;
-    const jwt_refresh_token_secret =  vaultResponse.data.data.data.jwt_refresh_token_secret;
-    const google_auth_client_id = vaultResponse.data.data.data.google_auth_client_id;
-    const google_auth_client_secret = vaultResponse.data.data.data.google_auth_client_secret;
-    
-    if (typeof jwt_access_token_secret !== 'string' 
-      || typeof jwt_refresh_token_secret !== 'string' 
-      || typeof google_auth_client_id !== 'string' 
-      ||  typeof google_auth_client_secret !== 'string') 
-      throw new HttpException('Invalid Vault app secret format', HttpStatus.CONFLICT);
+    const jwt_access_token_secret =
+      vaultResponse.data.data.data.jwt_access_token_secret;
+    const jwt_refresh_token_secret =
+      vaultResponse.data.data.data.jwt_refresh_token_secret;
+    const google_auth_client_id =
+      vaultResponse.data.data.data.google_auth_client_id;
+    const google_auth_client_secret =
+      vaultResponse.data.data.data.google_auth_client_secret;
+
+    if (
+      typeof jwt_access_token_secret !== 'string' ||
+      typeof jwt_refresh_token_secret !== 'string' ||
+      typeof google_auth_client_id !== 'string' ||
+      typeof google_auth_client_secret !== 'string'
+    )
+      throw new HttpException(
+        'Invalid Vault app secret format',
+        HttpStatus.CONFLICT,
+      );
 
     process.env.JWT_ACCESS_TOKEN_SECRET = jwt_access_token_secret;
     process.env.JWT_REFRESH_TOKEN_SECRET = jwt_refresh_token_secret;
     process.env.GOOGLE_AUTH_CLIENT_ID = google_auth_client_id;
     process.env.GOOGLE_AUTH_CLIENT_SECRET = google_auth_client_secret;
-
   } catch (error) {
     if (error instanceof HttpException) throw error;
     throw new InternalServerErrorException(
@@ -169,4 +184,3 @@ export async function loadAppSecretsFromVault(
     );
   }
 }
-
