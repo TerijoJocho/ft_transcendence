@@ -1,0 +1,1 @@
+ALTER TABLE "players" ADD CONSTRAINT "google_user_cannot_enable_2FA" CHECK ("players"."isGoogleUser" = false OR "players"."twoFactorEnabled" = false);

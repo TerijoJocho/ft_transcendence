@@ -6,10 +6,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/useAuth.ts";
 import * as api from "../api/api.ts";
 import { isValidMail } from "../utils/isValidMail.ts";
+import { QRCodeSVG } from "qrcode.react";
+import { Link } from "react-router-dom";
+
 
 function Profil() {
-  const { user } = useAuth();
+  const { user, login: setAuthUser } = useAuth();
 
+  const [otpauthUrl, setOtpauthUrl] = useState<string | null>(null);
   const [form, setForm] = useState({
     id: user.id,
     pseudo: user.pseudo,
@@ -36,13 +40,19 @@ function Profil() {
   const [deleteInput, setDeleteInput] = useState<string>("");
   const CONFIRM_PHRASE = `Je confirme vouloir supprimer mon compte: ${user.pseudo}`;
   const [wantToDelete, setWantToDelete] = useState<boolean>(false);
-  const [checked, setChecked] = useState(false);
+  const [twoFactorOverride, setTwoFactorOverride] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [remove2FA, setRemove2FA] = useState<boolean>(false);
+  const [password, setPassword] = useState<string | null>(null);
+  const [code, setCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (!feedback) return;
     const timer = setTimeout(() => setFeedback(null), 3000);
     return () => clearTimeout(timer);
   }, [feedback]);
+
+  const twoFactorEnabled = twoFactorOverride ?? user.twoFactorEnabled;
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -133,6 +143,98 @@ function Profil() {
       .finally(() => (setWantToDelete(false), setDeleteInput("")));
   }
 
+  function handleChecked(e: React.ChangeEvent<HTMLInputElement>) {
+    setFeedback({ message: "Chargement", type: "pending" });
+    const nextChecked = e.currentTarget.checked;
+
+    if (nextChecked) {
+      setIsLoading(true);
+      api
+        .generate2FA()
+        .then((data: { otpauthUrl: string }) => {
+          setOtpauthUrl(data.otpauthUrl);
+          setFeedback({
+            message: `QR genere, entrez le code pour activer la 2FA`,
+            type: "success",
+          });
+        })
+        .catch((e) =>
+          setFeedback({
+            message: e instanceof Error ? e.message : String(e),
+            type: "error",
+          }),
+        )
+        .finally(() => setIsLoading(false));
+    } else setRemove2FA(true);
+  }
+
+  function handleRemove2FA() {
+    if (!password || password.length <= 0) {
+      setFeedback({
+        message: "Veuillez rentrer votre mot de passe",
+        type: "error",
+      });
+      return;
+    }
+
+    if (!code || code.length <= 0) {
+      setFeedback({
+        message: "Veuillez rentrer le code à 6 chiffres",
+        type: "error",
+      });
+      return;
+    }
+
+    api
+      .delete2FA({ pwd: password, replyCode: code })
+      .then(async () => {
+        setTwoFactorOverride(false);
+        const refreshedUser = await api.me();
+        setAuthUser(refreshedUser);
+        setTwoFactorOverride(null);
+        setFeedback({
+          message: "La double authentification a été désactivée",
+          type: "success",
+        });
+      })
+      .catch((e) =>
+        setFeedback({
+          message: e instanceof Error ? e.message : String(e),
+          type: "error",
+        }),
+      )
+      .finally(() => {
+        setIsLoading(false);
+        setRemove2FA(false);
+        setPassword("");
+        setCode(null);
+      });
+  }
+
+  function handleActivate() {
+    if (!code || code.trim().length === 0) {
+      setFeedback({ message: "Veuillez entrer le code", type: "error" });
+      return;
+    }
+    api
+      .activate2FA({ reply_code: code })
+      .then(async () => {
+        setTwoFactorOverride(true);
+        const refreshedUser = await api.me();
+        setAuthUser(refreshedUser);
+        setTwoFactorOverride(null);
+        setFeedback({ message: "2FA activée avec succès", type: "success" });
+        setCode("");
+        setOtpauthUrl(null);
+      })
+      .catch((e) =>
+        setFeedback({
+          message: e instanceof Error ? e.message : String(e),
+          type: "error",
+        }),
+      );
+  }
+
   const isPasswordChange =
     form.newPassword.length > 0 || form.confirmNewPassword.length > 0;
   const isPasswordValid =
@@ -153,20 +255,23 @@ function Profil() {
           user={user}
         />
         <div className="w-full flex justify-between items-center">
-          <div className="card flex justify-content-center">
-            <div className="flex items-center gap-2">
-              <label htmlFor="2FA">
-                {`${checked ? "Desactiver" : "Activer"} la double authentification (2FA)`}
-              </label>
-              <input
-                type="checkbox"
-                name="double"
-                id="double"
-                checked={checked}
-                onChange={(e) => setChecked(e.currentTarget.checked)}
-                className="w-6 h-6"
-              />
-            </div>
+          <div className="flex justify-content-center ml-2">
+            {!user.isGoogleUser && 
+              <div className="flex items-center gap-2">
+                <label htmlFor="double">
+                  {`Double authentification (2FA): ${twoFactorEnabled ? "Activée" : "Desactivée"}`}
+                </label>
+                <input
+                  type="checkbox"
+                  name="double"
+                  id="double"
+                  checked={twoFactorEnabled}
+                  onChange={(e) => handleChecked(e)}
+                  className={`w-6 h-6 ${user.isGoogleUser ? "cursor-not-allowed" : ""}`}
+                  disabled={user.isGoogleUser || isLoading}
+                />
+              </div>
+            }
           </div>
           <button
             className="m-2 bg-red-600 text-white warning-hover hover:bg-white"
@@ -191,6 +296,104 @@ function Profil() {
           CONFIRM_PHRASE={CONFIRM_PHRASE}
           handleDelete={handleDelete}
         />
+      )}
+      {otpauthUrl && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50">
+          <div className="bg-white p-6 rounded-xl shadow-xl flex flex-col items-center gap-4 w-[90%] max-w-sm">
+            <h2 className="text-lg font-semibold text-black">
+              Scannez ce QR code
+            </h2>
+
+            <div className="w-full flex justify-center">
+              <QRCodeSVG
+                value={otpauthUrl}
+                className="w-full h-auto max-w-[220px]"
+              />
+            </div>
+
+            <p className="text-sm text-gray-500 text-center">
+              Utilise 
+              <Link to={"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&pcampaignid=web_share"} className="underline hover:text-violet-400"> Google Authenticator </Link>
+               ou
+              <Link to={"https://www.authy.com"} className="underline hover:text-violet-400"> Authy </Link>
+            </p>
+
+            <label className="text-sm text-gray-500 text-center">
+              Ensuite rentrez le code à 6 chiffres ici:
+            </label>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                name="2FAcode"
+                id="2FAcode"
+                className="border rounded-md"
+                onChange={(e) => setCode(e.currentTarget.value)}
+              />
+              <button
+                className="px-1 py-2 bg-black text-white rounded-lg"
+                onClick={handleActivate}
+              >
+                Envoyer
+              </button>
+            </div>
+
+            <button
+              className="px-4 py-2 bg-black text-white rounded-lg"
+              onClick={() => setOtpauthUrl(null)}
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
+      {remove2FA && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50">
+          <div className="bg-white p-6 rounded-xl shadow-xl flex flex-col items-center gap-4 w-[90%] max-w-sm">
+            <h2 className="text-lg font-semibold text-black">
+              Pour désactiver la double authentification
+            </h2>
+
+            <label className="text-sm text-gray-500 text-center">
+              Entrez votre mot de passe:
+            </label>
+            <input
+              type="password"
+              name="password"
+              id="paswword"
+              className="border rounded-md"
+              onChange={(e) => setPassword(e.currentTarget.value)}
+            />
+
+            <label className="text-sm text-gray-500 text-center">
+              Entrez le code à 6 chiffres:
+            </label>
+            <input
+              type="text"
+              name="2FAcode"
+              id="2FAcode"
+              className="border rounded-md"
+              onChange={(e) => setCode(e.currentTarget.value)}
+            />
+
+            <button
+              className="px-4 py-2 bg-black text-white rounded-lg"
+              onClick={() => handleRemove2FA()}
+            >
+              Confirmer
+            </button>
+
+            <button
+              className="px-4 py-2 bg-black text-white rounded-lg"
+              onClick={() => {
+                setPassword("");
+                setCode(null);
+                setRemove2FA(false);
+              }}
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
