@@ -34,7 +34,10 @@ export default function SideBar() {
       {/* Bouton hamburger sur mobile */}
       <button
         className={`lg:hidden fixed top-4 left-4 z-50 bg-gray-700 text-white p-2 rounded ${!isSmallMenu && isMobileOpen && 'hidden'}`}
-        onClick={() => {setIsMobileOpen(true), setIsSmallMenu(false)}}
+        onClick={() => {
+          setIsMobileOpen(true);
+          setIsSmallMenu(false);
+        }}
       >
         <FontAwesomeIcon icon={faBars} />
       </button>
