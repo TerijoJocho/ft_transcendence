@@ -50,30 +50,34 @@ export default function ProfileInfos({form, handleChange, handleSubmit, user}: P
             {
                 !canNotWrite &&
                     <>
-                        <div className="flex flex-col border rounded-md p-4">
-                            <label htmlFor="password" className="text-violet-300 mb-2">Nouveau mot de passe</label>
-                            <input 
-                                type="password" 
-                                id="password" 
-                                disabled={user.isGoogleUser ?  true : canNotWrite}  
-                                className={`input-style border-b border-b-violet-300 ${user.isGoogleUser ? "cursor-not-allowed" : ""}`}
-                                value={form.newPassword}
-                                name="newPassword"
-                                onChange={(e) => handleChange(e)}
-                            />
-                        </div>
-                        <div className="flex flex-col border rounded-md p-4">
-                            <label htmlFor="confirmPassword" className="text-violet-300 mb-2">Confirmer le nouveau mot de passe</label>
-                            <input 
-                                type="password" 
-                                id="confirmPassword" 
-                                disabled={user.isGoogleUser ?  true : canNotWrite} 
-                                className={`input-style border-b border-b-violet-300 ${user.isGoogleUser ? "cursor-not-allowed" : ""}`}
-                                value={form.confirmNewPassword}
-                                name="confirmNewPassword"
-                                onChange={(e) => handleChange(e)}
-                            />
-                        </div>
+                        {!user.isGoogleUser &&
+                            <>
+                                <div className="flex flex-col border rounded-md p-4">
+                                    <label htmlFor="password" className="text-violet-300 mb-2">Nouveau mot de passe</label>
+                                    <input 
+                                        type="password" 
+                                        id="password" 
+                                        disabled={canNotWrite}  
+                                        className="input-style border-b border-b-violet-300"
+                                        value={form.newPassword}
+                                        name="newPassword"
+                                        onChange={(e) => handleChange(e)}
+                                    />
+                                </div>
+                                <div className="flex flex-col border rounded-md p-4">
+                                    <label htmlFor="confirmPassword" className="text-violet-300 mb-2">Confirmer le nouveau mot de passe</label>
+                                    <input 
+                                        type="password" 
+                                        id="confirmPassword" 
+                                        disabled={canNotWrite} 
+                                        className={`input-style border-b border-b-violet-300`}
+                                        value={form.confirmNewPassword}
+                                        name="confirmNewPassword"
+                                        onChange={(e) => handleChange(e)}
+                                    />
+                                </div>
+                            </>
+                        }
                         <div className="flex flex-col border rounded-md p-4">
                             <label htmlFor="avatarUrl" className="text-violet-300 mb-2">Nouvel avatar (url https)</label>
                             <input 

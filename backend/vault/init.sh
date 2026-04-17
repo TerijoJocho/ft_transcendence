@@ -80,6 +80,10 @@ if [ "$initialized" != "true" ]; then
   if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null; then
     vault secrets enable -version=2 -path=secret kv
   fi
+  if ! vault secrets list -format=json | jq -e 'has("transit/")' >/dev/null; then
+    vault secrets enable transit
+  fi
+  vault write -f transit/keys/totp-secrets
   if [ -z "${POSTGRES_PASSWORD:-}" ] || [ -z "${POSTGRES_USER:-}" ]; then
     echo "Error: POSTGRES_USER and POSTGRES_PASSWORD must be set and non-empty before storing database credentials in Vault."
     exit 1
@@ -91,9 +95,9 @@ if [ "$initialized" != "true" ]; then
   fi
   vault write auth/approle/role/backend \
     token_policies="backend-policy" \
-    token_ttl="15m" \
-    token_max_ttl="1h" \
-    secret_id_ttl="24h" \
+    token_ttl="0" \
+    token_max_ttl="0" \
+    secret_id_ttl="0" \
     secret_id_num_uses=0
 
   vault read -format=json auth/approle/role/backend/role-id \
@@ -134,11 +138,17 @@ else
   if ! vault policy read backend-policy >/dev/null 2>&1; then
     vault policy write backend-policy /backend-policy.hcl
   fi
+  if ! vault secrets list -format=json | jq -e 'has("transit/")' >/dev/null; then
+    vault secrets enable transit
+  fi
+  if ! vault read transit/keys/totp-secrets >/dev/null 2>&1; then
+    vault write -f transit/keys/totp-secrets
+  fi
   vault write auth/approle/role/backend \
   token_policies="backend-policy" \
-  token_ttl="15m" \
-  token_max_ttl="1h" \
-  secret_id_ttl="24h" \
+  token_ttl="0" \
+  token_max_ttl="0" \
+  secret_id_ttl="0" \
   secret_id_num_uses=0
   if [ ! -f /vault/approle/backend_role_id ]; then
     vault read -format=json auth/approle/role/backend/role-id \

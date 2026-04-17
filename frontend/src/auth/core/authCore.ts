@@ -9,6 +9,7 @@ export type User = {
   status: string;//a supp
   avatarUrl: string;
   isGoogleUser: boolean;
+  twoFactorEnabled: boolean;
 };
 
 export type AuthContextType = {

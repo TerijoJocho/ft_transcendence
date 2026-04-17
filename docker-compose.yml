@@ -1,4 +1,6 @@
-# cmd pour lancer en dev: docker compose --profile dev up -d
+# cmd pour lancer en dev: docker compose --profile dev up -d --build
+# cmd pour push les migrations dans la db: docker compose exec backend npx drizzle-kit migrate
+
 services:
   # -----------------------------
   # Base de données (PostgreSQL)
@@ -70,6 +72,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - vault
     networks: [internal]
     # Command pour le dev (hot reload)
     command: npm run start:dev

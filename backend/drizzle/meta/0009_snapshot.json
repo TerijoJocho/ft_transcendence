@@ -1,6 +1,6 @@
 {
-  "id": "c171e8dc-cc64-4fd6-b94c-0711bca159a7",
-  "prevId": "d2e32de4-1576-4214-a6c6-31ab7cb8fa65",
+  "id": "93de611c-92fd-404f-8097-ccdb82253146",
+  "prevId": "c171e8dc-cc64-4fd6-b94c-0711bca159a7",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -436,6 +436,10 @@
         "pwd_required_for_non_google_users": {
           "name": "pwd_required_for_non_google_users",
           "value": "\"players\".\"isGoogleUser\" = true OR \"players\".\"pwd\" IS NOT NULL"
+        },
+        "google_user_cannot_enable_2FA": {
+          "name": "google_user_cannot_enable_2FA",
+          "value": "\"players\".\"isGoogleUser\" = false OR \"players\".\"twoFactorEnabled\" = false"
         }
       },
       "isRLSEnabled": false
