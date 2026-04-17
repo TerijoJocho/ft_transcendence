@@ -7,6 +7,8 @@ import { useAuth } from "../auth/useAuth.ts";
 import * as api from "../api/api.ts";
 import { isValidMail } from "../utils/isValidMail.ts";
 import { QRCodeSVG } from "qrcode.react";
+import { Link } from "react-router-dom";
+
 
 function Profil() {
   const { user, login: setAuthUser } = useAuth();
@@ -308,6 +310,13 @@ function Profil() {
                 className="w-full h-auto max-w-[220px]"
               />
             </div>
+
+            <p className="text-sm text-gray-500 text-center">
+              Utilise 
+              <Link to={"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&pcampaignid=web_share"} className="underline hover:text-violet-400"> Google Authenticator </Link>
+               ou
+              <Link to={"https://www.authy.com"} className="underline hover:text-violet-400"> Authy </Link>
+            </p>
 
             <label className="text-sm text-gray-500 text-center">
               Ensuite rentrez le code à 6 chiffres ici:
