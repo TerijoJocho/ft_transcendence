@@ -6,6 +6,7 @@ import {
   ParseIntPipe,
   Param,
   Delete,
+  Get,
 } from '@nestjs/common';
 import { PassportJwtGuard } from 'src/auth/guards/passport-jwt.guard';
 import { NewGameDto } from './dto/new-game.dto';
@@ -50,6 +51,21 @@ export class GameController {
     @Param('gameId', ParseIntPipe) gameId: number,
   ) {
     return this.gameService.giveupGame(gameId, user.playerId);
+  }
+
+  @Get('pending')
+  @UseGuards(PassportJwtGuard)
+  pending(@CurrentUser() user: LogoutDto) {
+    return this.gameService.listPendingGames(user.playerId);
+  }
+
+  @Get(':gameId/session')
+  @UseGuards(PassportJwtGuard)
+  session(
+    @CurrentUser() user: LogoutDto,
+    @Param('gameId', ParseIntPipe) gameId: number,
+  ) {
+    return this.gameService.getSession(gameId, user.playerId);
   }
 
   @Delete(':gameId/cancel')

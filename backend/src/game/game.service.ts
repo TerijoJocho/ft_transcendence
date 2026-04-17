@@ -89,6 +89,7 @@ export class GameService {
           createdNewGame.gameId,
         ),
       );
+      return { gameId: createdNewGame.gameId };
     } catch {
       await this.utilsService.deleteGamesBy(
         'and',
@@ -321,6 +322,103 @@ export class GameService {
         'Cannot update players participation.',
       );
     }
+  }
+
+  async getSession(gameId: number, playerId: number) {
+    const participationRows:
+      | { [x: string]: unknown }[]
+      | participationSelect[] = await this.utilsService.findParticipationsBy(
+      'and',
+      {
+        playerColor: participationTable.playerColor,
+      },
+      eq(participationTable.gameId, gameId),
+      eq(participationTable.playerId, playerId),
+    );
+
+    if (participationRows.length === 0)
+      throw new ForbiddenException('Player is not part of this game.');
+
+    const gameRows: { [x: string]: unknown }[] | gameSelect[] =
+      await this.utilsService.findGamesBy(
+        'and',
+        {
+          gameStatus: gameTable.gameStatus,
+          gameMode: gameTable.gameMode,
+        },
+        eq(gameTable.gameId, gameId),
+      );
+
+    if (gameRows.length === 0) throw new NotFoundException('Game not found.');
+
+    return {
+      gameId,
+      playerColor: participationRows[0].playerColor,
+      gameStatus: gameRows[0].gameStatus,
+      gameMode: gameRows[0].gameMode,
+    };
+  }
+
+  async listPendingGames(playerId: number) {
+    type PendingGameRow = Pick<
+      gameSelect,
+      'gameId' | 'gameMode' | 'gameCreatedAt'
+    >;
+    type PendingCreatorRow = Pick<
+      participationSelect,
+      'playerId' | 'playerColor'
+    >;
+    type PendingGameResponse = {
+      gameId: number;
+      gameMode: gameSelect['gameMode'];
+      gameCreatedAt: Date;
+      creatorId: number;
+      creatorColor: participationSelect['playerColor'];
+      createdByCurrentUser: boolean;
+    };
+
+    const pendingGames = (await this.utilsService.findGamesBy(
+      'and',
+      {
+        gameId: gameTable.gameId,
+        gameMode: gameTable.gameMode,
+        gameCreatedAt: gameTable.gameCreatedAt,
+      },
+      eq(gameTable.gameStatus, 'PENDING'),
+    )) as PendingGameRow[];
+
+    const gamesWithCreator = await Promise.all(
+      pendingGames.map(async (game): Promise<PendingGameResponse | null> => {
+        const participationRows = (await this.utilsService.findParticipationsBy(
+          'and',
+          {
+            playerId: participationTable.playerId,
+            playerColor: participationTable.playerColor,
+          },
+          eq(participationTable.gameId, game.gameId),
+        )) as PendingCreatorRow[];
+
+        const creator = participationRows[0];
+        if (!creator) return null;
+
+        return {
+          gameId: game.gameId,
+          gameMode: game.gameMode,
+          gameCreatedAt: game.gameCreatedAt,
+          creatorId: creator.playerId,
+          creatorColor: creator.playerColor,
+          createdByCurrentUser: creator.playerId === playerId,
+        };
+      }),
+    );
+
+    return gamesWithCreator
+      .filter((game): game is PendingGameResponse => game !== null)
+      .sort(
+        (a, b) =>
+          new Date(a.gameCreatedAt).getTime() -
+          new Date(b.gameCreatedAt).getTime(),
+      );
   }
 
   async cancelGame(gameId: number, playerId: number) {

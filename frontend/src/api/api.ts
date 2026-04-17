@@ -1,7 +1,9 @@
-const API_URL = "https://localhost";
+import { io, Socket } from "socket.io-client";
 import type { User } from "../auth/core/authCore.ts";
 import type { Friends } from "../hooks/useFriends.ts";
 import type { SearchUserResult } from "../components/AddFriends.tsx";
+
+const API_URL = window.location.origin;
 
 async function request(
   endpoint: string,
@@ -152,4 +154,97 @@ export function searchUser(data: {
 // Lance le flux OAuth Google via une navigation complète du navigateur.
 export function google() {
   window.location.assign(`${API_URL}/api/auth/google`);
+}
+
+export function createGame(data: { playerColor: "BLACK" | "WHITE"; gameMode: "CLASSIC" | "BLITZ" | "BULLET" }) {
+  return request("/api/game/create", {
+    method: "POST",
+    body: JSON.stringify(data),
+  }) as Promise<{ gameId: number }>;
+}
+
+export function joinGame(gameId: number) {
+  return request(`/api/game/${gameId}/join`, {
+    method: "POST",
+  });
+}
+
+export function getGameSession(gameId: number) {
+  return request(`/api/game/${gameId}/session`, {
+    method: "GET",
+  }) as Promise<{
+    gameId: number;
+    playerColor: "WHITE" | "BLACK";
+    gameStatus: "PENDING" | "ONGOING" | "COMPLETED";
+    gameMode: "CLASSIC" | "BLITZ" | "BULLET";
+  }>;
+}
+
+export function getPendingGames() {
+  return request("/api/game/pending", {
+    method: "GET",
+  }) as Promise<
+    Array<{
+      gameId: number;
+      gameMode: "CLASSIC" | "BLITZ" | "BULLET";
+      gameCreatedAt: string;
+      creatorId: number;
+      creatorColor: "WHITE" | "BLACK";
+      createdByCurrentUser: boolean;
+    }>
+  >;
+}
+
+export function endGame(
+  gameId: number,
+  data: {
+    totalNbMoves: number;
+    winnerNbMoves: number;
+    gameResult: "WIN" | "DRAW";
+    winnerColor?: "WHITE" | "BLACK";
+  },
+) {
+  return request(`/api/game/${gameId}/end`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function resignGame(gameId: number) {
+  return request(`/api/game/${gameId}/giveup`, {
+    method: "POST",
+  });
+}
+
+export type GameStateSnapshot = {
+  gameId: number;
+  board: string[][];
+  turn: "white" | "black";
+  moved: Record<string, boolean>;
+  ep: { row: number; col: number } | null;
+  halfmove: number;
+  history: string[];
+  gameOver: boolean;
+  status: string;
+  lastMove: number[] | null;
+  whiteTime: number | null;
+  blackTime: number | null;
+  clockStarted: boolean;
+  gameResult: { winner: string; reason: string } | null;
+};
+
+export function connectGameSocket(): Socket {
+  return io(`${API_URL}/game`, {
+    path: "/socket.io/",
+    withCredentials: true,
+    transports: ["websocket"],
+  });
+}
+
+export function connectChatSocket(): Socket {
+  return io(`${API_URL}/chat`, {
+    path: "/socket.io/",
+    withCredentials: true,
+    transports: ["websocket"],
+  });
 }

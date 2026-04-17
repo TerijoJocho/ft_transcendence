@@ -17,6 +17,8 @@ import Tournament from "./pages/Tournament.tsx";
 import Chat from "./pages/Chat.tsx";
 import Profil from "./pages/Profil.tsx";
 import Friends from "./pages/Friends.tsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
+import TermsOfService from "./pages/TermsOfService.tsx";
 
 function App() {
   // on récupère les fonctions login/clearAuth du contexte
@@ -41,6 +43,11 @@ function App() {
     <div className="min-h-screen bg-[#DCE1E9]">
       <Routes>
         {/* Routes publiques */}
+        <Route element={<PublicLayout />}>
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+        </Route>
+
         <Route
           element={
             <PublicRoute>
@@ -51,7 +58,6 @@ function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignIn />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
         </Route>
 
         {/* Routes privées */}
@@ -70,6 +76,8 @@ function App() {
           <Route path="/profil" element={<Profil />} />
           <Route path="/friends" element={<Friends />} />
         </Route>
+
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </div>
   );

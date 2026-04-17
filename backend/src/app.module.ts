@@ -6,6 +6,7 @@ import { SharedModule } from './shared/shared.module';
 import { GameModule } from './game/game.module';
 import { FriendshipModule } from './friendship/friendship.module';
 import { UsersModule } from './users/users.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { UsersModule } from './users/users.module';
     GameModule,
     FriendshipModule,
     UsersModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
