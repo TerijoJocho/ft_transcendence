@@ -13,3 +13,11 @@ path "secret/data/auth" {
 path "secret/data/redis" {
   capabilities = ["read"]
 }
+
+path "transit/encrypt/totp-secrets" {
+  capabilities = ["update"]
+}
+
+path "transit/decrypt/totp-secrets" {
+  capabilities = ["update"]
+}

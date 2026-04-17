@@ -3,6 +3,13 @@ import type { User } from "../auth/core/authCore.ts";
 import type { Friends } from "../hooks/useFriends.ts";
 import type { SearchUserResult } from "../components/AddFriends.tsx";
 
+export type LoginResponse =
+  | User
+  | {
+      requiresTwoFactor: true;
+      message: string;
+    };
+
 async function request(
   endpoint: string,
   options: RequestInit = {},
@@ -35,8 +42,20 @@ async function request(
 export function login(data: {
   identifier: string;
   password: string;
-}): Promise<User> {
+}): Promise<LoginResponse> {
   return request("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function login2fa(data: {
+  identifier: string;
+  password: string;
+  reply_code: string;
+  redirect: boolean;
+}): Promise<User> {
+  return request("/api/auth/login2fa", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -152,4 +171,28 @@ export function searchUser(data: {
 // Lance le flux OAuth Google via une navigation complète du navigateur.
 export function google() {
   window.location.assign(`${API_URL}/api/auth/google`);
+}
+
+// 2FA
+//genere le qr pour l'user
+//return otpauthUrl
+export function generate2FA() {
+  return request("/api/2FA/generate", {
+    method: "POST",
+  });
+}
+
+//active le 2FA apres que l'user donne le code
+export function activate2FA(data: { reply_code: string }) {
+  return request("/api/2FA/active", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export function delete2FA(data: { pwd: string; replyCode: string }) {
+  return request("/api/2FA/delete", {
+    method: "DELETE",
+    body: JSON.stringify(data),
+  });
 }
