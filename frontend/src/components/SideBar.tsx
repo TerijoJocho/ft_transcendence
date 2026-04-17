@@ -26,7 +26,7 @@ export default function SideBar() {
   }
 
   const toggleMenu = () => setIsSmallMenu((prev) => !prev);
-  const displayName = <p>{user.pseudo.slice(0,6) + '...'}</p>
+  const displayName = user.pseudo.length > 6 ? <p>{user.pseudo.slice(0,6) + '...'}</p> : user.pseudo
 
   return (
     <section
