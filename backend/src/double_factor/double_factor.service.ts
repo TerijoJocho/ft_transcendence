@@ -11,7 +11,7 @@ import { UpdateDoubleFactorDto } from './dto/UpdateDoubleFactorDto';
 import { UtilsService } from 'src/shared/services/utils.func.service';
 import { RedisService } from 'src/shared/services/redis.service';
 import speakeasy from 'speakeasy';
-import { eq } from 'drizzle-orm';
+import { eq, is } from 'drizzle-orm';
 import axios from 'axios';
 import https from 'https';
 import fs from 'fs';
@@ -49,9 +49,6 @@ type SpeakeasyApi = {
     }) => boolean;
   };
 };
-
-/* reste a faire
-  gerer l update, ajouter une colonne dans la db pour tocker le mdp crypter */
 
 @Injectable()
 export class DoubleFactorService {
@@ -281,15 +278,17 @@ export class DoubleFactorService {
       const check2fa = (await this.utilsService.findPlayersBy(
         'and',
         {
+          isGoogleUser: playerTable.isGoogleUser,
           twofa: playerTable.twoFactorEnabled,
         },
         eq(playerTable.playerId, userId),
-      )) as Array<{ twofa: boolean }>;
+      )) as {[x: string]: unknown}[];
 
       if (!check2fa?.length) throw new NotFoundException('User not found');
 
-      if (check2fa[0].twofa)
-        throw new ConflictException('Two factor method is already active');
+      if (check2fa[0].isGoogleUser) throw new ConflictException('Google users cannot use 2FA');
+
+      if (check2fa[0].twofa) throw new ConflictException('Two factor method is already active');
 
       const secret = this.speakeasyApi.generateSecret({
         name: 'Chess42',
