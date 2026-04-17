@@ -4,6 +4,7 @@ import {
   ServiceUnavailableException,
   NotFoundException,
   UnauthorizedException,
+  HttpException,
 } from '@nestjs/common';
 import { UtilsService } from 'src/shared/services/utils.func.service';
 import { eq, ne } from 'drizzle-orm';
@@ -219,6 +220,9 @@ export class UsersService {
       );
       return 'User updated successfully';
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new ServiceUnavailableException(error, 'Failed to update user');
     }
   }
