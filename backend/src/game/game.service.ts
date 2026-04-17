@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
   ServiceUnavailableException,
@@ -15,7 +14,7 @@ import type {
   participationInsert,
   participationSelect,
 } from 'src/shared/db/schema';
-import { eq, ne, sql } from 'drizzle-orm';
+import { eq, ne } from 'drizzle-orm';
 
 @Injectable()
 export class GameService {
@@ -172,9 +171,7 @@ export class GameService {
       eq(participationTable.playerId, playerId),
     );
     if (participationRows.length === 0)
-      throw new ForbiddenException(
-        'Player is not part of this game to end it.',
-      );
+      throw new NotFoundException('Player is not part of this game to end it.');
     const gameRows: { [x: string]: unknown }[] | gameSelect[] =
       await this.utilsService.findGamesBy(
         'and',
@@ -193,7 +190,6 @@ export class GameService {
           totalNbMoves: gameInfo.totalNbMoves,
           winnerNbMoves: gameInfo.winnerNbMoves,
           gameResult: gameInfo.gameResult,
-          gameCompletedAt: sql`NOW()` as unknown as Date,
         } as Partial<gameInsert>,
         'and',
         undefined,
@@ -273,7 +269,7 @@ export class GameService {
       eq(participationTable.playerId, playerId),
     );
     if (participationRows.length === 0)
-      throw new ForbiddenException(
+      throw new NotFoundException(
         'Player is not part of this game to give up.',
       );
     const gameRows: { [x: string]: unknown }[] | gameSelect[] =
@@ -289,11 +285,7 @@ export class GameService {
       );
     try {
       await this.utilsService.updateGamesBy(
-        {
-          gameStatus: 'COMPLETED',
-          gameResult: 'WIN',
-          gameCompletedAt: sql`NOW()` as unknown as Date,
-        } as Partial<gameInsert>,
+        { gameStatus: 'COMPLETED', gameResult: 'WIN' } as Partial<gameInsert>,
         'and',
         undefined,
         eq(gameTable.gameId, gameId),
@@ -333,7 +325,7 @@ export class GameService {
       eq(participationTable.playerId, playerId),
     );
     if (participationRows.length === 0)
-      throw new ForbiddenException(
+      throw new NotFoundException(
         'Player is not part of this game to cancel it.',
       );
     const gameRows: { [x: string]: unknown }[] | gameSelect[] =

@@ -58,6 +58,8 @@ export const playerTable = pgTable(
     playerName: varchar().notNull().unique(),
     pwd: varchar(),
     playerCreatedAt: timestamp().notNull().defaultNow(),
+    twoFactorSecretCiphertext: varchar().unique().default(null),
+    twoFactorEnabled: boolean().notNull().default(false),
     avatarUrl: varchar()
       .notNull()
       .default(
@@ -69,6 +71,10 @@ export const playerTable = pgTable(
     check(
       'pwd_required_for_non_google_users',
       sql`${table.isGoogleUser} = true OR ${table.pwd} IS NOT NULL`,
+    ),
+    check(
+      'google_user_cannot_enable_2FA',
+      sql`${table.isGoogleUser} = false OR ${table.twoFactorEnabled} = false`,
     ),
   ],
 );
