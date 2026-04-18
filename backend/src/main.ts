@@ -8,7 +8,7 @@ import https from 'https';
 import {
   backTokenByApprole,
   loadDbCredentialsFromVault,
-} from './utils/function';
+} from './utilsVault/function';
 
 async function bootstrap() {
   const vaultCaCertPath = process.env.VAULT_CACERT;
@@ -31,6 +31,7 @@ async function bootstrap() {
   const backendToken = await backTokenByApprole(httpsAgent, vaultAddr);
   if (typeof backendToken !== 'string' || backendToken.length === 0)
     throw new Error('Invalid Vault token');
+  process.env.BACKEND_VAULT_TOKEN = backendToken;
   console.log('VAULT_TOKEN loaded from Vault by Approle');
 
   try {

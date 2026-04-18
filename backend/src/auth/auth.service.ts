@@ -1,7 +1,9 @@
 import {
+  HttpException,
   Injectable,
   ServiceUnavailableException,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { playerTable } from '../shared/db/schema';
 import type { playerSelect } from '../shared/db/schema';
@@ -12,6 +14,8 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { RedisService } from '../shared/services/redis.service';
 import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
+import { DoubleFactorService } from '../double_factor/double_factor.service';
+import { TwoFactorDto } from './dto/twoFactorDto';
 
 type AuthTokenPayload = {
   sub: number;
@@ -24,9 +28,10 @@ export class AuthService {
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
+    private readonly twoFactor: DoubleFactorService,
   ) {}
 
-  async logIn(
+  async finalizeLogin(
     user: LoginDto,
     response: Response,
     redirect = false,
@@ -99,11 +104,50 @@ export class AuthService {
 
       return response.json(user);
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new UnauthorizedException(
         error,
         'Login failed. Please check your credentials and try again.',
       );
     }
+  }
+
+  async logIn(
+    user: LoginDto,
+    response: Response,
+    redirect = false,
+  ): Promise<Response> {
+    try {
+      const check2fa = (await this.utilsService.findPlayersBy(
+        `and`,
+        {
+          twofa: playerTable.twoFactorEnabled,
+        },
+        eq(playerTable.playerId, user.playerId),
+      )) as Array<{ twofa: boolean }>;
+      if (!check2fa?.length) throw new NotFoundException('Player not found');
+      if (check2fa[0].twofa)
+        return response.json({
+          requiresTwoFactor: true,
+          message: '2FA required',
+        });
+      return this.finalizeLogin(user, response, redirect);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new UnauthorizedException('Login failed');
+    }
+  }
+
+  async logInTwoFactor(
+    user: LoginDto,
+    response: Response,
+    data: TwoFactorDto,
+  ): Promise<Response> {
+    await this.twoFactor.verify2faForLogin(
+      { userId: user.playerId },
+      data.reply_code,
+    );
+    return this.finalizeLogin(user, response, data.redirect);
   }
 
   renewAccessToken(user: LoginDto, response: Response): Response {
@@ -136,7 +180,7 @@ export class AuthService {
     password: string,
   ): Promise<playerSelect> {
     const normalized = identifier.trim();
-    const pwdCheck = await this.utilsService.findPlayersBy(
+    const pwdCheck = (await this.utilsService.findPlayersBy(
       'and',
       undefined,
       or(
@@ -144,8 +188,9 @@ export class AuthService {
         eq(playerTable.mailAddress, normalized),
       ),
       isNull(playerTable.pwd),
-    ) as playerSelect[];
-    if (pwdCheck.length > 0) throw new UnauthorizedException('Invalid credentials.');
+    )) as playerSelect[];
+    if (pwdCheck.length > 0)
+      throw new UnauthorizedException('Invalid credentials.');
     const user = (
       (await this.utilsService.findPlayersBy(
         'and',
@@ -212,7 +257,7 @@ export class AuthService {
     response.status(200).json({ message: 'successfully logged out' });
   }
 
-  private async revokeGoogleToken(token: string): Promise<void> {
+  async revokeGoogleToken(token: string): Promise<void> {
     const revokeResponse = await fetch('https://oauth2.googleapis.com/revoke', {
       method: 'POST',
       headers: {
