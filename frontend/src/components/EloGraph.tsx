@@ -9,7 +9,8 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { useEffect, useState } from 'react';
-import * as api from '../api/api';
+// import * as api from '../api/api';
+import { mockWeeklyWinrateData, type WeeklyPoint } from '../data/mock_data';
 
 ChartJS.register(
   CategoryScale,
@@ -20,11 +21,11 @@ ChartJS.register(
   Legend
 );
 
-type WeeklyPoint = {
-  dayIndex: number;
-  date: string;
-  winrate: number;
-};
+// type WeeklyPoint = {
+//   dayIndex: number;
+//   date: string;
+//   winrate: number;
+// };
 
 const labels = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
@@ -33,7 +34,8 @@ export default function EloGraph() {
 
   useEffect(() => {
     async function load() {
-      const data = await api.weeklyWinrate();
+      // const data = await api.weeklyWinrate();
+      const data = mockWeeklyWinrateData;
       setPoints(data?.points ?? []);
       console.log(data);
     };

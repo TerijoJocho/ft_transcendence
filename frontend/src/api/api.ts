@@ -86,7 +86,6 @@ export function register(data: {
   });
 }
 
-//il y a deux me dans le backend, changer le nom de celui d'Aisha pour 'userStats'
 export function me(): Promise<User> {
   return request("/api/users/me", {
     method: "GET",

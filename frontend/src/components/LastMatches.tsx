@@ -1,3 +1,5 @@
+import { mockDashboardUserStats, type DashboardMatch } from "../data/mock_data";
+
 function formatGameDuration(duration) {
   if (typeof duration !== "string") return "-";
 
@@ -19,9 +21,13 @@ function formatGameDuration(duration) {
   return `${seconds}s`;
 }
 
-export default function LastMatches({ user }) {
+export default function LastMatches({ user: _user }) {
+  console.log(_user);
   // display match history items
-  const displayData = (user?.gameHistoryList ?? []).slice(0, 10).map((data) => {
+  // const displayData = (user?.gameHistoryList ?? []).slice(0, 10).map((data) => {
+  const displayData = (mockDashboardUserStats.gameHistoryList ?? [])
+    .slice(0, 10)
+    .map((data: DashboardMatch) => {
     return (
       <li
         key={data.gameId}
