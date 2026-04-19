@@ -11,17 +11,21 @@ import {
 import { and, or, eq, ne, sql, SQLWrapper, desc, gte, lt } from 'drizzle-orm';
 import { SelectedFieldsFlat, PgTable } from 'drizzle-orm/pg-core';
 import { DatabaseService } from './db.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 
 @Injectable()
 export class UtilsService {
   constructor(private readonly Database: DatabaseService) {}
 
   findAllPlayers = async (selectedValues?: SelectedFieldsFlat) => {
-    const query = selectedValues
-      ? this.Database.getDb().select(selectedValues).from(playerTable)
-      : this.Database.getDb().select().from(playerTable);
-    return query;
+    try {
+      const query = selectedValues
+        ? this.Database.getDb().select(selectedValues).from(playerTable)
+        : this.Database.getDb().select().from(playerTable);
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during player selection.');
+    }
   };
 
   findPlayersBy = async (
@@ -29,40 +33,54 @@ export class UtilsService {
     selectedValues?: SelectedFieldsFlat,
     ...conditions: (SQLWrapper | SQLWrapper[])[]
   ) => {
-    let query = selectedValues
-      ? this.Database.getDb().select(selectedValues).from(playerTable)
-      : this.Database.getDb().select().from(playerTable);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      query = query.where(or(...flatConditions)) as typeof query;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      query = query.where(and(...flatConditions)) as typeof query;
+    try {
+      let query = selectedValues
+        ? this.Database.getDb().select(selectedValues).from(playerTable)
+        : this.Database.getDb().select().from(playerTable);
+      const flatConditions = conditions.flat();
+      if (operator === 'or' && flatConditions.length > 0) {
+        query = query.where(or(...flatConditions)) as typeof query;
+      } else if (operator === 'and' && flatConditions.length > 0) {
+        query = query.where(and(...flatConditions)) as typeof query;
+      }
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during player selection.');
     }
-    return query;
   };
 
   insertPlayers = async (
     players: playerInsert[],
     insertedValues?: SelectedFieldsFlat,
   ) => {
-    const query = this.Database.getDb().insert(playerTable).values(players);
-    return insertedValues ? query.returning(insertedValues) : query.returning();
+    try {
+      const query = this.Database.getDb().insert(playerTable).values(players);
+      return insertedValues
+        ? query.returning(insertedValues)
+        : query.returning();
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during player insertion.');
+    }
   };
 
   updateAllPlayers = async (
     updatedPlayer: Partial<playerInsert>,
     updatedValues?: SelectedFieldsFlat,
   ) => {
-    const query = updatedValues
-      ? this.Database.getDb()
-          .update(playerTable)
-          .set(updatedPlayer)
-          .returning(updatedValues)
-      : this.Database.getDb()
-          .update(playerTable)
-          .set(updatedPlayer)
-          .returning();
-    return query;
+    try {
+      const query = updatedValues
+        ? this.Database.getDb()
+            .update(playerTable)
+            .set(updatedPlayer)
+            .returning(updatedValues)
+        : this.Database.getDb()
+            .update(playerTable)
+            .set(updatedPlayer)
+            .returning();
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during player update.');
+    }
   };
 
   updatePlayersBy = async (
@@ -71,25 +89,37 @@ export class UtilsService {
     updatedValues?: SelectedFieldsFlat,
     ...conditions: (SQLWrapper | SQLWrapper[])[]
   ) => {
-    let query = this.Database.getDb().update(playerTable).set(updatedPlayer);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      query = query.where(or(...flatConditions)) as typeof query;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      query = query.where(and(...flatConditions)) as typeof query;
+    try {
+      let query = this.Database.getDb().update(playerTable).set(updatedPlayer);
+      const flatConditions = conditions.flat();
+      if (operator === 'or' && flatConditions.length > 0) {
+        query = query.where(or(...flatConditions)) as typeof query;
+      } else if (operator === 'and' && flatConditions.length > 0) {
+        query = query.where(and(...flatConditions)) as typeof query;
+      }
+      return updatedValues ? query.returning(updatedValues) : query.returning();
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during player update.');
     }
-    return updatedValues ? query.returning(updatedValues) : query.returning();
   };
 
   deleteAllPlayers = async () => {
-    return this.Database.getDb().delete(playerTable);
+    try {
+      return this.Database.getDb().delete(playerTable);
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during player deletion.');
+    }
   };
 
   resetTable = async (table: PgTable) => {
-    await this.Database.getDb().delete(table);
-    await this.Database.getDb().execute(
-      sql`TRUNCATE TABLE ${table} RESTART IDENTITY CASCADE`,
-    );
+    try {
+      await this.Database.getDb().delete(table);
+      await this.Database.getDb().execute(
+        sql`TRUNCATE TABLE ${table} RESTART IDENTITY CASCADE`,
+      );
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during table reset.');
+    }
   };
 
   deletePlayersBy = async (
@@ -97,22 +127,30 @@ export class UtilsService {
     deletedValues?: SelectedFieldsFlat,
     ...conditions: (SQLWrapper | SQLWrapper[])[]
   ) => {
-    let query = this.Database.getDb().delete(playerTable);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      query = query.where(or(...flatConditions)) as typeof query;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      query = query.where(and(...flatConditions)) as typeof query;
+    try {
+      let query = this.Database.getDb().delete(playerTable);
+      const flatConditions = conditions.flat();
+      if (operator === 'or' && flatConditions.length > 0) {
+        query = query.where(or(...flatConditions)) as typeof query;
+      } else if (operator === 'and' && flatConditions.length > 0) {
+        query = query.where(and(...flatConditions)) as typeof query;
+      }
+      return deletedValues ? query.returning(deletedValues) : query.returning();
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during player deletion.');
     }
-    return deletedValues ? query.returning(deletedValues) : query.returning();
   };
 
   //game functions
   findAllGames = async (selectedValues?: SelectedFieldsFlat) => {
-    const query = selectedValues
-      ? this.Database.getDb().select(selectedValues).from(gameTable)
-      : this.Database.getDb().select().from(gameTable);
-    return query;
+    try {
+      const query = selectedValues
+        ? this.Database.getDb().select(selectedValues).from(gameTable)
+        : this.Database.getDb().select().from(gameTable);
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during game selection.');
+    }
   };
 
   findGamesBy = async (
@@ -120,37 +158,51 @@ export class UtilsService {
     selectedValues?: SelectedFieldsFlat,
     ...conditions: (SQLWrapper | SQLWrapper[])[]
   ) => {
-    let query = selectedValues
-      ? this.Database.getDb().select(selectedValues).from(gameTable)
-      : this.Database.getDb().select().from(gameTable);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      query = query.where(or(...flatConditions)) as typeof query;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      query = query.where(and(...flatConditions)) as typeof query;
+    try {
+      let query = selectedValues
+        ? this.Database.getDb().select(selectedValues).from(gameTable)
+        : this.Database.getDb().select().from(gameTable);
+      const flatConditions = conditions.flat();
+      if (operator === 'or' && flatConditions.length > 0) {
+        query = query.where(or(...flatConditions)) as typeof query;
+      } else if (operator === 'and' && flatConditions.length > 0) {
+        query = query.where(and(...flatConditions)) as typeof query;
+      }
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during game selection.');
     }
-    return query;
   };
 
   insertGames = async (
     games: gameInsert[],
     insertedValues?: SelectedFieldsFlat,
   ) => {
-    const query = this.Database.getDb().insert(gameTable).values(games);
-    return insertedValues ? query.returning(insertedValues) : query.returning();
+    try {
+      const query = this.Database.getDb().insert(gameTable).values(games);
+      return insertedValues
+        ? query.returning(insertedValues)
+        : query.returning();
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during game insertion.');
+    }
   };
 
   updateAllGames = async (
     updatedGame: Partial<gameInsert>,
     updatedValues?: SelectedFieldsFlat,
   ) => {
-    const query = updatedValues
-      ? this.Database.getDb()
-          .update(gameTable)
-          .set(updatedGame)
-          .returning(updatedValues)
-      : this.Database.getDb().update(gameTable).set(updatedGame).returning();
-    return query;
+    try {
+      const query = updatedValues
+        ? this.Database.getDb()
+            .update(gameTable)
+            .set(updatedGame)
+            .returning(updatedValues)
+        : this.Database.getDb().update(gameTable).set(updatedGame).returning();
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during game update.');
+    }
   };
 
   updateGamesBy = async (
@@ -159,18 +211,26 @@ export class UtilsService {
     updatedValues?: SelectedFieldsFlat,
     ...conditions: (SQLWrapper | SQLWrapper[])[]
   ) => {
-    let query = this.Database.getDb().update(gameTable).set(updatedGame);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      query = query.where(or(...flatConditions)) as typeof query;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      query = query.where(and(...flatConditions)) as typeof query;
+    try {
+      let query = this.Database.getDb().update(gameTable).set(updatedGame);
+      const flatConditions = conditions.flat();
+      if (operator === 'or' && flatConditions.length > 0) {
+        query = query.where(or(...flatConditions)) as typeof query;
+      } else if (operator === 'and' && flatConditions.length > 0) {
+        query = query.where(and(...flatConditions)) as typeof query;
+      }
+      return updatedValues ? query.returning(updatedValues) : query.returning();
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during game update.');
     }
-    return updatedValues ? query.returning(updatedValues) : query.returning();
   };
 
   deleteAllGames = async () => {
-    return this.Database.getDb().delete(gameTable);
+    try {
+      return this.Database.getDb().delete(gameTable);
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during game deletion.');
+    }
   };
 
   deleteGamesBy = async (
@@ -178,22 +238,32 @@ export class UtilsService {
     deletedValues?: SelectedFieldsFlat,
     ...conditions: (SQLWrapper | SQLWrapper[])[]
   ) => {
-    let query = this.Database.getDb().delete(gameTable);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      query = query.where(or(...flatConditions)) as typeof query;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      query = query.where(and(...flatConditions)) as typeof query;
+    try {
+      let query = this.Database.getDb().delete(gameTable);
+      const flatConditions = conditions.flat();
+      if (operator === 'or' && flatConditions.length > 0) {
+        query = query.where(or(...flatConditions)) as typeof query;
+      } else if (operator === 'and' && flatConditions.length > 0) {
+        query = query.where(and(...flatConditions)) as typeof query;
+      }
+      return deletedValues ? query.returning(deletedValues) : query.returning();
+    } catch (error) {
+      throw new ServiceUnavailableException(error,'Database error during game deletion.');
     }
-    return deletedValues ? query.returning(deletedValues) : query.returning();
   };
 
   //friendship functions
   findAllFriendships = async (selectedValues?: SelectedFieldsFlat) => {
-    const query = selectedValues
-      ? this.Database.getDb().select(selectedValues).from(friendshipTable)
-      : this.Database.getDb().select().from(friendshipTable);
-    return query;
+    try {
+      const query = selectedValues
+        ? this.Database.getDb().select(selectedValues).from(friendshipTable)
+        : this.Database.getDb().select().from(friendshipTable);
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during friendship retrieval.'
+      );
+    }
   };
 
   findFriendshipsBy = async (
@@ -201,42 +271,58 @@ export class UtilsService {
     selectedValues?: SelectedFieldsFlat,
     ...conditions: (SQLWrapper | SQLWrapper[])[]
   ) => {
-    let query = selectedValues
-      ? this.Database.getDb().select(selectedValues).from(friendshipTable)
-      : this.Database.getDb().select().from(friendshipTable);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      query = query.where(or(...flatConditions)) as typeof query;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      query = query.where(and(...flatConditions)) as typeof query;
+    try {
+      let query = selectedValues
+        ? this.Database.getDb().select(selectedValues).from(friendshipTable)
+        : this.Database.getDb().select().from(friendshipTable);
+      const flatConditions = conditions.flat();
+      if (operator === 'or' && flatConditions.length > 0) {
+        query = query.where(or(...flatConditions)) as typeof query;
+      } else if (operator === 'and' && flatConditions.length > 0) {
+        query = query.where(and(...flatConditions)) as typeof query;
+      }
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during friendship retrieval.'
+      );
     }
-    return query;
   };
 
   insertFriendships = async (
     friendships: friendshipInsert[],
     insertedValues?: SelectedFieldsFlat,
   ) => {
-    const query = this.Database.getDb()
-      .insert(friendshipTable)
-      .values(friendships);
-    return insertedValues ? query.returning(insertedValues) : query.returning();
+    try {
+      const query = this.Database.getDb()
+        .insert(friendshipTable)
+        .values(friendships);
+      return insertedValues
+        ? query.returning(insertedValues)
+        : query.returning();
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during friendship insertion.');
+    }
   };
 
   updateAllFriendships = async (
     updatedFriendship: Partial<friendshipInsert>,
     updatedValues?: SelectedFieldsFlat,
   ) => {
-    const query = updatedValues
-      ? this.Database.getDb()
-          .update(friendshipTable)
-          .set(updatedFriendship)
-          .returning(updatedValues)
-      : this.Database.getDb()
-          .update(friendshipTable)
-          .set(updatedFriendship)
-          .returning();
-    return query;
+    try {
+      const query = updatedValues
+        ? this.Database.getDb()
+            .update(friendshipTable)
+            .set(updatedFriendship)
+            .returning(updatedValues)
+        : this.Database.getDb()
+            .update(friendshipTable)
+            .set(updatedFriendship)
+            .returning();
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during friendship update.');
+    }
   };
 
   updateFriendshipsBy = async (
@@ -245,20 +331,30 @@ export class UtilsService {
     updatedValues?: SelectedFieldsFlat,
     ...conditions: (SQLWrapper | SQLWrapper[])[]
   ) => {
-    let query = this.Database.getDb()
-      .update(friendshipTable)
-      .set(updatedFriendship);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      query = query.where(or(...flatConditions)) as typeof query;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      query = query.where(and(...flatConditions)) as typeof query;
+    try {
+      let query = this.Database.getDb()
+        .update(friendshipTable)
+        .set(updatedFriendship);
+      const flatConditions = conditions.flat();
+      if (operator === 'or' && flatConditions.length > 0) {
+        query = query.where(or(...flatConditions)) as typeof query;
+      } else if (operator === 'and' && flatConditions.length > 0) {
+        query = query.where(and(...flatConditions)) as typeof query;
+      }
+      return updatedValues ? query.returning(updatedValues) : query.returning();
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during friendship update.');
     }
-    return updatedValues ? query.returning(updatedValues) : query.returning();
   };
 
   deleteAllFriendships = async () => {
-    return this.Database.getDb().delete(friendshipTable);
+    try {
+      return this.Database.getDb().delete(friendshipTable);
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during friendship deletion.'
+      );
+    }
   };
 
   deleteFriendshipsBy = async (
@@ -266,22 +362,34 @@ export class UtilsService {
     deletedValues?: SelectedFieldsFlat,
     ...conditions: (SQLWrapper | SQLWrapper[])[]
   ) => {
-    let query = this.Database.getDb().delete(friendshipTable);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      query = query.where(or(...flatConditions)) as typeof query;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      query = query.where(and(...flatConditions)) as typeof query;
+    try {
+      let query = this.Database.getDb().delete(friendshipTable);
+      const flatConditions = conditions.flat();
+      if (operator === 'or' && flatConditions.length > 0) {
+        query = query.where(or(...flatConditions)) as typeof query;
+      } else if (operator === 'and' && flatConditions.length > 0) {
+        query = query.where(and(...flatConditions)) as typeof query;
+      }
+      return deletedValues ? query.returning(deletedValues) : query.returning();
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during friendship deletion.'
+      );
     }
-    return deletedValues ? query.returning(deletedValues) : query.returning();
   };
 
   //participation functions
   findAllParticipations = async (selectedValues?: SelectedFieldsFlat) => {
-    const query = selectedValues
-      ? this.Database.getDb().select(selectedValues).from(participationTable)
-      : this.Database.getDb().select().from(participationTable);
-    return query;
+    try {
+      const query = selectedValues
+        ? this.Database.getDb().select(selectedValues).from(participationTable)
+        : this.Database.getDb().select().from(participationTable);
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during participation retrieval.'
+      );
+    }
   };
 
   findParticipationsBy = async (
@@ -289,42 +397,60 @@ export class UtilsService {
     selectedValues?: SelectedFieldsFlat,
     ...conditions: (SQLWrapper | SQLWrapper[])[]
   ) => {
-    let query = selectedValues
-      ? this.Database.getDb().select(selectedValues).from(participationTable)
-      : this.Database.getDb().select().from(participationTable);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      query = query.where(or(...flatConditions)) as typeof query;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      query = query.where(and(...flatConditions)) as typeof query;
+    try {
+      let query = selectedValues
+        ? this.Database.getDb().select(selectedValues).from(participationTable)
+        : this.Database.getDb().select().from(participationTable);
+      const flatConditions = conditions.flat();
+      if (operator === 'or' && flatConditions.length > 0) {
+        query = query.where(or(...flatConditions)) as typeof query;
+      } else if (operator === 'and' && flatConditions.length > 0) {
+        query = query.where(and(...flatConditions)) as typeof query;
+      }
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during participation retrieval.'
+      );
     }
-    return query;
   };
 
   insertParticipations = async (
     participations: participationInsert[],
     insertedValues?: SelectedFieldsFlat,
   ) => {
-    const query = this.Database.getDb()
-      .insert(participationTable)
-      .values(participations);
-    return insertedValues ? query.returning(insertedValues) : query.returning();
+    try {
+      const query = this.Database.getDb()
+        .insert(participationTable)
+        .values(participations);
+      return insertedValues
+        ? query.returning(insertedValues)
+        : query.returning();
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Database error during participation insertion.');
+    }
   };
 
   updateAllParticipations = async (
     updatedParticipation: Partial<participationInsert>,
     updatedValues?: SelectedFieldsFlat,
   ) => {
-    const query = updatedValues
-      ? this.Database.getDb()
-          .update(participationTable)
-          .set(updatedParticipation)
-          .returning(updatedValues)
-      : this.Database.getDb()
-          .update(participationTable)
-          .set(updatedParticipation)
-          .returning();
-    return query;
+    try {
+      const query = updatedValues
+        ? this.Database.getDb()
+            .update(participationTable)
+            .set(updatedParticipation)
+            .returning(updatedValues)
+        : this.Database.getDb()
+            .update(participationTable)
+            .set(updatedParticipation)
+            .returning();
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during participation update.'
+      );
+    }
   };
 
   updateParticipationsBy = async (
@@ -333,20 +459,32 @@ export class UtilsService {
     updatedValues?: SelectedFieldsFlat,
     ...conditions: (SQLWrapper | SQLWrapper[])[]
   ) => {
-    let query = this.Database.getDb()
-      .update(participationTable)
-      .set(updatedParticipation);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      query = query.where(or(...flatConditions)) as typeof query;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      query = query.where(and(...flatConditions)) as typeof query;
+    try {
+      let query = this.Database.getDb()
+        .update(participationTable)
+        .set(updatedParticipation);
+      const flatConditions = conditions.flat();
+      if (operator === 'or' && flatConditions.length > 0) {
+        query = query.where(or(...flatConditions)) as typeof query;
+      } else if (operator === 'and' && flatConditions.length > 0) {
+        query = query.where(and(...flatConditions)) as typeof query;
+      }
+      return updatedValues ? query.returning(updatedValues) : query.returning();
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during participation update.'
+      );
     }
-    return updatedValues ? query.returning(updatedValues) : query.returning();
   };
 
   deleteAllParticipations = async () => {
-    return this.Database.getDb().delete(participationTable);
+    try {
+      return this.Database.getDb().delete(participationTable);
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during participation deletion.'
+      );
+    }
   };
 
   deleteParticipationsBy = async (
@@ -354,348 +492,406 @@ export class UtilsService {
     deletedValues?: SelectedFieldsFlat,
     ...conditions: (SQLWrapper | SQLWrapper[])[]
   ) => {
-    let query = this.Database.getDb().delete(participationTable);
-    const flatConditions = conditions.flat();
-    if (operator === 'or' && flatConditions.length > 0) {
-      query = query.where(or(...flatConditions)) as typeof query;
-    } else if (operator === 'and' && flatConditions.length > 0) {
-      query = query.where(and(...flatConditions)) as typeof query;
+    try {
+      let query = this.Database.getDb().delete(participationTable);
+      const flatConditions = conditions.flat();
+      if (operator === 'or' && flatConditions.length > 0) {
+        query = query.where(or(...flatConditions)) as typeof query;
+      } else if (operator === 'and' && flatConditions.length > 0) {
+        query = query.where(and(...flatConditions)) as typeof query;
+      }
+      return deletedValues ? query.returning(deletedValues) : query.returning();
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during participation deletion.'
+      );
     }
-    return deletedValues ? query.returning(deletedValues) : query.returning();
   };
 
   //miscellaneous functions
   //query to calculate average number of moves to win for a player
   getAverageWinMoves = async (playerId?: number) => {
-    let query = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        avgWinMoves: sql`AVG(${gameTable.winnerNbMoves})`,
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
-      .groupBy(playerTable.playerName, participationTable.playerId);
-    if (playerId) {
-      query = query.where(
-        and(
-          eq(participationTable.playerResult, 'WIN'),
-          eq(participationTable.playerId, playerId),
-        ),
-      ) as typeof query;
+    try {
+      let query = this.Database.getDb()
+        .select({
+          playerName: playerTable.playerName,
+          avgWinMoves: sql`AVG(${gameTable.winnerNbMoves})`,
+        })
+        .from(participationTable)
+        .innerJoin(
+          playerTable,
+          eq(participationTable.playerId, playerTable.playerId),
+        )
+        .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+        .groupBy(playerTable.playerName, participationTable.playerId);
+      if (playerId) {
+        query = query.where(
+          and(
+            eq(participationTable.playerResult, 'WIN'),
+            eq(participationTable.playerId, playerId),
+          ),
+        ) as typeof query;
+      }
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during average win moves calculation.'
+      );
     }
-    return query;
   };
 
   //query to find a player favourite game mode
   getFavouriteGameMode = async (playerId?: number) => {
-    let subqueryBuilder = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        gameMode: gameTable.gameMode,
-        nbGames: sql<number>`COUNT(*)::int`,
-        ranking:
-          sql<number>`RANK() OVER (PARTITION BY ${participationTable.playerId} ORDER BY COUNT(*) DESC)`.as(
-            'ranking',
-          ),
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId));
-    if (playerId) {
-      subqueryBuilder = subqueryBuilder.where(
-        eq(participationTable.playerId, playerId),
-      ) as typeof subqueryBuilder;
+    try {
+      let subqueryBuilder = this.Database.getDb()
+        .select({
+          playerName: playerTable.playerName,
+          gameMode: gameTable.gameMode,
+          nbGames: sql<number>`COUNT(*)::int`,
+          ranking:
+            sql<number>`RANK() OVER (PARTITION BY ${participationTable.playerId} ORDER BY COUNT(*) DESC)`.as(
+              'ranking',
+            ),
+        })
+        .from(participationTable)
+        .innerJoin(
+          playerTable,
+          eq(participationTable.playerId, playerTable.playerId),
+        )
+        .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId));
+      if (playerId) {
+        subqueryBuilder = subqueryBuilder.where(
+          eq(participationTable.playerId, playerId),
+        ) as typeof subqueryBuilder;
+      }
+      const subquery = subqueryBuilder
+        .groupBy(
+          playerTable.playerName,
+          gameTable.gameMode,
+          participationTable.playerId,
+        )
+        .as('tmp');
+
+      const query = this.Database.getDb()
+        .select({
+          playerName: subquery.playerName,
+          gameMode: subquery.gameMode,
+        })
+        .from(subquery)
+        .where(eq(subquery.ranking, 1));
+
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during favourite game mode retrieval.'
+      );
     }
-    const subquery = subqueryBuilder
-      .groupBy(
-        playerTable.playerName,
-        gameTable.gameMode,
-        participationTable.playerId,
-      )
-      .as('tmp');
-
-    const query = this.Database.getDb()
-      .select({
-        playerName: subquery.playerName,
-        gameMode: subquery.gameMode,
-      })
-      .from(subquery)
-      .where(eq(subquery.ranking, 1));
-
-    return query;
   };
 
   //query to return total number of games, nb of wins, loss and draws for a player
   getGamesResCounts = async (playerId?: number) => {
-    let query = this.Database.getDb()
-      .select({
-        playerName: playerTable.playerName,
-        winRate: sql<number>`( COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN') + 0.5 * COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW')) / NULLIF(COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING'), 0)::float`,
-        totalGames: sql<number>`COUNT(${participationTable.gameId})::int`,
-        totalWins: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`,
-        totalLosses: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'LOSE')::int`,
-        totalDraws: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW')::int`,
-      })
-      .from(playerTable)
-      .leftJoin(
-        participationTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .groupBy(playerTable.playerName, playerTable.playerId);
-    if (playerId) {
-      query = query.where(eq(playerTable.playerId, playerId)) as typeof query;
+    try {
+      let query = this.Database.getDb()
+        .select({
+          playerName: playerTable.playerName,
+          winRate: sql<number>`( COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN') + 0.5 * COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW')) / NULLIF(COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING'), 0)::float`,
+          totalGames: sql<number>`COUNT(${participationTable.gameId})::int`,
+          totalWins: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`,
+          totalLosses: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'LOSE')::int`,
+          totalDraws: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'DRAW')::int`,
+        })
+        .from(playerTable)
+        .leftJoin(
+          participationTable,
+          eq(participationTable.playerId, playerTable.playerId),
+        )
+        .groupBy(playerTable.playerName, playerTable.playerId);
+      if (playerId) {
+        query = query.where(eq(playerTable.playerId, playerId)) as typeof query;
+      }
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during games results count retrieval.'
+      );
     }
-    return query;
   };
 
   //query to return current winstreak of all/some players
   getCurrentWinStreak = async (playerId?: number) => {
-    const orderedParticipations = this.Database.getDb()
-      .select({
-        playerId: participationTable.playerId,
-        gameId: participationTable.gameId,
-        gameDate: gameTable.gameCreatedAt,
-        playerResult: participationTable.playerResult,
-        sumWin:
-          sql<number>`SUM(CASE WHEN ${participationTable.playerResult} <> 'WIN' THEN 1 ELSE 0 END) OVER (PARTITION BY ${participationTable.playerId} ORDER BY ${gameTable.gameCreatedAt} DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::int`.as(
-            'sumWin',
-          ),
-      })
-      .from(participationTable)
-      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
-      .as('ordered_participations');
-    let currentWinStreak = this.Database.getDb()
-      .select({
-        playerId: playerTable.playerId,
-        currentStreak: sql<number>`COALESCE(COUNT(*) FILTER (WHERE ${orderedParticipations.playerResult} = 'WIN' AND ${orderedParticipations.sumWin} = 0), 0)::int`,
-      })
-      .from(playerTable)
-      .leftJoin(
-        orderedParticipations,
-        eq(playerTable.playerId, orderedParticipations.playerId),
-      )
-      .groupBy(playerTable.playerId);
-    if (playerId) {
-      currentWinStreak = currentWinStreak.where(
-        eq(playerTable.playerId, playerId),
-      ) as typeof currentWinStreak;
+    try {
+      const orderedParticipations = this.Database.getDb()
+        .select({
+          playerId: participationTable.playerId,
+          gameId: participationTable.gameId,
+          gameDate: gameTable.gameCreatedAt,
+          playerResult: participationTable.playerResult,
+          sumWin:
+            sql<number>`SUM(CASE WHEN ${participationTable.playerResult} <> 'WIN' THEN 1 ELSE 0 END) OVER (PARTITION BY ${participationTable.playerId} ORDER BY ${gameTable.gameCreatedAt} DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::int`.as(
+              'sumWin',
+            ),
+        })
+        .from(participationTable)
+        .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+        .as('ordered_participations');
+      let currentWinStreak = this.Database.getDb()
+        .select({
+          playerId: playerTable.playerId,
+          currentStreak: sql<number>`COALESCE(COUNT(*) FILTER (WHERE ${orderedParticipations.playerResult} = 'WIN' AND ${orderedParticipations.sumWin} = 0), 0)::int`,
+        })
+        .from(playerTable)
+        .leftJoin(
+          orderedParticipations,
+          eq(playerTable.playerId, orderedParticipations.playerId),
+        )
+        .groupBy(playerTable.playerId);
+      if (playerId) {
+        currentWinStreak = currentWinStreak.where(
+          eq(playerTable.playerId, playerId),
+        ) as typeof currentWinStreak;
+      }
+      return currentWinStreak;
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during current win streak retrieval.'
+      );
     }
-    return currentWinStreak;
   };
 
   //query to return longest winstreak of all/some players
   getLongestWinStreak = async (playerId?: number) => {
-    const matchRowNb = this.Database.getDb()
-      .select({
-        playerId: participationTable.playerId,
-        gameId: participationTable.gameId,
-        gameDate: gameTable.gameCreatedAt,
-        playerResult: participationTable.playerResult,
-        rowNum:
-          sql`ROW_NUMBER() OVER (PARTITION BY ${participationTable.playerId} ORDER BY ${gameTable.gameCreatedAt})`.as(
-            'rowNum',
-          ),
-      })
-      .from(participationTable)
-      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
-      .as('match_row_num');
-    const winRowNb = this.Database.getDb()
-      .select({
-        playerId: matchRowNb.playerId,
-        groupId:
-          sql`${matchRowNb.rowNum} - ROW_NUMBER() OVER (PARTITION BY ${matchRowNb.playerId} ORDER BY ${matchRowNb.gameDate})`.as(
-            'groupId',
-          ),
-      })
-      .from(matchRowNb)
-      .where(eq(matchRowNb.playerResult, 'WIN'))
-      .as('win_row_num');
-    const winningStreak = this.Database.getDb()
-      .select({
-        playerId: winRowNb.playerId,
-        groupId: winRowNb.groupId,
-        cnt: sql<number>`COUNT(*)::int`.as('cnt'),
-      })
-      .from(winRowNb)
-      .groupBy(winRowNb.playerId, winRowNb.groupId)
-      .as('winning_streak');
-    let longestWinStreak = this.Database.getDb()
-      .select({
-        playerId: playerTable.playerId,
-        longestStreak: sql<number>`COALESCE(MAX(${winningStreak.cnt}), 0)::int`,
-      })
-      .from(playerTable)
-      .leftJoin(winningStreak, eq(playerTable.playerId, winningStreak.playerId))
-      .groupBy(playerTable.playerId);
-    if (playerId) {
-      longestWinStreak = longestWinStreak.where(
-        eq(playerTable.playerId, playerId),
-      ) as typeof longestWinStreak;
+    try {
+      const matchRowNb = this.Database.getDb()
+        .select({
+          playerId: participationTable.playerId,
+          gameId: participationTable.gameId,
+          gameDate: gameTable.gameCreatedAt,
+          playerResult: participationTable.playerResult,
+          rowNum:
+            sql`ROW_NUMBER() OVER (PARTITION BY ${participationTable.playerId} ORDER BY ${gameTable.gameCreatedAt})`.as(
+              'rowNum',
+            ),
+        })
+        .from(participationTable)
+        .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+        .as('match_row_num');
+      const winRowNb = this.Database.getDb()
+        .select({
+          playerId: matchRowNb.playerId,
+          groupId:
+            sql`${matchRowNb.rowNum} - ROW_NUMBER() OVER (PARTITION BY ${matchRowNb.playerId} ORDER BY ${matchRowNb.gameDate})`.as(
+              'groupId',
+            ),
+        })
+        .from(matchRowNb)
+        .where(eq(matchRowNb.playerResult, 'WIN'))
+        .as('win_row_num');
+      const winningStreak = this.Database.getDb()
+        .select({
+          playerId: winRowNb.playerId,
+          groupId: winRowNb.groupId,
+          cnt: sql<number>`COUNT(*)::int`.as('cnt'),
+        })
+        .from(winRowNb)
+        .groupBy(winRowNb.playerId, winRowNb.groupId)
+        .as('winning_streak');
+      let longestWinStreak = this.Database.getDb()
+        .select({
+          playerId: playerTable.playerId,
+          longestStreak: sql<number>`COALESCE(MAX(${winningStreak.cnt}), 0)::int`,
+        })
+        .from(playerTable)
+        .leftJoin(
+          winningStreak,
+          eq(playerTable.playerId, winningStreak.playerId),
+        )
+        .groupBy(playerTable.playerId);
+      if (playerId) {
+        longestWinStreak = longestWinStreak.where(
+          eq(playerTable.playerId, playerId),
+        ) as typeof longestWinStreak;
+      }
+      return longestWinStreak;
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during longest win streak retrieval.'
+      );
     }
-    return longestWinStreak;
   };
 
   // query to return favourite color of all/some players
   getFavouriteColor = async (playerId?: number) => {
-    let colorRankingBuilder = this.Database.getDb()
-      .select({
-        playerId: participationTable.playerId,
-        playerName: playerTable.playerName,
-        playerColor: participationTable.playerColor,
-        nbGames: sql<number>`COUNT(*)::int`.as('nbGames'),
-        ranking:
-          sql<number>`RANK() OVER (PARTITION BY ${participationTable.playerId} ORDER BY COUNT(*) DESC)`.as(
-            'ranking',
-          ),
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId));
-    if (playerId) {
-      colorRankingBuilder = colorRankingBuilder.where(
-        eq(playerTable.playerId, playerId),
-      ) as typeof colorRankingBuilder;
+    try {
+      let colorRankingBuilder = this.Database.getDb()
+        .select({
+          playerId: participationTable.playerId,
+          playerName: playerTable.playerName,
+          playerColor: participationTable.playerColor,
+          nbGames: sql<number>`COUNT(*)::int`.as('nbGames'),
+          ranking:
+            sql<number>`RANK() OVER (PARTITION BY ${participationTable.playerId} ORDER BY COUNT(*) DESC)`.as(
+              'ranking',
+            ),
+        })
+        .from(participationTable)
+        .innerJoin(
+          playerTable,
+          eq(participationTable.playerId, playerTable.playerId),
+        )
+        .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId));
+      if (playerId) {
+        colorRankingBuilder = colorRankingBuilder.where(
+          eq(playerTable.playerId, playerId),
+        ) as typeof colorRankingBuilder;
+      }
+      const colorRanking = colorRankingBuilder
+        .groupBy(
+          playerTable.playerName,
+          participationTable.playerColor,
+          participationTable.playerId,
+        )
+        .as('color_ranking');
+      const query = this.Database.getDb()
+        .select({
+          playerName: colorRanking.playerName,
+          playerColor: colorRanking.playerColor,
+        })
+        .from(colorRanking)
+        .where(eq(colorRanking.ranking, 1));
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during favourite color retrieval.'
+      );
     }
-    const colorRanking = colorRankingBuilder
-      .groupBy(
-        playerTable.playerName,
-        participationTable.playerColor,
-        participationTable.playerId,
-      )
-      .as('color_ranking');
-    const query = this.Database.getDb()
-      .select({
-        playerName: colorRanking.playerName,
-        playerColor: colorRanking.playerColor,
-      })
-      .from(colorRanking)
-      .where(eq(colorRanking.ranking, 1));
-    return query;
   };
 
   getGameHistory = async (playerId: number, nb: number) => {
-    const allGames = this.Database.getDb()
-      .select({
-        gameId: participationTable.gameId,
-      })
-      .from(participationTable)
-      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
-      .where(eq(participationTable.playerId, playerId))
-      .limit(nb)
-      .orderBy(desc(gameTable.gameCreatedAt))
-      .as('all_games');
-    const opponentsNamesQuery = this.Database.getDb()
-      .select({
-        opponentsName: playerTable.playerName,
-        gameId: allGames.gameId,
-      })
-      .from(participationTable)
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .innerJoin(allGames, eq(participationTable.gameId, allGames.gameId))
-      .where(ne(participationTable.playerId, playerId))
-      .as('opponents_names');
-    const query = this.Database.getDb()
-      .select({
-        gameId: gameTable.gameId,
-        gameMode: gameTable.gameMode,
-        playerColor: participationTable.playerColor,
-        playerResult: participationTable.playerResult,
-        opponentName: opponentsNamesQuery.opponentsName,
-        gameDuration: sql<string>`${gameTable.gameCompletedAt} - ${gameTable.gameCreatedAt}`,
-      })
-      .from(participationTable)
-      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
-      .innerJoin(
-        playerTable,
-        eq(participationTable.playerId, playerTable.playerId),
-      )
-      .leftJoin(
-        opponentsNamesQuery,
-        eq(opponentsNamesQuery.gameId, gameTable.gameId),
-      )
-      .where(eq(participationTable.playerId, playerId))
-      .orderBy(desc(gameTable.gameCreatedAt));
-    return query;
+    try {
+      const allGames = this.Database.getDb()
+        .select({
+          gameId: participationTable.gameId,
+        })
+        .from(participationTable)
+        .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+        .where(eq(participationTable.playerId, playerId))
+        .limit(nb)
+        .orderBy(desc(gameTable.gameCreatedAt))
+        .as('all_games');
+      const opponentsNamesQuery = this.Database.getDb()
+        .select({
+          opponentsName: playerTable.playerName,
+          gameId: allGames.gameId,
+        })
+        .from(participationTable)
+        .innerJoin(
+          playerTable,
+          eq(participationTable.playerId, playerTable.playerId),
+        )
+        .innerJoin(allGames, eq(participationTable.gameId, allGames.gameId))
+        .where(ne(participationTable.playerId, playerId))
+        .as('opponents_names');
+      const query = this.Database.getDb()
+        .select({
+          gameId: gameTable.gameId,
+          gameMode: gameTable.gameMode,
+          playerColor: participationTable.playerColor,
+          playerResult: participationTable.playerResult,
+          opponentName: opponentsNamesQuery.opponentsName,
+          gameDuration: sql<string>`${gameTable.gameCompletedAt} - ${gameTable.gameCreatedAt}`,
+        })
+        .from(participationTable)
+        .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+        .innerJoin(
+          playerTable,
+          eq(participationTable.playerId, playerTable.playerId),
+        )
+        .leftJoin(
+          opponentsNamesQuery,
+          eq(opponentsNamesQuery.gameId, gameTable.gameId),
+        )
+        .where(eq(participationTable.playerId, playerId))
+        .orderBy(desc(gameTable.gameCreatedAt));
+      return query;
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during game history retrieval.'
+      );
+    }
   };
 
   getWeeklyWinrate = async (playerId: number) => {
-    const currentWeekStart = new Date();
-    currentWeekStart.setUTCHours(0, 0, 0, 0);
-    currentWeekStart.setUTCDate(
-      currentWeekStart.getUTCDate() - ((currentWeekStart.getUTCDay() + 6) % 7),
-    );
-    const nextWeekStart = new Date(currentWeekStart);
-    nextWeekStart.setUTCDate(nextWeekStart.getUTCDate() + 7);
+    try {
+      const currentWeekStart = new Date();
+      currentWeekStart.setUTCHours(0, 0, 0, 0);
+      currentWeekStart.setUTCDate(
+        currentWeekStart.getUTCDate() -
+          ((currentWeekStart.getUTCDay() + 6) % 7),
+      );
+      const nextWeekStart = new Date(currentWeekStart);
+      nextWeekStart.setUTCDate(nextWeekStart.getUTCDate() + 7);
 
-    const weeklyRows = await this.Database.getDb()
-      .select({
-        dayDate:
-          sql<string>`DATE_TRUNC('day', ${gameTable.gameCreatedAt})::date`.as(
-            'dayDate',
+      const weeklyRows = await this.Database.getDb()
+        .select({
+          dayDate:
+            sql<string>`DATE_TRUNC('day', ${gameTable.gameCreatedAt})::date`.as(
+              'dayDate',
+            ),
+          wins: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`.as(
+            'wins',
           ),
-        wins: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`.as(
-          'wins',
-        ),
-        games:
-          sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING')::int`.as(
-            'games',
+          games:
+            sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} <> 'PENDING')::int`.as(
+              'games',
+            ),
+        })
+        .from(participationTable)
+        .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+        .where(
+          and(
+            eq(participationTable.playerId, playerId),
+            gte(gameTable.gameCreatedAt, currentWeekStart),
+            lt(gameTable.gameCreatedAt, nextWeekStart),
           ),
-      })
-      .from(participationTable)
-      .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
-      .where(
-        and(
-          eq(participationTable.playerId, playerId),
-          gte(gameTable.gameCreatedAt, currentWeekStart),
-          lt(gameTable.gameCreatedAt, nextWeekStart),
-        ),
-      )
-      .groupBy(sql`DATE_TRUNC('day', ${gameTable.gameCreatedAt})`)
-      .orderBy(sql`DATE_TRUNC('day', ${gameTable.gameCreatedAt})`);
+        )
+        .groupBy(sql`DATE_TRUNC('day', ${gameTable.gameCreatedAt})`)
+        .orderBy(sql`DATE_TRUNC('day', ${gameTable.gameCreatedAt})`);
 
-    const byDate = new Map<string, { wins: number; games: number }>();
-    for (const row of weeklyRows) {
-      const dateIso = row.dayDate.slice(0, 10);
-      byDate.set(dateIso, { wins: row.wins, games: row.games });
+      const byDate = new Map<string, { wins: number; games: number }>();
+      for (const row of weeklyRows) {
+        const dateIso = row.dayDate.slice(0, 10);
+        byDate.set(dateIso, { wins: row.wins, games: row.games });
+      }
+
+      let cumulativeWins = 0;
+      let cumulativeGames = 0;
+      const points: { dayIndex: number; date: string; winrate: number }[] = [];
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(currentWeekStart);
+        date.setUTCDate(currentWeekStart.getUTCDate() + i);
+        const dateIso = date.toISOString().slice(0, 10);
+        const stats = byDate.get(dateIso) ?? { wins: 0, games: 0 };
+        cumulativeWins += stats.wins;
+        cumulativeGames += stats.games;
+
+        const winrate =
+          cumulativeGames === 0
+            ? 0
+            : Number(((cumulativeWins * 100) / cumulativeGames).toFixed(2));
+
+        points.push({ dayIndex: i + 1, date: dateIso, winrate });
+      }
+
+      return {
+        timezone: 'UTC',
+        weekStart: currentWeekStart.toISOString().slice(0, 10),
+        points,
+      };
+    } catch (error) {
+      throw new ServiceUnavailableException(error,
+        'Database error during weekly winrate retrieval.'
+      );
     }
-
-    let cumulativeWins = 0;
-    let cumulativeGames = 0;
-    const points: { dayIndex: number; date: string; winrate: number }[] = [];
-
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(currentWeekStart);
-      date.setUTCDate(currentWeekStart.getUTCDate() + i);
-      const dateIso = date.toISOString().slice(0, 10);
-      const stats = byDate.get(dateIso) ?? { wins: 0, games: 0 };
-      cumulativeWins += stats.wins;
-      cumulativeGames += stats.games;
-
-      const winrate =
-        cumulativeGames === 0
-          ? 0
-          : Number(((cumulativeWins * 100) / cumulativeGames).toFixed(2));
-
-      points.push({ dayIndex: i + 1, date: dateIso, winrate });
-    }
-
-    return {
-      timezone: 'UTC',
-      weekStart: currentWeekStart.toISOString().slice(0, 10),
-      points,
-    };
   };
 }
