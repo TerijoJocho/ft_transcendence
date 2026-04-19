@@ -370,9 +370,9 @@ export class GameService {
   }
 
   async listPendingGames(playerId: number) {
-    // const pendingGamesList: { [x: string]: unknown }[] =
-    //   await this.utilsService.getAllPendingGamesData(playerId);
-    // return pendingGamesList;
+    const pendingGamesList: { [x: string]: unknown }[] =
+      await this.utilsService.getAllPendingGamesData(playerId);
+    return pendingGamesList;
 
     type PendingGameRow = Pick<
       gameSelect,
