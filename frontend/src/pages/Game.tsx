@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/useAuth.ts";
 import Header from "../components/Header.tsx";
 import type { Socket } from "socket.io-client";
 import {
@@ -203,8 +204,8 @@ type PendingGame = {
   gameMode: "CLASSIC" | "BLITZ" | "BULLET";
   gameCreatedAt: string;
   creatorId: number;
+  creatorName: string;
   creatorColor: "WHITE" | "BLACK";
-  createdByCurrentUser: boolean;
 };
 
 type GameStateSnapshot = {
@@ -496,6 +497,14 @@ function ChessGame({
 
   return (
     <div className="text-white">
+      {isOnline && online.gameId && (
+        <div className="flex justify-end px-6 pt-4">
+          <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2">
+            <span className="text-xs uppercase tracking-widest text-gray-500">Game ID</span>
+            <span className="font-mono text-violet-400 font-semibold text-sm select-all">{online.gameId}</span>
+          </div>
+        </div>
+      )}
       <div className="flex gap-6 p-6 justify-center items-start flex-wrap">
 
         {/* Move history — 2 moves per row, scrollable */}
@@ -693,6 +702,7 @@ type Color = "Blanc" | "Noir" | null;
 
 function Game() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [showCreateOptions, setShowCreateOptions] = useState(false);
   const [showChess, setShowChess] = useState(false);
   const [mode, setMode] = useState<Mode>(null);
@@ -707,8 +717,8 @@ function Game() {
   const [menuError, setMenuError] = useState<string | null>(null);
 
   const btnBase = "w-44 py-3 rounded-md text-base font-semibold border transition";
-  const btnActive = "bg-black text-white border-black";
-  const btnInactive = "bg-white text-gray-700 border-gray-300 hover:border-black hover:text-black";
+  const btnActive = "bg-violet-500 text-white border-violet-500";
+  const btnInactive = "bg-white text-gray-700 border-gray-300 hover:border-violet-500 hover:text-violet-500";
   const btnDisabled = "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-70";
 
   const colorDisabled = mode === "Local";
@@ -809,7 +819,7 @@ function Game() {
         {!showCreateOptions ? (
           <div className="flex flex-col gap-6 items-center w-full max-w-3xl px-6">
             <div className="flex flex-row gap-4">
-              <button onClick={() => setShowCreateOptions(true)} className="w-64 py-3 text-base font-semibold bg-black text-white rounded-md hover:bg-gray-800 transition">
+              <button onClick={() => setShowCreateOptions(true)} className="w-64 py-3 text-base font-semibold bg-violet-500 text-white rounded-md hover:bg-violet-400 transition">
                 Créer une partie
               </button>
               <button onClick={() => handleJoinExistingGame()} className="w-64 py-3 text-base font-semibold border border-gray-400 rounded-md text-black hover:bg-gray-100 transition">
@@ -827,7 +837,7 @@ function Game() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-xs uppercase tracking-widest text-gray-500">Parties en attente</p>
-                  <p className="text-sm text-gray-600">Rejoins directement une partie PENDING sans saisir d'identifiant.</p>
+                  <p className="text-sm text-gray-600">Rejoins directement une partie sans saisir d'identifiant.</p>
                 </div>
                 <button onClick={() => void loadPendingGames()} className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition">
                   Rafraîchir
@@ -840,14 +850,14 @@ function Game() {
                   <div key={pendingGame.gameId} className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 px-4 py-3">
                     <div>
                       <p className="font-medium text-gray-900">Partie #{pendingGame.gameId}</p>
-                      <p className="text-sm text-gray-600">{pendingGame.gameMode} · créateur en {pendingGame.creatorColor === "WHITE" ? "blanc" : "noir"}</p>
+                      <p className="text-sm text-gray-600">{pendingGame.gameMode} · {pendingGame.creatorName} en {pendingGame.creatorColor === "WHITE" ? "blanc" : "noir"}</p>
                     </div>
                     <button
-                      disabled={pendingGame.createdByCurrentUser}
+                      disabled={pendingGame.creatorId === user?.id}
                       onClick={() => void handleJoinExistingGame(pendingGame.gameId)}
-                      className={`px-4 py-2 rounded-md text-sm transition ${pendingGame.createdByCurrentUser ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-black text-white hover:bg-gray-800"}`}
+                      className={`px-4 py-2 rounded-md text-sm transition ${pendingGame.creatorId === user?.id ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-violet-500 text-white hover:bg-violet-400"}`}
                     >
-                      {pendingGame.createdByCurrentUser ? "Ta partie" : "Rejoindre"}
+                      {pendingGame.creatorId === user?.id ? "Ta partie" : "Rejoindre"}
                     </button>
                   </div>
                 ))}
@@ -872,7 +882,7 @@ function Game() {
                 <button key={c} disabled={colorDisabled} onClick={() => !colorDisabled && setColor(c)} className={`${btnBase} ${colorDisabled ? btnDisabled : color === c ? btnActive : btnInactive}`}>{c}</button>
               ))}
             </div>
-            <button onClick={handleCreateGame} className="mt-2 w-56 py-3 text-base font-semibold bg-black text-white rounded-md hover:bg-gray-800 transition">
+            <button onClick={handleCreateGame} className="mt-2 w-56 py-3 text-base font-semibold bg-violet-500 text-white rounded-md hover:bg-violet-400 transition">
               Commencer
             </button>
             {menuError && <p className="text-sm text-red-500">{menuError}</p>}
