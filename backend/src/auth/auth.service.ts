@@ -8,12 +8,13 @@ import {
 import { playerTable } from '../shared/db/schema';
 import type { playerSelect } from '../shared/db/schema';
 import { Response } from 'express';
-import { eq, isNull, or } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { UtilsService } from '../shared/services/utils.func.service';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { RedisService } from '../shared/services/redis.service';
 import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
+import * as bcrypt from 'bcrypt';
 import { DoubleFactorService } from '../double_factor/double_factor.service';
 import { TwoFactorDto } from './dto/twoFactorDto';
 
@@ -175,22 +176,15 @@ export class AuthService {
     return response.json(user);
   }
 
+  private isBcryptHash(value: string): boolean {
+    return /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(value);
+  }
+
   async verifyUser(
     identifier: string,
     password: string,
   ): Promise<playerSelect> {
     const normalized = identifier.trim();
-    const pwdCheck = (await this.utilsService.findPlayersBy(
-      'and',
-      undefined,
-      or(
-        eq(playerTable.playerName, normalized),
-        eq(playerTable.mailAddress, normalized),
-      ),
-      isNull(playerTable.pwd),
-    )) as playerSelect[];
-    if (pwdCheck.length > 0)
-      throw new UnauthorizedException('Invalid credentials.');
     const user = (
       (await this.utilsService.findPlayersBy(
         'and',
@@ -199,10 +193,24 @@ export class AuthService {
           eq(playerTable.playerName, normalized),
           eq(playerTable.mailAddress, normalized),
         ),
-        eq(playerTable.pwd, password),
       )) as playerSelect[]
     )[0];
-    if (!user) throw new UnauthorizedException('Invalid credentials.');
+    if (!user || !user.pwd)
+      throw new UnauthorizedException('Invalid credentials.');
+
+    let isPasswordValid = false;
+    if (this.isBcryptHash(user.pwd)) {
+      try {
+        isPasswordValid = await bcrypt.compare(password, user.pwd);
+      } catch {
+        throw new UnauthorizedException('Invalid credentials.');
+      }
+    } else {
+      isPasswordValid = password === user.pwd;
+    }
+
+    if (!isPasswordValid)
+      throw new UnauthorizedException('Invalid credentials.');
     return user;
   }
 
