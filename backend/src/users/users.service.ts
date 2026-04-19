@@ -72,8 +72,8 @@ export class UsersService {
     };
 
     return (await this.utilsService.insertPlayers([currentPlayers], {
-      id: playerTable.playerId,
-      pseudo: playerTable.playerName,
+      playerId: playerTable.playerId,
+      playerName: playerTable.playerName,
     })) as playerSelect[];
   }
 

@@ -7,6 +7,13 @@ import { eq } from 'drizzle-orm';
 import { UsersService } from 'src/users/users.service';
 import { LoginDto } from '../dto/login.dto';
 
+type CreatedUser = {
+  playerId?: number;
+  playerName?: string;
+  id?: number;
+  pseudo?: string;
+};
+
 @Injectable()
 export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
@@ -61,7 +68,8 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
     }
     const user = (
       await this.userService.registerPlayers(primaryEmail, displayName)
-    )[0];
+    )[0] as CreatedUser;
+
     return {
       playerId: user.playerId,
       identifier: user.playerName,
