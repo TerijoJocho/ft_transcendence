@@ -48,8 +48,9 @@ export class GameController {
   giveup(
     @CurrentUser() user: LogoutDto,
     @Param('gameId', ParseIntPipe) gameId: number,
+    @Body() bodyDto: EndGameDto,
   ) {
-    return this.gameService.giveupGame(gameId, user.playerId);
+    return this.gameService.giveupGame(bodyDto, gameId, user.playerId);
   }
 
   @Delete(':gameId/cancel')
