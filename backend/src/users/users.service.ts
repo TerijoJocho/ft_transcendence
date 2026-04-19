@@ -4,6 +4,7 @@ import {
   ServiceUnavailableException,
   NotFoundException,
   UnauthorizedException,
+  HttpException,
 } from '@nestjs/common';
 import { UtilsService } from 'src/shared/services/utils.func.service';
 import { eq, ne } from 'drizzle-orm';
@@ -17,6 +18,7 @@ import {
 import { UpdateUserDto } from './dto/updateDto';
 import { RedisService } from 'src/shared/services/redis.service';
 import { Response } from 'express';
+import * as bcrypt from 'bcrypt';
 
 type UserStatsResponse = {
   id: number;
@@ -59,10 +61,13 @@ export class UsersService {
     let isGoogle = false;
     if (!pwd) isGoogle = true;
 
+    const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS ?? 12);
+    const hashedPassword = pwd ? await bcrypt.hash(pwd, saltRounds) : undefined;
+
     const currentPlayers: playerInsert = {
       playerName: gameName,
       mailAddress: mailAddress,
-      pwd: pwd || undefined,
+      pwd: hashedPassword || undefined,
       isGoogleUser: isGoogle,
     };
 
@@ -157,7 +162,7 @@ export class UsersService {
     try {
       const updatePayload: Partial<playerInsert> = {};
       updatePayload.playerName = userData.pseudo;
-
+      const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS ?? 12);
       const user = (
         await this.utilsService.findPlayersBy(
           'and',
@@ -170,11 +175,18 @@ export class UsersService {
         updatePayload.mailAddress = userData.email;
 
       if (userData.newPassword !== undefined && user.isGoogleUser === false) {
-        updatePayload.pwd = userData.newPassword;
+        try {
+          updatePayload.pwd = await bcrypt.hash(
+            userData.newPassword,
+            saltRounds,
+          );
+        } catch {
+          throw new InternalServerErrorException('Error hashing password');
+        }
       }
-      if (userData.avatar !== undefined) {
+
+      if (userData.avatar !== undefined)
         updatePayload.avatarUrl = userData.avatar;
-      }
 
       const playerNameCheck = await this.utilsService.findPlayersBy(
         'and',
@@ -208,6 +220,9 @@ export class UsersService {
       );
       return 'User updated successfully';
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new ServiceUnavailableException(error, 'Failed to update user');
     }
   }
