@@ -163,10 +163,8 @@ export async function loadAppSecretsFromVault(
       vaultResponse.data.data.data.google_auth_client_id;
     const google_auth_client_secret =
       vaultResponse.data.data.data.google_auth_client_secret;
-    const redis_url =
-      vaultResponse.data.data.data.redis_url;
-    const postgres_url =
-      vaultResponse.data.data.data.postgres_url;
+    const redis_url = vaultResponse.data.data.data.redis_url;
+    const postgres_url = vaultResponse.data.data.data.postgres_url;
 
     if (
       typeof jwt_access_token_secret !== 'string' ||
