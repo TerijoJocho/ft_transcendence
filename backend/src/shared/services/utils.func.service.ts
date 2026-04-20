@@ -17,14 +17,18 @@ import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 export class UtilsService {
   constructor(private readonly Database: DatabaseService) {}
 
+  private throwDbUnavailable(error: unknown, message: string): never {
+    throw new ServiceUnavailableException(message, { cause: error });
+  }
+
   findAllPlayers = async (selectedValues?: SelectedFieldsFlat) => {
     try {
       const query = selectedValues
         ? this.Database.getDb().select(selectedValues).from(playerTable)
         : this.Database.getDb().select().from(playerTable);
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during player selection.');
+      this.throwDbUnavailable(error, 'Database error during player selection.');
     }
   };
 
@@ -43,9 +47,9 @@ export class UtilsService {
       } else if (operator === 'and' && flatConditions.length > 0) {
         query = query.where(and(...flatConditions)) as typeof query;
       }
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during player selection.');
+      this.throwDbUnavailable(error, 'Database error during player selection.');
     }
   };
 
@@ -56,10 +60,10 @@ export class UtilsService {
     try {
       const query = this.Database.getDb().insert(playerTable).values(players);
       return insertedValues
-        ? query.returning(insertedValues)
-        : query.returning();
+        ? await query.returning(insertedValues)
+        : await query.returning();
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during player insertion.');
+      this.throwDbUnavailable(error, 'Database error during player insertion.');
     }
   };
 
@@ -77,9 +81,9 @@ export class UtilsService {
             .update(playerTable)
             .set(updatedPlayer)
             .returning();
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during player update.');
+      this.throwDbUnavailable(error, 'Database error during player update.');
     }
   };
 
@@ -97,17 +101,19 @@ export class UtilsService {
       } else if (operator === 'and' && flatConditions.length > 0) {
         query = query.where(and(...flatConditions)) as typeof query;
       }
-      return updatedValues ? query.returning(updatedValues) : query.returning();
+      return updatedValues
+        ? await query.returning(updatedValues)
+        : await query.returning();
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during player update.');
+      this.throwDbUnavailable(error, 'Database error during player update.');
     }
   };
 
   deleteAllPlayers = async () => {
     try {
-      return this.Database.getDb().delete(playerTable);
+      return await this.Database.getDb().delete(playerTable);
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during player deletion.');
+      this.throwDbUnavailable(error, 'Database error during player deletion.');
     }
   };
 
@@ -118,7 +124,7 @@ export class UtilsService {
         sql`TRUNCATE TABLE ${table} RESTART IDENTITY CASCADE`,
       );
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during table reset.');
+      this.throwDbUnavailable(error, 'Database error during table reset.');
     }
   };
 
@@ -135,9 +141,11 @@ export class UtilsService {
       } else if (operator === 'and' && flatConditions.length > 0) {
         query = query.where(and(...flatConditions)) as typeof query;
       }
-      return deletedValues ? query.returning(deletedValues) : query.returning();
+      return deletedValues
+        ? await query.returning(deletedValues)
+        : await query.returning();
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during player deletion.');
+      this.throwDbUnavailable(error, 'Database error during player deletion.');
     }
   };
 
@@ -147,9 +155,9 @@ export class UtilsService {
       const query = selectedValues
         ? this.Database.getDb().select(selectedValues).from(gameTable)
         : this.Database.getDb().select().from(gameTable);
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during game selection.');
+      this.throwDbUnavailable(error, 'Database error during game selection.');
     }
   };
 
@@ -168,9 +176,9 @@ export class UtilsService {
       } else if (operator === 'and' && flatConditions.length > 0) {
         query = query.where(and(...flatConditions)) as typeof query;
       }
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during game selection.');
+      this.throwDbUnavailable(error, 'Database error during game selection.');
     }
   };
 
@@ -181,10 +189,10 @@ export class UtilsService {
     try {
       const query = this.Database.getDb().insert(gameTable).values(games);
       return insertedValues
-        ? query.returning(insertedValues)
-        : query.returning();
+        ? await query.returning(insertedValues)
+        : await query.returning();
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during game insertion.');
+      this.throwDbUnavailable(error, 'Database error during game insertion.');
     }
   };
 
@@ -199,9 +207,9 @@ export class UtilsService {
             .set(updatedGame)
             .returning(updatedValues)
         : this.Database.getDb().update(gameTable).set(updatedGame).returning();
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during game update.');
+      this.throwDbUnavailable(error, 'Database error during game update.');
     }
   };
 
@@ -219,17 +227,19 @@ export class UtilsService {
       } else if (operator === 'and' && flatConditions.length > 0) {
         query = query.where(and(...flatConditions)) as typeof query;
       }
-      return updatedValues ? query.returning(updatedValues) : query.returning();
+      return updatedValues
+        ? await query.returning(updatedValues)
+        : await query.returning();
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during game update.');
+      this.throwDbUnavailable(error, 'Database error during game update.');
     }
   };
 
   deleteAllGames = async () => {
     try {
-      return this.Database.getDb().delete(gameTable);
+      return await this.Database.getDb().delete(gameTable);
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during game deletion.');
+      this.throwDbUnavailable(error, 'Database error during game deletion.');
     }
   };
 
@@ -246,9 +256,11 @@ export class UtilsService {
       } else if (operator === 'and' && flatConditions.length > 0) {
         query = query.where(and(...flatConditions)) as typeof query;
       }
-      return deletedValues ? query.returning(deletedValues) : query.returning();
+      return deletedValues
+        ? await query.returning(deletedValues)
+        : await query.returning();
     } catch (error) {
-      throw new ServiceUnavailableException(error,'Database error during game deletion.');
+      this.throwDbUnavailable(error, 'Database error during game deletion.');
     }
   };
 
@@ -258,10 +270,11 @@ export class UtilsService {
       const query = selectedValues
         ? this.Database.getDb().select(selectedValues).from(friendshipTable)
         : this.Database.getDb().select().from(friendshipTable);
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during friendship retrieval.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during friendship retrieval.',
       );
     }
   };
@@ -281,10 +294,11 @@ export class UtilsService {
       } else if (operator === 'and' && flatConditions.length > 0) {
         query = query.where(and(...flatConditions)) as typeof query;
       }
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during friendship retrieval.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during friendship retrieval.',
       );
     }
   };
@@ -298,10 +312,13 @@ export class UtilsService {
         .insert(friendshipTable)
         .values(friendships);
       return insertedValues
-        ? query.returning(insertedValues)
-        : query.returning();
+        ? await query.returning(insertedValues)
+        : await query.returning();
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during friendship insertion.');
+      this.throwDbUnavailable(
+        error,
+        'Database error during friendship insertion.',
+      );
     }
   };
 
@@ -319,9 +336,12 @@ export class UtilsService {
             .update(friendshipTable)
             .set(updatedFriendship)
             .returning();
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during friendship update.');
+      this.throwDbUnavailable(
+        error,
+        'Database error during friendship update.',
+      );
     }
   };
 
@@ -341,18 +361,24 @@ export class UtilsService {
       } else if (operator === 'and' && flatConditions.length > 0) {
         query = query.where(and(...flatConditions)) as typeof query;
       }
-      return updatedValues ? query.returning(updatedValues) : query.returning();
+      return updatedValues
+        ? await query.returning(updatedValues)
+        : await query.returning();
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during friendship update.');
+      this.throwDbUnavailable(
+        error,
+        'Database error during friendship update.',
+      );
     }
   };
 
   deleteAllFriendships = async () => {
     try {
-      return this.Database.getDb().delete(friendshipTable);
+      return await this.Database.getDb().delete(friendshipTable);
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during friendship deletion.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during friendship deletion.',
       );
     }
   };
@@ -370,10 +396,13 @@ export class UtilsService {
       } else if (operator === 'and' && flatConditions.length > 0) {
         query = query.where(and(...flatConditions)) as typeof query;
       }
-      return deletedValues ? query.returning(deletedValues) : query.returning();
+      return deletedValues
+        ? await query.returning(deletedValues)
+        : await query.returning();
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during friendship deletion.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during friendship deletion.',
       );
     }
   };
@@ -384,10 +413,11 @@ export class UtilsService {
       const query = selectedValues
         ? this.Database.getDb().select(selectedValues).from(participationTable)
         : this.Database.getDb().select().from(participationTable);
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during participation retrieval.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during participation retrieval.',
       );
     }
   };
@@ -407,10 +437,11 @@ export class UtilsService {
       } else if (operator === 'and' && flatConditions.length > 0) {
         query = query.where(and(...flatConditions)) as typeof query;
       }
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during participation retrieval.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during participation retrieval.',
       );
     }
   };
@@ -424,10 +455,13 @@ export class UtilsService {
         .insert(participationTable)
         .values(participations);
       return insertedValues
-        ? query.returning(insertedValues)
-        : query.returning();
+        ? await query.returning(insertedValues)
+        : await query.returning();
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Database error during participation insertion.');
+      this.throwDbUnavailable(
+        error,
+        'Database error during participation insertion.',
+      );
     }
   };
 
@@ -445,10 +479,11 @@ export class UtilsService {
             .update(participationTable)
             .set(updatedParticipation)
             .returning();
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during participation update.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during participation update.',
       );
     }
   };
@@ -469,20 +504,24 @@ export class UtilsService {
       } else if (operator === 'and' && flatConditions.length > 0) {
         query = query.where(and(...flatConditions)) as typeof query;
       }
-      return updatedValues ? query.returning(updatedValues) : query.returning();
+      return updatedValues
+        ? await query.returning(updatedValues)
+        : await query.returning();
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during participation update.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during participation update.',
       );
     }
   };
 
   deleteAllParticipations = async () => {
     try {
-      return this.Database.getDb().delete(participationTable);
+      return await this.Database.getDb().delete(participationTable);
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during participation deletion.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during participation deletion.',
       );
     }
   };
@@ -500,10 +539,13 @@ export class UtilsService {
       } else if (operator === 'and' && flatConditions.length > 0) {
         query = query.where(and(...flatConditions)) as typeof query;
       }
-      return deletedValues ? query.returning(deletedValues) : query.returning();
+      return deletedValues
+        ? await query.returning(deletedValues)
+        : await query.returning();
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during participation deletion.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during participation deletion.',
       );
     }
   };
@@ -532,10 +574,11 @@ export class UtilsService {
           ),
         ) as typeof query;
       }
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during average win moves calculation.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during average win moves calculation.',
       );
     }
   };
@@ -580,10 +623,11 @@ export class UtilsService {
         .from(subquery)
         .where(eq(subquery.ranking, 1));
 
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during favourite game mode retrieval.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during favourite game mode retrieval.',
       );
     }
   };
@@ -609,10 +653,11 @@ export class UtilsService {
       if (playerId) {
         query = query.where(eq(playerTable.playerId, playerId)) as typeof query;
       }
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during games results count retrieval.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during games results count retrieval.',
       );
     }
   };
@@ -650,10 +695,11 @@ export class UtilsService {
           eq(playerTable.playerId, playerId),
         ) as typeof currentWinStreak;
       }
-      return currentWinStreak;
+      return await currentWinStreak;
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during current win streak retrieval.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during current win streak retrieval.',
       );
     }
   };
@@ -711,10 +757,11 @@ export class UtilsService {
           eq(playerTable.playerId, playerId),
         ) as typeof longestWinStreak;
       }
-      return longestWinStreak;
+      return await longestWinStreak;
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during longest win streak retrieval.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during longest win streak retrieval.',
       );
     }
   };
@@ -758,10 +805,11 @@ export class UtilsService {
         })
         .from(colorRanking)
         .where(eq(colorRanking.ranking, 1));
-      return query;
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during favourite color retrieval.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during favourite color retrieval.',
       );
     }
   };
@@ -798,7 +846,7 @@ export class UtilsService {
           playerColor: participationTable.playerColor,
           playerResult: participationTable.playerResult,
           opponentName: opponentsNamesQuery.opponentsName,
-          gameDuration: sql<string>`${gameTable.gameCompletedAt} - ${gameTable.gameCreatedAt}`,
+          gameDuration: sql<string>`${gameTable.gameCompletedAt} - ${gameTable.gameStartedAt}`,
         })
         .from(participationTable)
         .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
@@ -811,11 +859,12 @@ export class UtilsService {
           eq(opponentsNamesQuery.gameId, gameTable.gameId),
         )
         .where(eq(participationTable.playerId, playerId))
-        .orderBy(desc(gameTable.gameCreatedAt));
-      return query;
+        .orderBy(desc(gameTable.gameStartedAt));
+      return await query;
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during game history retrieval.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during game history retrieval.',
       );
     }
   };
@@ -834,7 +883,7 @@ export class UtilsService {
       const weeklyRows = await this.Database.getDb()
         .select({
           dayDate:
-            sql<string>`DATE_TRUNC('day', ${gameTable.gameCreatedAt})::date`.as(
+            sql<string>`DATE_TRUNC('day', ${gameTable.gameStartedAt})::date`.as(
               'dayDate',
             ),
           wins: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`.as(
@@ -850,12 +899,12 @@ export class UtilsService {
         .where(
           and(
             eq(participationTable.playerId, playerId),
-            gte(gameTable.gameCreatedAt, currentWeekStart),
-            lt(gameTable.gameCreatedAt, nextWeekStart),
+            gte(gameTable.gameStartedAt, currentWeekStart),
+            lt(gameTable.gameStartedAt, nextWeekStart),
           ),
         )
-        .groupBy(sql`DATE_TRUNC('day', ${gameTable.gameCreatedAt})`)
-        .orderBy(sql`DATE_TRUNC('day', ${gameTable.gameCreatedAt})`);
+        .groupBy(sql`DATE_TRUNC('day', ${gameTable.gameStartedAt})`)
+        .orderBy(sql`DATE_TRUNC('day', ${gameTable.gameStartedAt})`);
 
       const byDate = new Map<string, { wins: number; games: number }>();
       for (const row of weeklyRows) {
@@ -889,8 +938,9 @@ export class UtilsService {
         points,
       };
     } catch (error) {
-      throw new ServiceUnavailableException(error,
-        'Database error during weekly winrate retrieval.'
+      this.throwDbUnavailable(
+        error,
+        'Database error during weekly winrate retrieval.',
       );
     }
   };
