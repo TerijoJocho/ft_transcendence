@@ -1,4 +1,4 @@
-import { IsNumber, IsPositive } from 'class-validator';
+import { IsNumber, IsPositive, Max } from 'class-validator';
 
 export class GiveupGameDto {
   @IsNumber()
@@ -7,5 +7,6 @@ export class GiveupGameDto {
 
   @IsNumber()
   @IsPositive()
+  @Max(GiveupGameDto.prototype.totalNbMoves)
   readonly winnerNbMoves: number;
 }
