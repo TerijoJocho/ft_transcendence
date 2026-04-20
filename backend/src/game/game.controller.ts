@@ -10,6 +10,7 @@ import {
 import { PassportJwtGuard } from 'src/auth/guards/passport-jwt.guard';
 import { NewGameDto } from './dto/new-game.dto';
 import { EndGameDto } from './dto/end-game.dto';
+import { GiveupGameDto } from './dto/giveup-game.dto';
 import { GameService } from './game.service';
 import { LogoutDto } from 'src/auth/dto/logout.dto';
 import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
@@ -48,7 +49,7 @@ export class GameController {
   giveup(
     @CurrentUser() user: LogoutDto,
     @Param('gameId', ParseIntPipe) gameId: number,
-    @Body() bodyDto: EndGameDto,
+    @Body() bodyDto: GiveupGameDto,
   ) {
     return this.gameService.giveupGame(bodyDto, gameId, user.playerId);
   }
