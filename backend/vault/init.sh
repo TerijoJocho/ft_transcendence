@@ -40,7 +40,7 @@ fi
 : "${JWT_REFRESH_TOKEN_SECRET:?missing}"
 : "${GOOGLE_AUTH_CLIENT_ID:?missing}"
 : "${GOOGLE_AUTH_CLIENT_SECRET:?missing}"
-: "${REDIS_URL}"
+: "${REDIS_URL:?missing}"
 
 # pour les permissions des volume sudo chmod 700 .vault-secrets .vault-secrets/core .vault-secrets/approle .vault-secrets/vault_certs
 vault server -config=/vault/config/vault-config.hcl &
