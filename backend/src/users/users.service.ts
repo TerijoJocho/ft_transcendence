@@ -48,7 +48,7 @@ export class UsersService {
     mailAddress: string,
     gameName: string,
     pwd?: string,
-  ): Promise<playerSelect[]> {
+  ): Promise<{ [x: string]: unknown }[]> {
     const existingUser = (await this.utilsService.findPlayersBy(
       'or',
       undefined,
@@ -72,9 +72,9 @@ export class UsersService {
     };
 
     return (await this.utilsService.insertPlayers([currentPlayers], {
-      id: playerTable.playerId,
-      pseudo: playerTable.playerName,
-    })) as playerSelect[];
+      playerId: playerTable.playerId,
+      playerName: playerTable.playerName,
+    })) as { [x: string]: unknown }[];
   }
 
   async getDataUser(playerId: number) {
