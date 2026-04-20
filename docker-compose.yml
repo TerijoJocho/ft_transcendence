@@ -50,7 +50,7 @@ services:
     container_name: ft_transcendence_redis
     restart: always
     secrets:
-    - REDIS_PASSWORD
+      - REDIS_PASSWORD
     ports:
       - "127.0.0.1:6380:6379"
     command:
