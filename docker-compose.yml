@@ -24,7 +24,7 @@ services:
       [
         "sh",
         "-c",
-        "export POSTGRES_USER=\"$$(cat /run/secrets/POSTGRES_USER)\"; export POSTGRES_PASSWORD=\"$$(cat /run/secrets/POSTGRES_PASSWORD)\"; exec docker-entrypoint.sh postgres",
+        "export POSTGRES_USER=\"$$(cat /run/secrets/POSTGRES_USER)\"; export POSTGRES_PASSWORD=\"$$(cat /run/secrets/POSTGRES_PASSWORD)\"; exec docker-entrypoint.sh postgres"
       ]
     networks: [internal]
 
