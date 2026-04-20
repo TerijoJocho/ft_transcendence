@@ -8,10 +8,8 @@ import { UsersService } from 'src/users/users.service';
 import { LoginDto } from '../dto/login.dto';
 
 type CreatedUser = {
-  playerId?: number;
-  playerName?: string;
-  id?: number;
-  pseudo?: string;
+  playerId: number;
+  playerName: string;
 };
 
 @Injectable()
