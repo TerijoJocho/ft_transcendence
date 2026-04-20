@@ -1,24 +1,20 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleUser } from "@fortawesome/free-solid-svg-icons";
-
 import { useState, useEffect, useRef } from "react";
 import statusData from "../data/statusData.ts";
-import { mockDashboardUserStats } from "../data/mock_data";
 
 import Level from "../components/Level.tsx";
 
-// import * as api from '../api/api.ts';
+import * as api from "../api/api.ts";
 
-export default function HeaderPlayerInfos({user, setUser}) {
+export default function HeaderPlayerInfos({ userStats, setUserStats }) {
   const dropDownWrapper = useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [avatar, setAvatar] = useState("");
 
   //fetch le user au mount du composant
   useEffect(() => {
     async function fetchUser() {
-      // const userData = await api.me(); //utiliser le get de /user
-      const userData = mockDashboardUserStats;
-      setUser(userData);
+      const userData = await api.me();
+      setAvatar(userData.avatarUrl);
     }
     fetchUser();
   });
@@ -42,7 +38,7 @@ export default function HeaderPlayerInfos({user, setUser}) {
 
   //si le user n'a pas encore été fetch
   //early return
-  if (!user) {
+  if (!userStats) {
     return (
       <header className="flex justify-end items-center m-2">
         Chargement...
@@ -54,7 +50,7 @@ export default function HeaderPlayerInfos({user, setUser}) {
   // changement de statut a gerer que dans le frontend avec websocket
   function handleChangeStatus(value: string) {
     setIsOpen((prev) => !prev);
-    setUser((prev) => (prev ? { ...prev, status: value } : prev));
+    setUserStats((prev) => (prev ? { ...prev, status: value } : prev));
   }
 
   //créer les boutons du menu status
@@ -73,27 +69,23 @@ export default function HeaderPlayerInfos({user, setUser}) {
   });
 
   //affiche le status actuel du user
-  const currentUserStatus = statusData.find((st) => st.value === user.status);
+  const currentUserStatus = statusData.find((st) => st.value === userStats.status);
   const userAvatar =
-    typeof user.avatar === "string" ? (
       <img
-        src={user.avatar}
-        alt={`${user.pseudo} avatar`}
+        src={avatar}
+        alt={`${userStats.pseudo} avatar`}
         className="w-12 h-12 rounded-full object-cover m-2"
       />
-    ) : (
-      <FontAwesomeIcon icon={user.avatar ?? faCircleUser} className="w-12 h-12 rounded-full object-cover m-2" />
-    );
 
   return (
     <header className="flex justify-end items-center m-2 relative text-[#141301]">
       <p className="flex-1 title-style">Bienvenue sur ChessWar</p>
       <div className="flex flex-col">
         <h3 className="text-lg self-end">
-          {user.pseudo ? user.pseudo : "UserName"}
+          {userStats.pseudo ? userStats.pseudo : "UserName"}
         </h3>
 
-        <Level level={user.winCount}/>
+        <Level level={userStats.winCount ?? 0} />
 
         <div ref={dropDownWrapper} className="self-end">
           <button

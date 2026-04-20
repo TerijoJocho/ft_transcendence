@@ -1,4 +1,5 @@
-import { mockDashboardUserStats, type DashboardMatch } from "../data/mock_data";
+import { mockDashboardUserStats} from "../data/mock_data";
+import USE_MOCK_DATA from "../config/dataConfig";
 
 function formatGameDuration(duration) {
   if (typeof duration !== "string") return "-";
@@ -21,13 +22,9 @@ function formatGameDuration(duration) {
   return `${seconds}s`;
 }
 
-export default function LastMatches({ user: _user }) {
-  console.log(_user);
-  // display match history items
-  // const displayData = (user?.gameHistoryList ?? []).slice(0, 10).map((data) => {
-  const displayData = (mockDashboardUserStats.gameHistoryList ?? [])
-    .slice(0, 10)
-    .map((data: DashboardMatch) => {
+export default function LastMatches({userStats}) {
+  const gameHistory = USE_MOCK_DATA && !userStats ? mockDashboardUserStats.gameHistoryList : userStats?.gameHistoryList;
+  const displayData = (gameHistory ?? []).slice(0, 10).map((data) => {
     return (
       <li
         key={data.gameId}
@@ -48,15 +45,16 @@ export default function LastMatches({ user: _user }) {
     <section className="grid-style col-span-2">
       <h3>Historique des dix derniers matches</h3>
       <div className="border rounded-md m-2 p-1 bg-violet-100">
-        <div className="grid grid-cols-5 gap-4 border-b-2 border-black m-1 p-2 font-semibold text-sm">
+        <div className="grid grid-cols-5 gap-4 border-b-2 border-black m-1 p-2 font-semibold text-sm text-nowrap">
           <p>Adversaire</p>
-          {/* <p className="text-center">Date</p> */}
           <p className="text-center">Résultat</p>
           <p className="text-center">Mode de jeu</p>
-          <p className="text-center">Couleur joué</p>
+          <p className="text-center">Couleur jouée</p>
           <p className="text-center">Temps de jeu</p>
         </div>
-        <ul className="max-h-40 overflow-scroll">{displayData}</ul>
+        <ul className="max-h-40 overflow-scroll">
+          {displayData.length === 0 ? "Aucune donées" : displayData}
+        </ul>
       </div>
     </section>
   );

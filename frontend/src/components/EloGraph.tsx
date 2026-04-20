@@ -6,11 +6,12 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
-import { useEffect, useState } from 'react';
-// import * as api from '../api/api';
-import { mockWeeklyWinrateData, type WeeklyPoint } from '../data/mock_data';
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
+import { useEffect, useState } from "react";
+import * as api from "../api/api";
+import { mockWeeklyWinrateData, type WeeklyPoint } from "../data/mock_data";
+import USE_MOCK_DATA from "../config/dataConfig";
 
 ChartJS.register(
   CategoryScale,
@@ -18,14 +19,8 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
-
-// type WeeklyPoint = {
-//   dayIndex: number;
-//   date: string;
-//   winrate: number;
-// };
 
 const labels = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
@@ -34,8 +29,7 @@ export default function EloGraph() {
 
   useEffect(() => {
     async function load() {
-      // const data = await api.weeklyWinrate();
-      const data = mockWeeklyWinrateData;
+      const data = USE_MOCK_DATA ? mockWeeklyWinrateData : await api.weeklyWinrate();
       setPoints(data?.points ?? []);
       console.log(data);
     };
@@ -56,30 +50,30 @@ export default function EloGraph() {
         },
     },
     plugins: {
-        legend: {
-            position: 'top' as const,
-        },
-        title: {
-          display: true,
-          text: 'Progression de votre winrate dans la semaine',
-        },
+      legend: {
+        position: "top" as const,
       },
+      title: {
+        display: true,
+        text: "Progression de votre winrate dans la semaine",
+      },
+    },
   };
 
   const data = {
     labels,
     datasets: [
       {
-        label: 'WinRate (%)',
+        label: "WinRate (%)",
         data: normalized,
-        backgroundColor: 'oklch(70.2% 0.183 293.541)',
+        backgroundColor: "oklch(70.2% 0.183 293.541)",
       },
     ],
   };
 
   return (
     <section className="grid-style row-span-2 col-span-2 flex flex-col">
-      <div className="border rounded-md m-2 p-1 flex-1">
+      <div className="border rounded-md m-2 p-1 h-full">
         <Bar options={options} data={data} />
       </div>
     </section>

@@ -63,7 +63,7 @@ export function login2fa(data: {
 
 //recupere les stats du joueur pour le dashboard
 export function userStats() {
-  return request("/api/auth/userStats", {
+  return request("/api/users/userStats", {
     method: "GET",
   });
 }
