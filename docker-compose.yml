@@ -11,8 +11,8 @@ services:
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_HOST: ${POSTGRES_HOST}
-      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER_FILE: /run/secrets/POSTGRES_USER
+      POSTGRES_PASSWORD_FILE: /run/secrets/POSTGRES_PASSWORD
     secrets:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
@@ -20,13 +20,7 @@ services:
       - "127.0.0.1:5433:5432"
     volumes:
       - ./data:/var/lib/postgresql/data
-    command:
-      [
-        "sh",
-        "-c",
-        "export POSTGRES_USER=\"$$(cat /run/secrets/POSTGRES_USER)\"; export POSTGRES_PASSWORD=\"$$(cat /run/secrets/POSTGRES_PASSWORD)\"; exec docker-entrypoint.sh postgres"
-      ]
-    networks: [internal]
+    networks: [ internal ]
 
   # -----------------------------
   # Accès à la db en dev (adminer)
@@ -35,12 +29,12 @@ services:
     image: adminer:latest
     container_name: ft_transcendence_adminer
     restart: unless-stopped
-    profiles: ["dev"]
+    profiles: [ "dev" ]
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:
       - postgres
-    networks: [internal]
+    networks: [ internal ]
 
   # -----------------------------
   # Cache & Temps réel (Redis)
@@ -53,13 +47,8 @@ services:
       - REDIS_PASSWORD
     ports:
       - "127.0.0.1:6380:6379"
-    command:
-      [
-        "sh",
-        "-c",
-        "exec redis-server --requirepass \"$$(cat /run/secrets/REDIS_PASSWORD)\"",
-      ]
-    networks: [internal]
+    command: [ "sh", "-c", "exec redis-server --requirepass \"$$(cat /run/secrets/REDIS_PASSWORD)\"" ]
+    networks: [ internal ]
 
   # -----------------------------
   # Backend (NestJS)
@@ -70,7 +59,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: ft_transcendence_backend
-    env_file : .env
+    env_file: .env
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -80,7 +69,7 @@ services:
       - postgres
       - redis
       - vault
-    networks: [internal]
+    networks: [ internal ]
     # Command pour le dev (hot reload)
     command: npm run start:dev
 
@@ -96,7 +85,7 @@ services:
     environment:
       LOCAL_UID: ${LOCAL_UID:-1000}
       LOCAL_GID: ${LOCAL_GID:-1000}
-    networks: [internal]
+    networks: [ internal ]
     volumes:
       - vault_data:/vault/data
       - .vault-secrets/core:/vault/local-secrets
@@ -109,7 +98,7 @@ services:
       dockerfile: Dockerfile
     container_name: ft_transcendence_vault
     user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
-    networks: [internal]
+    networks: [ internal ]
     expose:
       - "8200"
     cap_add:
@@ -128,7 +117,7 @@ services:
       - GOOGLE_AUTH_CLIENT_ID
       - GOOGLE_AUTH_CLIENT_SECRET
       - REDIS_URL
-      
+
     volumes:
       - vault_data:/vault/data
       - .vault-secrets/core:/vault/local-secrets:rw
@@ -149,7 +138,7 @@ services:
     restart: always
     depends_on:
       - backend
-    networks: [internal]
+    networks: [ internal ]
 
   # -----------------------------
   # Nginx (WAP)
@@ -171,7 +160,7 @@ services:
       - redis
       - backend
       - frontend
-    networks: [internal]
+    networks: [ internal ]
 
 volumes:
   vault_data:
