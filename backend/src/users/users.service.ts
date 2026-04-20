@@ -187,7 +187,7 @@ export class UsersService {
 
       if (userData.avatar !== undefined)
         updatePayload.avatarUrl = userData.avatar;
-
+      
       const playerNameCheck = await this.utilsService.findPlayersBy(
         'and',
         undefined,

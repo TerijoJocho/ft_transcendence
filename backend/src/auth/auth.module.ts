@@ -6,9 +6,9 @@ import { AuthController } from './auth.controller';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
-import { DoubleFactorModule } from 'src/double_factor/double_factor.module';
 import { GoogleAuthStrategy } from './strategies/google-auth.strategy';
 import { UsersModule } from '../users/users.module';
+import { DoubleFactorModule } from 'src/double_factor/double_factor.module';
 
 @Module({
   imports: [PassportModule, JwtModule, DoubleFactorModule, UsersModule],
