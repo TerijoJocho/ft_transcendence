@@ -44,15 +44,15 @@ async function bootstrap() {
   console.log('VAULT_TOKEN loaded from Vault by Approle');
 
   try {
-    await loadDbCredentialsFromVault(httpsAgent, vaultAddr, backendToken);
-  } catch (err) {
-    logBootstrapError('Error fetching DB secrets from Vault:', err);
-  }
-
-  try {
     await loadAppSecretsFromVault(httpsAgent, vaultAddr, backendToken);
   } catch (err) {
     logBootstrapError('Error fetching app secrets from Vault:', err);
+  }
+
+  try {
+    await loadDbCredentialsFromVault(httpsAgent, vaultAddr, backendToken);
+  } catch (err) {
+    logBootstrapError('Error fetching DB secrets from Vault:', err);
   }
 
   const app = await NestFactory.create(AppModule, {

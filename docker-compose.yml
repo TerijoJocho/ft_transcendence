@@ -10,8 +10,6 @@ services:
     container_name: ft_transcendence_db
     restart: always
     environment:
-      POSTGRES_USER: /run/secrets/POSTGRES_USER
-      POSTGRES_PASSWORD: /run/secrets/POSTGRES_PASSWORD
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_HOST: ${POSTGRES_HOST} 
       POSTGRES_PORT: ${POSTGRES_PORT}
@@ -22,6 +20,12 @@ services:
       - "127.0.0.1:5433:5432"
     volumes:
       - ./data:/var/lib/postgresql/data
+    command:
+      [
+        "sh",
+        "-c",
+        "export POSTGRES_USER=\"$$(cat /run/secrets/POSTGRES_USER)\"; export POSTGRES_PASSWORD=\"$$(cat /run/secrets/POSTGRES_PASSWORD)\"; exec docker-entrypoint.sh postgres",
+      ]
     networks: [internal]
 
   # -----------------------------
@@ -45,11 +49,16 @@ services:
     image: redis:7
     container_name: ft_transcendence_redis
     restart: always
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    secrets:
+    - REDIS_PASSWORD
     ports:
       - "127.0.0.1:6380:6379"
-    command: [ "redis-server", "--requirepass", "${REDIS_PASSWORD}" ]
+    command:
+      [
+        "sh",
+        "-c",
+        "exec redis-server --requirepass \"$$(cat /run/secrets/REDIS_PASSWORD)\"",
+      ]
     networks: [internal]
 
   # -----------------------------
@@ -113,10 +122,12 @@ services:
     secrets:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
+      - POSTGRES_URL
       - JWT_ACCESS_TOKEN_SECRET
       - JWT_REFRESH_TOKEN_SECRET
       - GOOGLE_AUTH_CLIENT_ID
       - GOOGLE_AUTH_CLIENT_SECRET
+      - REDIS_URL
       
     volumes:
       - vault_data:/vault/data
@@ -171,6 +182,8 @@ secrets:
     file: ./secrets/POSTGRES_USER
   POSTGRES_PASSWORD:
     file: ./secrets/POSTGRES_PASSWORD
+  POSTGRES_URL:
+    file: ./secrets/POSTGRES_URL
   JWT_ACCESS_TOKEN_SECRET:
     file: ./secrets/JWT_ACCESS_TOKEN_SECRET
   JWT_REFRESH_TOKEN_SECRET:
@@ -179,7 +192,10 @@ secrets:
     file: ./secrets/GOOGLE_AUTH_CLIENT_ID
   GOOGLE_AUTH_CLIENT_SECRET:
     file: ./secrets/GOOGLE_AUTH_CLIENT_SECRET
-  
+  REDIS_URL:
+    file: ./secrets/REDIS_URL
+  REDIS_PASSWORD:
+    file: ./secrets/REDIS_PASSWORD
 #   ./data:/var/lib/postgresql/data
 
 networks:

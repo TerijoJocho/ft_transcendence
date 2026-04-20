@@ -9,6 +9,10 @@ if [ -f /run/secrets/POSTGRES_PASSWORD ]; then
   POSTGRES_PASSWORD=$(cat /run/secrets/POSTGRES_PASSWORD)
 fi
 
+if [ -f /run/secrets/POSTGRES_URL ]; then
+  POSTGRES_URL=$(cat /run/secrets/POSTGRES_URL)
+fi
+
 if [ -f /run/secrets/JWT_ACCESS_TOKEN_SECRET ]; then
   JWT_ACCESS_TOKEN_SECRET=$(cat /run/secrets/JWT_ACCESS_TOKEN_SECRET)
 fi
@@ -25,12 +29,18 @@ if [ -f /run/secrets/GOOGLE_AUTH_CLIENT_SECRET ]; then
   GOOGLE_AUTH_CLIENT_SECRET=$(cat /run/secrets/GOOGLE_AUTH_CLIENT_SECRET)
 fi
 
+if [ -f /run/secrets/REDIS_URL ]; then
+  REDIS_URL=$(cat /run/secrets/REDIS_URL)
+fi
+
 : "${POSTGRES_USER:?missing}"
 : "${POSTGRES_PASSWORD:?missing}"
+: "${POSTGRES_URL:?missing}"
 : "${JWT_ACCESS_TOKEN_SECRET:?missing}"
 : "${JWT_REFRESH_TOKEN_SECRET:?missing}"
 : "${GOOGLE_AUTH_CLIENT_ID:?missing}"
 : "${GOOGLE_AUTH_CLIENT_SECRET:?missing}"
+: "${REDIS_URL}"
 
 # pour les permissions des volume sudo chmod 700 .vault-secrets .vault-secrets/core .vault-secrets/approle .vault-secrets/vault_certs
 vault server -config=/vault/config/vault-config.hcl &
@@ -123,8 +133,10 @@ if [ "$initialized" != "true" ]; then
   vault kv put secret/app \
     jwt_access_token_secret="${JWT_ACCESS_TOKEN_SECRET}" \
     jwt_refresh_token_secret="${JWT_REFRESH_TOKEN_SECRET}" \
+    postgres_url="${POSTGRES_URL}" \
     google_auth_client_id="${GOOGLE_AUTH_CLIENT_ID}" \
-    google_auth_client_secret="${GOOGLE_AUTH_CLIENT_SECRET}"
+    google_auth_client_secret="${GOOGLE_AUTH_CLIENT_SECRET}" \
+    redis_url="${REDIS_URL}"
     
   if ! vault auth list -format=json | jq -e 'has("approle/")' >/dev/null; then
     vault auth enable approle
@@ -176,22 +188,15 @@ else
   if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null; then
     vault secrets enable -version=2 -path=secret kv
   fi
-<<<<<<< HEAD
   vault kv put secret/db password="$POSTGRES_PASSWORD" username="$POSTGRES_USER"
   vault kv put secret/app \
     jwt_access_token_secret="${JWT_ACCESS_TOKEN_SECRET}" \
     jwt_refresh_token_secret="${JWT_REFRESH_TOKEN_SECRET}" \
+    postgres_url="${POSTGRES_URL}" \
     google_auth_client_id="${GOOGLE_AUTH_CLIENT_ID}" \
-    google_auth_client_secret="${GOOGLE_AUTH_CLIENT_SECRET}"
+    google_auth_client_secret="${GOOGLE_AUTH_CLIENT_SECRET}" \
+    redis_url="${REDIS_URL}"
 
-=======
-  if ! vault secrets list -format=json | jq -e 'has("transit/")' >/dev/null; then
-    vault secrets enable transit
-  fi
-  if ! vault read transit/keys/totp-secrets >/dev/null 2>&1; then
-    vault write -f transit/keys/totp-secrets
-  fi
->>>>>>> main
   vault write auth/approle/role/backend \
   token_policies="backend-policy" \
   token_ttl="0" \

@@ -30,6 +30,8 @@ type VaultAppSecretsResponse = {
       jwt_refresh_token_secret: string;
       google_auth_client_id: string;
       google_auth_client_secret: string;
+      redis_url: string;
+      postgres_url: string;
     };
   };
 };
@@ -161,12 +163,18 @@ export async function loadAppSecretsFromVault(
       vaultResponse.data.data.data.google_auth_client_id;
     const google_auth_client_secret =
       vaultResponse.data.data.data.google_auth_client_secret;
+    const redis_url =
+      vaultResponse.data.data.data.redis_url;
+    const postgres_url =
+      vaultResponse.data.data.data.postgres_url;
 
     if (
       typeof jwt_access_token_secret !== 'string' ||
       typeof jwt_refresh_token_secret !== 'string' ||
       typeof google_auth_client_id !== 'string' ||
-      typeof google_auth_client_secret !== 'string'
+      typeof google_auth_client_secret !== 'string' ||
+      typeof redis_url !== 'string' ||
+      typeof postgres_url !== 'string'
     )
       throw new HttpException(
         'Invalid Vault app secret format',
@@ -177,6 +185,8 @@ export async function loadAppSecretsFromVault(
     process.env.JWT_REFRESH_TOKEN_SECRET = jwt_refresh_token_secret;
     process.env.GOOGLE_AUTH_CLIENT_ID = google_auth_client_id;
     process.env.GOOGLE_AUTH_CLIENT_SECRET = google_auth_client_secret;
+    process.env.REDIS_URL = redis_url;
+    process.env.POSTGRES_URL = postgres_url;
   } catch (error) {
     if (error instanceof HttpException) throw error;
     throw new InternalServerErrorException(
