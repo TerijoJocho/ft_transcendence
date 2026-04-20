@@ -188,6 +188,12 @@ else
   if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null; then
     vault secrets enable -version=2 -path=secret kv
   fi
+  if ! vault secrets list -format=json | jq -e 'has("transit/")' >/dev/null; then
+    vault secrets enable transit
+  fi
+  if ! vault read transit/keys/totp-secrets >/dev/null 2>&1; then
+    vault write -f transit/keys/totp-secrets
+  fi
   vault kv put secret/db password="$POSTGRES_PASSWORD" username="$POSTGRES_USER"
   vault kv put secret/app \
     jwt_access_token_secret="${JWT_ACCESS_TOKEN_SECRET}" \
