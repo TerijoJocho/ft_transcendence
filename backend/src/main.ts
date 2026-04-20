@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
+import { HttpException } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
@@ -7,8 +8,16 @@ import fs from 'fs';
 import https from 'https';
 import {
   backTokenByApprole,
+  loadAppSecretsFromVault,
   loadDbCredentialsFromVault,
 } from './utilsVault/function';
+
+function logBootstrapError(context: string, error: unknown): never {
+  if (error instanceof HttpException) {
+    console.error(context, `status=${error.getStatus()}`, error.message);
+  } else console.error(context, error instanceof Error ? error.message : error);
+  process.exit(1);
+}
 
 async function bootstrap() {
   const vaultCaCertPath = process.env.VAULT_CACERT;
@@ -35,13 +44,15 @@ async function bootstrap() {
   console.log('VAULT_TOKEN loaded from Vault by Approle');
 
   try {
+    await loadAppSecretsFromVault(httpsAgent, vaultAddr, backendToken);
+  } catch (err) {
+    logBootstrapError('Error fetching app secrets from Vault:', err);
+  }
+
+  try {
     await loadDbCredentialsFromVault(httpsAgent, vaultAddr, backendToken);
   } catch (err) {
-    console.error(
-      'Error fetching secrets from Vault:',
-      err instanceof Error ? err.message : err,
-    );
-    process.exit(1);
+    logBootstrapError('Error fetching DB secrets from Vault:', err);
   }
 
   const app = await NestFactory.create(AppModule, {
