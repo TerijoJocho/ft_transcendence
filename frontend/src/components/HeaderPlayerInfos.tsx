@@ -82,7 +82,7 @@ export default function HeaderPlayerInfos({user, setUser}) {
         className="w-12 h-12 rounded-full object-cover m-2"
       />
     ) : (
-      <FontAwesomeIcon icon={user.avatar ?? faCircleUser} />
+      <FontAwesomeIcon icon={user.avatar ?? faCircleUser} className="w-12 h-12 rounded-full object-cover m-2" />
     );
 
   return (
