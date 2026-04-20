@@ -17,6 +17,7 @@ import Tournament from "./pages/Tournament.tsx";
 import Chat from "./pages/Chat.tsx";
 import Profil from "./pages/Profil.tsx";
 import Friends from "./pages/Friends.tsx";
+import { Puzzle } from "./pages/Puzzle.tsx";
 
 function App() {
   // on récupère les fonctions login/clearAuth du contexte
@@ -69,6 +70,7 @@ function App() {
           <Route path="/chat" element={<Chat />} />
           <Route path="/profil" element={<Profil />} />
           <Route path="/friends" element={<Friends />} />
+          <Route path="/puzzle" element={<Puzzle />} />
         </Route>
       </Routes>
     </div>
