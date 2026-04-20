@@ -16,6 +16,7 @@ import type {
 } from 'src/shared/db/schema';
 import { eq, ne, sql, and } from 'drizzle-orm';
 import { DatabaseService } from 'src/shared/services/db.service';
+import { GiveupGameDto } from './dto/giveup-game.dto';
 
 @Injectable()
 export class GameService {
@@ -23,6 +24,10 @@ export class GameService {
     private readonly utilsService: UtilsService,
     private readonly databaseService: DatabaseService,
   ) {}
+
+  private throwJoinConflict(error: unknown, message: string): never {
+    throw new ConflictException(message, { cause: error });
+  }
 
   convertDtoToGameInsert(gameObject: NewGameDto): gameInsert[] {
     if (gameObject) {
@@ -145,14 +150,14 @@ export class GameService {
           .update(gameTable)
           .set({
             gameStatus: 'ONGOING',
-            gameCreatedAt: sql`NOW()` as unknown as Date,
+            gameStartedAt: sql`NOW()` as unknown as Date,
             totalNbMoves: 0,
             winnerNbMoves: 0,
           } as Partial<gameInsert>)
           .where(eq(gameTable.gameId, gameId));
       });
     } catch (error) {
-      throw new ConflictException(error, 'Somebody already joined this game.');
+      this.throwJoinConflict(error, 'Somebody already joined this game.');
     }
   }
 
@@ -245,7 +250,7 @@ export class GameService {
     });
   }
 
-  async giveupGame(gameInfo: EndGameDto, gameId: number, playerId: number) {
+  async giveupGame(gameInfo: GiveupGameDto, gameId: number, playerId: number) {
     //check if player is part of the game and if game is ongoing
     const participationRows = (await this.utilsService.findParticipationsBy(
       'and',
@@ -327,17 +332,19 @@ export class GameService {
         'Cannot cancel a game that has already started or is completed.',
       );
 
-    await this.utilsService.deleteParticipationsBy(
-      'and',
-      undefined,
-      eq(participationTable.gameId, gameId),
-      eq(participationTable.playerId, playerId),
-    );
     await this.utilsService.deleteGamesBy(
       'and',
       undefined,
       eq(gameTable.gameId, gameId),
       eq(gameTable.gameStatus, 'PENDING'),
     );
+    // No need to delete participations explicitly due to cascade delete on game deletion
+
+    // await this.utilsService.deleteParticipationsBy(
+    //   'and',
+    //   undefined,
+    //   eq(participationTable.gameId, gameId),
+    //   eq(participationTable.playerId, playerId),
+    // );
   }
 }
