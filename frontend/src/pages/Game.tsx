@@ -258,10 +258,10 @@ function ChessGame({
   const [clockStarted, setClockStarted] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [gameResult, setGameResult] = useState<{ winner: string; reason: string } | null>(null);
-  const [onlineStatus, setOnlineStatus] = useState<string | null>(
+  const [_onlineStatus, setOnlineStatus] = useState<string | null>(
     online.gameStatus === "PENDING" ? "En attente d'un deuxième joueur..." : null,
   );
-  const [onlineError, setOnlineError] = useState<string | null>(null);
+  const [_onlineError, setOnlineError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const isApplyingRemoteRef = useRef(false);
   const [confirmAction, setConfirmAction] = useState<"restart" | "menu" | null>(null);
