@@ -342,7 +342,7 @@ function ChessGame({
     socket.on("remote_move", (snapshot) => { applySnapshot(snapshot);  });
     socket.on("player_joined", () => { setBothPlayersConnected(true); });
     socket.on("opponent_disconnected", () => {  });
-    socket.on("game_error", (payload: { message?: string }) => {  });
+    socket.on("game_error", () => {  });
     socket.on("game_over", (result) => { setGameResult(result ?? { winner: "Draw", reason: "finished" }); setGameOver(true);  });
     return () => { socket.disconnect(); socketRef.current = null; };
   }, [isOnline, online.gameId, online.gameStatus, applySnapshot]);
@@ -374,7 +374,6 @@ function ChessGame({
     setWhiteTime(initSeconds); setBlackTime(initSeconds);
     setClockStarted(false); setGameResult(null);
     setDragSource(null); setDragOver(null);
-    setBothPlayersConnected(online.gameStatus === "ONGOING");
   }, [initSeconds]);
 
   const lastEmittedBoardRef = useRef<string>("");
