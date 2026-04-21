@@ -1,8 +1,8 @@
-const API_URL = window.location.origin;
 import { io, Socket } from "socket.io-client";
 import type { User } from "../auth/core/authCore.ts";
 import type { Friends } from "../hooks/useFriends.ts";
 import type { SearchUserResult } from "../components/AddFriends.tsx";
+const API_URL = window.location.origin;
 
 export type LoginResponse =
   | User
