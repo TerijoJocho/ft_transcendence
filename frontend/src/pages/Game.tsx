@@ -202,7 +202,7 @@ type OnlineConfig = {
 type PendingGame = {
   gameId: number;
   gameMode: "CLASSIC" | "BLITZ" | "BULLET";
-  gameCreatedAt: string;
+  gameCreatedAt: Date | string;
   creatorId: number;
   creatorName: string;
   creatorColor: "WHITE" | "BLACK";
