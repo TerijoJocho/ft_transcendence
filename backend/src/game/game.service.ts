@@ -31,6 +31,10 @@ export class GameService {
     throw new ConflictException(message, { cause: error });
   }
 
+  private throwUnavailable(error: unknown, message: string): never {
+    throw new ServiceUnavailableException(message, { cause: error });
+  }
+
   convertDtoToGameInsert(gameObject: NewGameDto): gameInsert[] {
     if (gameObject) {
       switch (gameObject.gameMode) {
@@ -114,7 +118,7 @@ export class GameService {
 
       return { gameId: createdGameId };
     } catch (error) {
-      throw new ServiceUnavailableException(error, 'Cannot create game');
+      this.throwUnavailable(error, 'Cannot create game');
     }
   }
 
