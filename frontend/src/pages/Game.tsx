@@ -258,12 +258,11 @@ function ChessGame({
   const [clockStarted, setClockStarted] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [gameResult, setGameResult] = useState<{ winner: string; reason: string } | null>(null);
-  const [_onlineStatus, setOnlineStatus] = useState<string | null>(
-    online.gameStatus === "PENDING" ? "En attente d'un deuxième joueur..." : null,
-  );
-  const [_onlineError, setOnlineError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const isApplyingRemoteRef = useRef(false);
+  const [bothPlayersConnected, setBothPlayersConnected] = useState(
+    online.gameStatus === "ONGOING"
+  );
   const [confirmAction, setConfirmAction] = useState<"restart" | "menu" | null>(null);
   const [dragSource, setDragSource] = useState<[number, number] | null>(null);
   const [dragOver, setDragOver] = useState<[number, number] | null>(null);
@@ -336,16 +335,15 @@ function ChessGame({
     const socket = connectGameSocket();
     socketRef.current = socket;
     socket.on("connect", () => {
-      setOnlineError(null);
       socket.emit("join_game", { gameId: online.gameId });
       socket.emit("sync_request", { gameId: online.gameId });
     });
-    socket.on("sync_state", (snapshot) => { if (snapshot) { applySnapshot(snapshot); setOnlineStatus("Partie synchronisée."); } });
-    socket.on("remote_move", (snapshot) => { applySnapshot(snapshot); setOnlineStatus("Coup adverse reçu."); });
-    socket.on("player_joined", () => { setOnlineStatus("Deuxième joueur connecté. La partie commence."); });
-    socket.on("opponent_disconnected", () => { setOnlineError("L'adversaire s'est déconnecté."); });
-    socket.on("game_error", (payload: { message?: string }) => { setOnlineError(payload?.message ?? "Erreur temps réel."); });
-    socket.on("game_over", (result) => { setGameResult(result ?? { winner: "Draw", reason: "finished" }); setGameOver(true); setOnlineStatus("Partie terminée."); });
+    socket.on("sync_state", (snapshot) => { if (snapshot) { applySnapshot(snapshot);  } });
+    socket.on("remote_move", (snapshot) => { applySnapshot(snapshot);  });
+    socket.on("player_joined", () => { setBothPlayersConnected(true); });
+    socket.on("opponent_disconnected", () => {  });
+    socket.on("game_error", (payload: { message?: string }) => {  });
+    socket.on("game_over", (result) => { setGameResult(result ?? { winner: "Draw", reason: "finished" }); setGameOver(true);  });
     return () => { socket.disconnect(); socketRef.current = null; };
   }, [isOnline, online.gameId, online.gameStatus, applySnapshot]);
 
@@ -376,6 +374,7 @@ function ChessGame({
     setWhiteTime(initSeconds); setBlackTime(initSeconds);
     setClockStarted(false); setGameResult(null);
     setDragSource(null); setDragOver(null);
+    setBothPlayersConnected(online.gameStatus === "ONGOING");
   }, [initSeconds]);
 
   const lastEmittedBoardRef = useRef<string>("");
@@ -418,6 +417,7 @@ function ChessGame({
 
   function handleClick(r, c) {
     if (gameOver || pendingPromo) return;
+    if (isOnline && !bothPlayersConnected) return;
     if (isOnline) { const expectedTurn = online.playerColor === "WHITE" ? "white" : "black"; if (player !== expectedTurn) return; }
     const piece = board[r][c];
     if (selected) {
@@ -433,6 +433,7 @@ function ChessGame({
 
   function handleDragStart(e: React.DragEvent, r: number, c: number) {
     if (gameOver || pendingPromo) { e.preventDefault(); return; }
+    if (isOnline && !bothPlayersConnected) { e.preventDefault(); return; }
     if (isOnline) { const expectedTurn = online.playerColor === "WHITE" ? "white" : "black"; if (player !== expectedTurn) { e.preventDefault(); return; } }
     const piece = board[r][c];
     if (!piece || !isCurrentPlayerPiece(piece, player)) { e.preventDefault(); return; }
@@ -541,8 +542,11 @@ function ChessGame({
               <span className={`text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border transition-all duration-200 ${(isFlipped ? player === "black" : player === "white") && !gameOver ? "border-rose-500 text-rose-400 bg-rose-500/10" : "border-gray-700 text-gray-500"}`}>{isFlipped ? "Black" : "White"}</span>
             </div>
           )}
-          <div className={`text-xs uppercase tracking-widest h-5 text-center transition-colors ${gameOver ? "text-rose-400 font-semibold" : status.includes("check") ? "text-rose-400" : "text-gray-500"}`}>
-            {status || `${player.charAt(0).toUpperCase() + player.slice(1)}'s turn`}
+          <div
+            style={isOnline && !bothPlayersConnected ? { color: "#7c3aed", fontWeight: 600 } : {}}
+            className={`text-xs uppercase tracking-widest h-5 text-center transition-colors ${gameOver ? "text-rose-400 font-semibold" : status.includes("check") ? "text-rose-400" : "text-gray-500"}`}
+          >
+            {isOnline && !bothPlayersConnected ? "En attente du 2ème joueur..." : status || `${player.charAt(0).toUpperCase() + player.slice(1)}'s turn`}
           </div>
           <div className="p-2.5 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl">
             <div className="flex items-start">
@@ -561,7 +565,7 @@ function ChessGame({
                       const isLast      = lastMove && ((lastMove[0] === r && lastMove[1] === c) || (lastMove[2] === r && lastMove[3] === c));
                       const isDragOver  = dragOver && dragOver[0] === r && dragOver[1] === c;
                       const isDragSrc   = dragSource && dragSource[0] === r && dragSource[1] === c;
-                      const isDraggable = !!piece && isCurrentPlayerPiece(piece, player) && !gameOver && !pendingPromo;
+                      const isDraggable = !!piece && isCurrentPlayerPiece(piece, player) && !gameOver && !pendingPromo && (!isOnline || bothPlayersConnected);
                       const light = (r + c) % 2 === 0;
                       let bgClass = light ? "bg-amber-100" : "bg-amber-900";
                       if (isLast && !isSel) bgClass = light ? "bg-yellow-300" : "bg-yellow-700";
