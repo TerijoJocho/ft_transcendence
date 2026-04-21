@@ -973,11 +973,11 @@ export class UtilsService {
         )
         .orderBy(desc(gameTable.gameCreatedAt));
       return await query;
-      } catch (error) {
-        this.throwDbUnavailable(
-          error,
-          'Database error during pending games retrieval.',
-        );
-      };
+    } catch (error) {
+      this.throwDbUnavailable(
+        error,
+        'Database error during pending games retrieval.',
+      );
+    }
   };
 }
