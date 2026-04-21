@@ -11,6 +11,8 @@ import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 
+// This gateway manages real-time game interactions between players.
+
 type SocketUser = { playerId: number };
 
 type GameStateSnapshot = {
