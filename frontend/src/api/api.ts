@@ -199,10 +199,11 @@ export function delete2FA(data: { pwd: string; replyCode: string }) {
 }
   
 export function createGame(data: { playerColor: "BLACK" | "WHITE"; gameMode: "CLASSIC" | "BLITZ" | "BULLET" }) {
-return request("/api/game/create", {
-  method: "POST",
-  body: JSON.stringify(data),
-}) as Promise<{ gameId: number }>;
+  return request("/api/game/create", {
+    method: "POST",
+    body: JSON.stringify(data),
+  }) as Promise<{ gameId: number }>;
+}
 
 export function joinGame(gameId: number) {
   return request(`/api/game/${gameId}/join`, {
@@ -219,20 +220,19 @@ export function getGameSession(gameId: number) {
       gameStatus: "PENDING" | "ONGOING" | "COMPLETED";
       gameMode: "CLASSIC" | "BLITZ" | "BULLET";
     }>;
+}
     
 export function getPendingGames() {
   return request("/api/game/pending", {
     method: "GET",
-  }) as Promise<
-    Array<{
-      gameId: number;
-      gameMode: "CLASSIC" | "BLITZ" | "BULLET";
-      gameCreatedAt: string;
-      creatorId: number;
-      creatorColor: "WHITE" | "BLACK";
-      createdByCurrentUser: boolean;
-    }>
-  >;
+  }) as Promise<{
+    gameId: number;
+    gameMode: "CLASSIC" | "BLITZ" | "BULLET";
+    creatorName: string;
+    creatorId: number;
+    creatorColor: "WHITE" | "BLACK";
+    gameCreatedAt: Date;
+}[]>;
 }
 
 export function endGame(

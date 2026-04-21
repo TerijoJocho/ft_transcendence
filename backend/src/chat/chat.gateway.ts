@@ -6,8 +6,8 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
+import { JwtService } from '@nestjs/jwt';
 
 type SocketUser = { playerId: number };
 

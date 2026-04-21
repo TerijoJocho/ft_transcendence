@@ -951,6 +951,7 @@ export class UtilsService {
         gameId: gameTable.gameId,
         gameMode: gameTable.gameMode,
         creatorName: playerTable.playerName,
+        creatorId: playerTable.playerId,
         creatorColor: participationTable.playerColor,
         gameCreatedAt: gameTable.gameCreatedAt,
       })

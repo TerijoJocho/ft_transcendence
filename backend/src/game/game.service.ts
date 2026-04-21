@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { UtilsService } from '../shared/services/utils.func.service';
 import { NewGameDto } from './dto/new-game.dto';
@@ -87,24 +88,34 @@ export class GameService {
   }
 
   async generateNewGame(gameInfo: NewGameDto, playerId: number) {
-    await this.databaseService.getDb().transaction(async (tx) => {
-      const createdNewGame = (
-        await tx
-          .insert(gameTable)
-          .values(this.convertDtoToGameInsert(gameInfo))
-          .returning()
-      )[0];
+    try {
+      const createdGameId = await this.databaseService
+        .getDb()
+        .transaction(async (tx) => {
+          const createdNewGame = (
+            await tx
+              .insert(gameTable)
+              .values(this.convertDtoToGameInsert(gameInfo))
+              .returning()
+          )[0];
 
-      await tx
-        .insert(participationTable)
-        .values(
-          this.convertDtoToParticipationInsert(
-            gameInfo,
-            playerId,
-            createdNewGame.gameId,
-          ),
-        );
-    });
+          await tx
+            .insert(participationTable)
+            .values(
+              this.convertDtoToParticipationInsert(
+                gameInfo,
+                playerId,
+                createdNewGame.gameId,
+              ),
+            );
+
+          return createdNewGame.gameId;
+        });
+
+      return { gameId: createdGameId };
+    } catch (error) {
+      throw new ServiceUnavailableException(error, 'Cannot create game');
+    }
   }
 
   async joinGame(gameId: number, playerId: number) {

@@ -237,7 +237,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     try {
       await this.gameService.getSession(payload.gameId, user.playerId);
-      await this.gameService.giveupGame(payload.gameId, user.playerId);
+      const snapshot = this.gameStates.get(payload.gameId);
+      const totalNbMoves = snapshot?.history?.length ?? 0;
+      const winnerNbMoves = Math.ceil(totalNbMoves / 2);
+
+      await this.gameService.giveupGame(
+        {
+          totalNbMoves,
+          winnerNbMoves,
+        },
+        payload.gameId,
+        user.playerId,
+      );
+
       this.server.to(this.gameRoom(payload.gameId)).emit('game_over', {
         winner: 'opponent',
         reason: 'resign',

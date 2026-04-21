@@ -202,10 +202,10 @@ type OnlineConfig = {
 type PendingGame = {
   gameId: number;
   gameMode: "CLASSIC" | "BLITZ" | "BULLET";
-  gameCreatedAt: string;
-  creatorId: number;
   creatorName: string;
+  creatorId: number;
   creatorColor: "WHITE" | "BLACK";
+  gameCreatedAt: Date;
 };
 
 type GameStateSnapshot = {
@@ -763,6 +763,9 @@ function Game() {
         playerColor: color === "Blanc" ? "WHITE" : "BLACK",
         gameMode: timeControl === "Bullet" ? "BULLET" : timeControl === "Blitz" ? "BLITZ" : "CLASSIC",
       });
+      if (!created || typeof created.gameId !== "number") {
+        throw new Error("Réponse invalide du serveur lors de la création de partie.");
+      }
       setActiveGameId(created.gameId);
       setActiveGameStatus("PENDING");
       setOnlinePlayerColor(color === "Blanc" ? "WHITE" : "BLACK");
