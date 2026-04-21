@@ -1,8 +1,10 @@
 import {
   BadRequestException,
-  ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
+  ConflictException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { UtilsService } from '../shared/services/utils.func.service';
 import { NewGameDto } from './dto/new-game.dto';
@@ -27,6 +29,10 @@ export class GameService {
 
   private throwJoinConflict(error: unknown, message: string): never {
     throw new ConflictException(message, { cause: error });
+  }
+
+  private throwUnavailable(error: unknown, message: string): never {
+    throw new ServiceUnavailableException(message, { cause: error });
   }
 
   convertDtoToGameInsert(gameObject: NewGameDto): gameInsert[] {
@@ -86,24 +92,34 @@ export class GameService {
   }
 
   async generateNewGame(gameInfo: NewGameDto, playerId: number) {
-    await this.databaseService.getDb().transaction(async (tx) => {
-      const createdNewGame = (
-        await tx
-          .insert(gameTable)
-          .values(this.convertDtoToGameInsert(gameInfo))
-          .returning()
-      )[0];
+    try {
+      const createdGameId = await this.databaseService
+        .getDb()
+        .transaction(async (tx) => {
+          const createdNewGame = (
+            await tx
+              .insert(gameTable)
+              .values(this.convertDtoToGameInsert(gameInfo))
+              .returning()
+          )[0];
 
-      await tx
-        .insert(participationTable)
-        .values(
-          this.convertDtoToParticipationInsert(
-            gameInfo,
-            playerId,
-            createdNewGame.gameId,
-          ),
-        );
-    });
+          await tx
+            .insert(participationTable)
+            .values(
+              this.convertDtoToParticipationInsert(
+                gameInfo,
+                playerId,
+                createdNewGame.gameId,
+              ),
+            );
+
+          return createdNewGame.gameId;
+        });
+
+      return { gameId: createdGameId };
+    } catch (error) {
+      this.throwUnavailable(error, 'Cannot create game');
+    }
   }
 
   async joinGame(gameId: number, playerId: number) {
@@ -346,5 +362,45 @@ export class GameService {
     //   eq(participationTable.gameId, gameId),
     //   eq(participationTable.playerId, playerId),
     // );
+  }
+
+  async getSession(gameId: number, playerId: number) {
+    const participationRows: { [x: string]: unknown }[] =
+      await this.utilsService.findParticipationsBy(
+        'and',
+        {
+          playerColor: participationTable.playerColor,
+        },
+        eq(participationTable.gameId, gameId),
+        eq(participationTable.playerId, playerId),
+      );
+
+    if (participationRows.length === 0)
+      throw new ForbiddenException('Player is not part of this game.');
+
+    const gameRows: { [x: string]: unknown }[] =
+      await this.utilsService.findGamesBy(
+        'and',
+        {
+          gameStatus: gameTable.gameStatus,
+          gameMode: gameTable.gameMode,
+        },
+        eq(gameTable.gameId, gameId),
+      );
+
+    if (gameRows.length === 0) throw new NotFoundException('Game not found.');
+
+    return {
+      gameId,
+      playerColor: participationRows[0].playerColor,
+      gameStatus: gameRows[0].gameStatus,
+      gameMode: gameRows[0].gameMode,
+    };
+  }
+
+  async listPendingGames(playerId: number) {
+    const pendingGamesList: { [x: string]: unknown }[] =
+      await this.utilsService.getAllPendingGamesData(playerId);
+    return pendingGamesList;
   }
 }

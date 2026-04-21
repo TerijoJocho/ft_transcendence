@@ -162,6 +162,11 @@ function Login() {
           Créer un compte
         </Link>
       </p>
+
+      <div className="mt-4 flex justify-center gap-4 text-xs text-gray-200">
+        <Link to="/privacy-policy" className="hover:underline">Politique de confidentialité</Link>
+        <Link to="/terms-of-service" className="hover:underline">Conditions d'utilisation</Link>
+      </div>
     </div>
   );
 }

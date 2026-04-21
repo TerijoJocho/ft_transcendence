@@ -90,6 +90,17 @@ export default function SideBar() {
           </button>
         )}
       </footer>
+
+      {!isSmallMenu && (
+        <div className="mt-4 pt-3 border-t border-gray-600 text-xs flex flex-col gap-1">
+          <Link to="/privacy-policy" className="hover:underline text-gray-300">
+            Politique de confidentialité
+          </Link>
+          <Link to="/terms-of-service" className="hover:underline text-gray-300">
+            Conditions d'utilisation
+          </Link>
+        </div>
+      )}
     </section>
   );
 }

@@ -944,4 +944,40 @@ export class UtilsService {
       );
     }
   };
+
+  getAllPendingGamesData = async (playerId: number) => {
+    try {
+      const query = this.Database.getDb()
+        .select({
+          gameId: gameTable.gameId,
+          gameMode: gameTable.gameMode,
+          creatorName: playerTable.playerName,
+          creatorId: playerTable.playerId,
+          creatorColor: participationTable.playerColor,
+          gameCreatedAt: gameTable.gameCreatedAt,
+        })
+        .from(gameTable)
+        .innerJoin(
+          participationTable,
+          eq(participationTable.gameId, gameTable.gameId),
+        )
+        .innerJoin(
+          playerTable,
+          eq(participationTable.playerId, playerTable.playerId),
+        )
+        .where(
+          and(
+            eq(gameTable.gameStatus, 'PENDING'),
+            ne(participationTable.playerId, playerId),
+          ),
+        )
+        .orderBy(desc(gameTable.gameCreatedAt));
+      return await query;
+    } catch (error) {
+      this.throwDbUnavailable(
+        error,
+        'Database error during pending games retrieval.',
+      );
+    }
+  };
 }

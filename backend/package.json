@@ -16,8 +16,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
   },
   "dependencies": {
     "@keyv/redis": "^5.1.6",
@@ -29,6 +28,8 @@
     "@nestjs/mapped-types": "^2.1.1",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.18",
+    "@nestjs/platform-socket.io": "^11.1.19",
+    "@nestjs/websockets": "^11.1.19",
     "axios": "^1.13.6",
     "bcrypt": "^6.0.0",
     "cache-manager": "^7.2.8",
@@ -44,6 +45,7 @@
     "pg": "^8.18.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "socket.io": "^4.8.3",
     "speakeasy": "^2.0.0"
   },
   "devDependencies": {
