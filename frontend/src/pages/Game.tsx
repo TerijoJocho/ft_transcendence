@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import type React from 'react'
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth.ts";
 import Header from "../components/Header.tsx";
@@ -118,7 +117,7 @@ function hasAnyLegalMoves(b, player, moved, ep) {
   }
   return false;
 }
-function toNotation(_sr, sc, dr, dc, piece, target, boardAfter, nextPlayer, ep) {
+function toNotation(_sr, sc, dr, dc, piece, target, boardAfter, nextPlayer, ep, moved = {}) {
   const isPawn=piece.toLowerCase()==="p", isCapture=target!==""||(isPawn&&sc!==dc);
   let n="";
   if (piece.toLowerCase()==="k"&&Math.abs(dc-sc)===2) { n=dc===6?"O-O":"O-O-O"; }
@@ -128,7 +127,7 @@ function toNotation(_sr, sc, dr, dc, piece, target, boardAfter, nextPlayer, ep) 
     n+=String.fromCharCode(97+dc)+(8-dr);
   }
   const inChk=isInCheck(boardAfter,nextPlayer,ep);
-  const hasL=inChk&&hasAnyLegalMoves(boardAfter,nextPlayer,{},ep);
+  const hasL=inChk&&hasAnyLegalMoves(boardAfter,nextPlayer,moved,ep);
   if (inChk) n+=hasL?"+":"#";
   return n;
 }
@@ -203,10 +202,10 @@ type OnlineConfig = {
 type PendingGame = {
   gameId: number;
   gameMode: "CLASSIC" | "BLITZ" | "BULLET";
-  creatorName: string;
+  gameCreatedAt: string;
   creatorId: number;
+  creatorName: string;
   creatorColor: "WHITE" | "BLACK";
-  gameCreatedAt: Date;
 };
 
 type GameStateSnapshot = {
@@ -228,10 +227,12 @@ type GameStateSnapshot = {
 
 function ChessGame({
   onBack,
+  onBackToMenu,
   timeControl,
   online,
 }: {
   onBack: () => void;
+  onBackToMenu: () => void;
   timeControl: string;
   online: OnlineConfig;
 }) {
@@ -263,15 +264,9 @@ function ChessGame({
   const [onlineError, setOnlineError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const isApplyingRemoteRef = useRef(false);
-
-  // Confirm modal: "restart" | "menu" | null
   const [confirmAction, setConfirmAction] = useState<"restart" | "menu" | null>(null);
-
-  // Drag-and-drop
   const [dragSource, setDragSource] = useState<[number, number] | null>(null);
   const [dragOver, setDragOver] = useState<[number, number] | null>(null);
-
-  // Auto-scroll history to bottom
   const historyRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (historyRef.current) {
@@ -404,8 +399,6 @@ function ChessGame({
     else if (inChk) setStatus(`${next === "white" ? "White" : "Black"} is in check!`);
     else setStatus("");
   }
-
-  // Shared move execution used by both click and drag
   function executeMove(sr: number, sc: number, dr: number, dc: number): boolean {
     if (!isLegalMove(board, sr, sc, dr, dc, player, moved, ep)) return false;
     if (hasClock && !clockStarted) setClockStarted(true);
@@ -417,7 +410,7 @@ function ChessGame({
       return true;
     }
     const next = player === "white" ? "black" : "white";
-    setHistory(h => [...h, toNotation(sr, sc, dr, dc, mp, target, nb, next, newEp)]);
+    setHistory(h => [...h, toNotation(sr, sc, dr, dc, mp, target, nb, next, newEp, newMoved)]);
     setBoard(nb); setMoved(newMoved); setEp(newEp); setHalfmove(newHalfmove); setPlayer(next);
     evalState(nb, next, newMoved, newEp, newHalfmove);
     return true;
@@ -475,7 +468,7 @@ function ChessGame({
     const { row, col, sr, sc, mp, target, nb, newMoved, newEp, newHalfmove } = pendingPromo;
     const fb = nb.map(r => r.slice()); fb[row][col] = p;
     const next = player === "white" ? "black" : "white";
-    const n = toNotation(sr, sc, row, col, mp, target, fb, next, newEp) + "=" + p.toUpperCase();
+    const n = toNotation(sr, sc, row, col, mp, target, fb, next, newEp, newMoved) + "=" + p.toUpperCase();
     setHistory(h => [...h, n]); setBoard(fb); setMoved(newMoved); setEp(newEp);
     setHalfmove(newHalfmove); setPlayer(next); setPendingPromo(null);
     evalState(fb, next, newMoved, newEp, newHalfmove);
@@ -495,9 +488,13 @@ function ChessGame({
   const hintSet    = new Set(hints.map(h => `${h.row},${h.col}`));
   const captureSet = new Set(hints.filter(h => h.capture).map(h => `${h.row},${h.col}`));
   const lowThreshold = initSeconds ? Math.min(30, initSeconds * 0.2) : 30;
+  const isFlipped = isOnline && online.playerColor === "BLACK";
+  const displayRows = isFlipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
+  const displayCols = isFlipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
+  const rankLabels  = isFlipped ? [1,2,3,4,5,6,7,8] : [8,7,6,5,4,3,2,1];
 
   return (
-    <div className="text-white">
+    <div className="text-white w-full overflow-x-auto">
       {isOnline && online.gameId && (
         <div className="flex justify-end px-6 pt-4">
           <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2">
@@ -507,12 +504,15 @@ function ChessGame({
         </div>
       )}
       <div className="flex gap-6 p-6 justify-center items-start flex-wrap">
-
-        {/* Move history — 2 moves per row, scrollable */}
         <div className="w-52 bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col" style={{ height: "520px" }}>
-          <p className="text-xs uppercase tracking-widest text-gray-500 mb-3 pb-2 border-b border-gray-700 flex-shrink-0">
+          <p className="text-xs uppercase tracking-widest text-gray-500 mb-2 pb-2 border-b border-gray-700 flex-shrink-0">
             Moves
           </p>
+          <div className="flex gap-2 text-xs uppercase tracking-widest text-gray-500 mb-1 flex-shrink-0">
+            <span className="w-6"></span>
+            <span className="w-16">White</span>
+            <span className="w-16">Black</span>
+          </div>
           <div ref={historyRef} className="overflow-y-auto flex-1 flex flex-col gap-1 pr-1">
             {Array.from({ length: Math.ceil(history.length / 2) }, (_, i) => (
               <div key={i} className="flex gap-2 text-sm">
@@ -527,33 +527,33 @@ function ChessGame({
         <div className="flex flex-col items-center gap-3">
           {hasClock && (
             <div className="flex items-center gap-3 self-end">
-              <span className="text-xs uppercase tracking-widest text-gray-500">Black</span>
-              <Clock seconds={blackTime!} active={player === "black" && clockStarted && !gameOver} low={blackTime! <= lowThreshold} />
+              <span className="text-xs uppercase tracking-widest text-gray-500">{isFlipped ? "White" : "Black"}</span>
+              {isFlipped
+                ? <Clock seconds={whiteTime!} active={player === "white" && clockStarted && !gameOver} low={whiteTime! <= lowThreshold} />
+                : <Clock seconds={blackTime!} active={player === "black" && clockStarted && !gameOver} low={blackTime! <= lowThreshold} />
+              }
             </div>
           )}
           {!hasClock && (
             <div className="flex items-center gap-4">
-              <span className={`text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border transition-all duration-200 ${player === "black" && !gameOver ? "border-rose-500 text-rose-400 bg-rose-500/10" : "border-gray-700 text-gray-500"}`}>Black</span>
+              <span className={`text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border transition-all duration-200 ${(isFlipped ? player === "white" : player === "black") && !gameOver ? "border-rose-500 text-rose-400 bg-rose-500/10" : "border-gray-700 text-gray-500"}`}>{isFlipped ? "White" : "Black"}</span>
               <span className="text-xs text-gray-600 tracking-widest">vs</span>
-              <span className={`text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border transition-all duration-200 ${player === "white" && !gameOver ? "border-rose-500 text-rose-400 bg-rose-500/10" : "border-gray-700 text-gray-500"}`}>White</span>
+              <span className={`text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border transition-all duration-200 ${(isFlipped ? player === "black" : player === "white") && !gameOver ? "border-rose-500 text-rose-400 bg-rose-500/10" : "border-gray-700 text-gray-500"}`}>{isFlipped ? "Black" : "White"}</span>
             </div>
           )}
           <div className={`text-xs uppercase tracking-widest h-5 text-center transition-colors ${gameOver ? "text-rose-400 font-semibold" : status.includes("check") ? "text-rose-400" : "text-gray-500"}`}>
             {status || `${player.charAt(0).toUpperCase() + player.slice(1)}'s turn`}
           </div>
-          {isOnline && onlineStatus && <p className="text-xs text-sky-300 tracking-wide text-center">{onlineStatus}</p>}
-          {isOnline && onlineError  && <p className="text-xs text-rose-400 tracking-wide text-center">{onlineError}</p>}
-
-          {/* Board */}
           <div className="p-2.5 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl">
             <div className="flex items-start">
               <div className="flex flex-col justify-around pr-1.5 text-xs text-gray-600 select-none" style={{ height: "480px" }}>
-                {[8,7,6,5,4,3,2,1].map(n => <span key={n}>{n}</span>)}
+                {rankLabels.map(n => <span key={n}>{n}</span>)}
               </div>
               <div>
                 <div className="grid border border-gray-600" style={{ gridTemplateColumns: "repeat(8,60px)", gridTemplateRows: "repeat(8,60px)" }}>
-                  {board.map((row, r) =>
-                    row.map((piece, c) => {
+                  {displayRows.map((r) =>
+                    displayCols.map((c) => {
+                      const piece       = board[r][c];
                       const key         = `${r},${c}`;
                       const isSel       = selected && selected[0] === r && selected[1] === c;
                       const isHint      = hintSet.has(key) && !captureSet.has(key);
@@ -594,7 +594,7 @@ function ChessGame({
                   )}
                 </div>
                 <div className="flex justify-around pt-1 text-xs text-gray-600 select-none">
-                  {["a","b","c","d","e","f","g","h"].map(l => <span key={l}>{l}</span>)}
+                  {displayCols.map(c => <span key={c}>{String.fromCharCode(97 + c)}</span>)}
                 </div>
               </div>
             </div>
@@ -602,29 +602,37 @@ function ChessGame({
 
           {hasClock && (
             <div className="flex items-center gap-3 self-end">
-              <span className="text-xs uppercase tracking-widest text-gray-500">White</span>
-              <Clock seconds={whiteTime!} active={player === "white" && clockStarted && !gameOver} low={whiteTime! <= lowThreshold} />
+              <span className="text-xs uppercase tracking-widest text-gray-500">{isFlipped ? "Black" : "White"}</span>
+              {isFlipped
+                ? <Clock seconds={blackTime!} active={player === "black" && clockStarted && !gameOver} low={blackTime! <= lowThreshold} />
+                : <Clock seconds={whiteTime!} active={player === "white" && clockStarted && !gameOver} low={whiteTime! <= lowThreshold} />
+              }
             </div>
           )}
-
-          {/* Restart / Menu buttons — both require confirmation */}
           <div className="flex gap-4 mt-1">
+            {!isOnline && (
+              <button
+                onClick={() => setConfirmAction("restart")}
+                className="px-8 py-3 text-sm uppercase tracking-widest border border-rose-700 text-rose-400 rounded-md hover:bg-rose-700/20 hover:border-rose-500 transition-all duration-200"
+              >
+                Restart
+              </button>
+            )}
             <button
-              disabled={isOnline}
-              onClick={() => !isOnline && setConfirmAction("restart")}
-              className={`px-8 py-3 text-sm uppercase tracking-widest border rounded-md transition-all duration-200 ${isOnline ? "border-gray-700 text-gray-600 cursor-not-allowed opacity-40" : "border-rose-700 text-rose-400 hover:bg-rose-700/20 hover:border-rose-500"}`}
-            >
-              Restart
-            </button>
-            <button
+              disabled={isOnline && gameOver}
               onClick={() => setConfirmAction("menu")}
-              className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-700 text-gray-400 rounded-md hover:bg-gray-700/20 hover:border-gray-500 transition-all duration-200"
+              style={!isOnline ? { color: "#000000", borderColor: "#000000" } : {}}
+              className={`px-8 py-3 text-sm uppercase tracking-widest border rounded-md transition-all duration-200 ${
+                isOnline
+                  ? gameOver
+                    ? "border-rose-700 text-rose-400 opacity-40 cursor-not-allowed"
+                    : "border-rose-700 text-rose-400 hover:bg-rose-700/20 hover:border-rose-500"
+                  : "hover:bg-black/10"
+              }`}
             >
-              ← Menu
+              {isOnline ? "Concede" : "← Menu"}
             </button>
           </div>
-
-          {/* Game summary */}
           {gameResult && (() => {
             const totalMoves = history.length;
             const whiteMoves = Math.ceil(totalMoves / 2);
@@ -636,7 +644,11 @@ function ChessGame({
                 <div className="flex items-center justify-between">
                   <span className="text-xs uppercase tracking-widest text-gray-500">Result</span>
                   <span className={`text-sm font-semibold ${isDraw ? "text-gray-300" : "text-rose-400"}`}>
-                    {isDraw ? `Draw — ${gameResult.reason}` : `${gameResult.winner} wins by ${gameResult.reason}`}
+                    {isDraw
+                      ? `Draw — ${gameResult.reason}`
+                      : gameResult.winner === "opponent" || gameResult.reason === "resign"
+                      ? "You win — opponent resigned"
+                      : `${gameResult.winner} wins by ${gameResult.reason}`}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
@@ -653,13 +665,17 @@ function ChessGame({
                     <span className="text-2xl font-semibold text-white">{blackMoves}</span>
                   </div>
                 </div>
+                <button
+                  onClick={() => onBackToMenu()}
+                  className="w-full py-3 text-sm uppercase tracking-widest bg-violet-500 text-white rounded-md hover:bg-violet-400 transition-all"
+                >
+                  OK
+                </button>
               </div>
             );
           })()}
         </div>
       </div>
-
-      {/* Confirm modal */}
       {confirmAction && (
         <ConfirmModal
           message={
@@ -676,8 +692,6 @@ function ChessGame({
           onCancel={() => setConfirmAction(null)}
         />
       )}
-
-      {/* Promotion modal */}
       {pendingPromo && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 flex flex-col items-center gap-4 shadow-2xl">
@@ -719,7 +733,7 @@ function Game() {
 
   const btnBase = "w-44 py-3 rounded-md text-base font-semibold border transition";
   const btnActive = "bg-violet-500 text-white border-violet-500";
-  const btnInactive = "bg-white text-gray-700 border-gray-300 hover:border-violet-500 hover:text-violet-500";
+  const btnInactive = "bg-white text-gray-700 border-violet-300 hover:border-violet-500 hover:text-violet-500";
   const btnDisabled = "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-70";
 
   const colorDisabled = mode === "Local";
@@ -755,6 +769,19 @@ function Game() {
     navigate("/dashboard");
   }
 
+  function handleBackToMenu() {
+    setShowChess(false);
+    setShowCreateOptions(false);
+    setMode(null);
+    setTimeControl(null);
+    setColor(null);
+    setActiveGameId(null);
+    setActiveGameStatus(null);
+    setOnlinePlayerColor(null);
+    setGameIdInput("");
+    setMenuError(null);
+  }
+
   async function handleCreateGame() {
     if (!mode || !timeControl) { setMenuError("Choisis le mode et le timer."); return; }
     if (mode === "Local") { setMenuError(null); setShowChess(true); return; }
@@ -764,9 +791,6 @@ function Game() {
         playerColor: color === "Blanc" ? "WHITE" : "BLACK",
         gameMode: timeControl === "Bullet" ? "BULLET" : timeControl === "Blitz" ? "BLITZ" : "CLASSIC",
       });
-      if (!created || typeof created.gameId !== "number") {
-        throw new Error("Réponse invalide du serveur lors de la création de partie.");
-      }
       setActiveGameId(created.gameId);
       setActiveGameStatus("PENDING");
       setOnlinePlayerColor(color === "Blanc" ? "WHITE" : "BLACK");
@@ -800,10 +824,11 @@ function Game() {
 
   if (showChess) {
     return (
-      <div className="border min-w-max">
+      <div className="border w-full bg-white">
         <div className="text-black"><Header title="Chess" /></div>
         <ChessGame
           onBack={handleBack}
+          onBackToMenu={handleBackToMenu}
           timeControl={timeControl!}
           online={{
             enabled: mode === "En ligne",
@@ -817,7 +842,7 @@ function Game() {
   }
 
   return (
-    <div className="border min-w-max">
+    <div className="border w-full bg-white">
       <div className="text-black"><Header title="Démarrez une partie !" /></div>
       <div className="flex flex-col items-center justify-center gap-6 py-16">
         {!showCreateOptions ? (
@@ -826,7 +851,7 @@ function Game() {
               <button onClick={() => setShowCreateOptions(true)} className="w-64 py-3 text-base font-semibold bg-violet-500 text-white rounded-md hover:bg-violet-400 transition">
                 Créer une partie
               </button>
-              <button onClick={() => handleJoinExistingGame()} className="w-64 py-3 text-base font-semibold border border-gray-400 rounded-md text-black hover:bg-gray-100 transition">
+              <button onClick={() => handleJoinExistingGame()} className="w-64 py-3 text-base font-semibold border border-violet-500 rounded-md text-violet-500 hover:bg-violet-50 transition">
                 Rejoindre une partie
               </button>
             </div>
@@ -835,15 +860,15 @@ function Game() {
               value={gameIdInput}
               onChange={(e) => setGameIdInput(e.target.value)}
               placeholder="ID de partie"
-              className="w-64 rounded-md border border-gray-300 px-3 py-2 text-black bg-white"
+              className="w-64 rounded-md border border-violet-500 px-3 py-2 text-black bg-white focus:outline-none focus:ring-2 focus:ring-violet-400"
             />
-            <div className="w-full bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div className="w-full bg-white rounded-xl border border-violet-500 p-5 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-xs uppercase tracking-widest text-gray-500">Parties en attente</p>
                   <p className="text-sm text-gray-600">Rejoins directement une partie sans saisir d'identifiant.</p>
                 </div>
-                <button onClick={() => void loadPendingGames()} className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition">
+                <button onClick={() => void loadPendingGames()} className="px-3 py-2 text-sm border border-violet-500 text-violet-500 rounded-md hover:bg-violet-50 transition">
                   Rafraîchir
                 </button>
               </div>
@@ -851,7 +876,7 @@ function Game() {
                 {isLoadingPendingGames && <p className="text-sm text-gray-500">Chargement des parties en attente...</p>}
                 {!isLoadingPendingGames && pendingGames.length === 0 && <p className="text-sm text-gray-500">Aucune partie en attente pour le moment.</p>}
                 {!isLoadingPendingGames && pendingGames.map((pendingGame) => (
-                  <div key={pendingGame.gameId} className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 px-4 py-3">
+                  <div key={pendingGame.gameId} className="flex items-center justify-between gap-4 rounded-lg border border-violet-200 px-4 py-3">
                     <div>
                       <p className="font-medium text-gray-900">Partie #{pendingGame.gameId}</p>
                       <p className="text-sm text-gray-600">{pendingGame.gameMode} · {pendingGame.creatorName} en {pendingGame.creatorColor === "WHITE" ? "blanc" : "noir"}</p>
@@ -892,7 +917,7 @@ function Game() {
             {menuError && <p className="text-sm text-red-500">{menuError}</p>}
             <button
               onClick={() => { setShowCreateOptions(false); setMode(null); setTimeControl(null); setColor(null); setMenuError(null); }}
-              className="text-sm text-gray-400 hover:text-white underline transition"
+              className="px-6 py-2 text-sm font-medium border border-violet-300 text-violet-500 rounded-md hover:bg-violet-50 hover:border-violet-500 transition"
             >
               ← Retour
             </button>
