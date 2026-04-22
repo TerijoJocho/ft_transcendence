@@ -1,13 +1,18 @@
-import { mockDashboardUserStats} from "../data/mock_data";
+import { mockDashboardUserStats } from "../data/mock_data";
 import USE_MOCK_DATA from "../config/dataConfig";
 
 function formatGameDuration(duration) {
-  if (typeof duration !== "string") return "-";
+  if (typeof duration !== "string") 
+    return "-";
 
-  const [hoursStr, minutesStr, secondStr] = duration.split(":");
+  const durationParts = duration.split(":");
+  if (durationParts.length !== 3) 
+    return duration;
+
+  const [hoursStr, minutesStr, secondStr] = durationParts;
   const hours = Number(hoursStr);
   const minutes = Number(minutesStr);
-  const seconds = Number(secondStr);
+  const seconds = Number(secondStr.split(".")[0]);
 
   if (Number.isNaN(hours) || Number.isNaN(minutes) || Number.isNaN(seconds)) {
     return duration;
@@ -22,8 +27,11 @@ function formatGameDuration(duration) {
   return `${seconds}s`;
 }
 
-export default function LastMatches({userStats}) {
-  const gameHistory = USE_MOCK_DATA && !userStats ? mockDashboardUserStats.gameHistoryList : userStats?.gameHistoryList;
+export default function LastMatches({ userStats }) {
+  const gameHistory =
+    USE_MOCK_DATA && !userStats
+      ? mockDashboardUserStats.gameHistoryList
+      : userStats?.gameHistoryList;
   const displayData = (gameHistory ?? []).slice(0, 10).map((data) => {
     return (
       <li
@@ -35,7 +43,7 @@ export default function LastMatches({userStats}) {
         <p className="text-center ">{data.gameMode}</p>
         <p className="text-center ">{data.playerColor}</p>
         <p className="text-sm text-center">
-          {formatGameDuration(data.gameDuration)}
+          {formatGameDuration(data.gameDuration ?? "N/A")}
         </p>
       </li>
     );

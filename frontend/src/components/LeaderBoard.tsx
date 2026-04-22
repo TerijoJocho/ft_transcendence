@@ -1,79 +1,32 @@
-export default function LeaderBoard() {
-  //test
-  const testArr = [
-        {
-            id: 1,
-            opponent: "Charles",
-            rank: 1,
-            elo: 2756,
-        },
-        {
-            id: 2,
-            opponent: "Jean",
-            rank: 2,
-            elo: 2756,
-        },
-        {
-            id: 3,
-            opponent: "Patoche",
-            rank: 3,
-            elo: 2756,
-        },
-        {
-            id: 4,
-            opponent: "Joachim",
-            rank: 4,
-            elo: 2756,
-        },
-        {
-            id: 5,
-            opponent: "Daryl",
-            rank: 5,
-            elo: 2756,
-        },
-        {
-            id: 6,
-            opponent: "Daryl",
-            rank: 6,
-            elo: 2756,
-        },
-        {
-            id: 7,
-            opponent: "Daryl",
-            rank: 7,
-            elo: 2756,
-        },
-        {
-            id: 8,
-            opponent: "Daryl",
-            rank: 8,
-            elo: 2756,
-        },
-        {
-            id: 9,
-            opponent: "Daryl",
-            rank: 9,
-            elo: 2756,
-        },
-        {
-            id: 10,
-            opponent: "Daryl",
-            rank: 10,
-            elo: 2756,
-        },
-    ];
+import * as api from "../api/api.ts";
+import type { LeaderboardResponse } from "../api/api.ts";
+import { useEffect, useState } from "react";
 
-  // TODO: fetch leaderboard data for all users
+export default function LeaderBoard() {
+  const [LeaderBoard, setLeaderBoard] = useState<LeaderboardResponse[]>([]);
+
+  useEffect(() => {
+    try {
+      async function fetLeaderBoard() {
+        const data = await api.getLeaderboard();
+        setLeaderBoard(data);
+      }
+      fetLeaderBoard();
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
   // Map leaderboard data to list items for display
-  const displayData = testArr.map((data) => {
+  const displayData = LeaderBoard.map((data, i) => {
     return (
       <li
-        key={data.id}
-        className="grid grid-cols-3 gap-4 p-2 border border-transparent hover:border-violet-400 bg-violet-200 rounded-md m-1 items-center"
+        key={data?.playerId}
+        className="grid grid-cols-3 gap-4 p-2 border border-transparent hover:border-violet-400 bg-violet-200 rounded-md m-1 items-center text-center"
       >
-        <p>{data.opponent}</p>
-        <p className="text-center">{data.rank}</p>
-        <p className="text-center">{data.elo}</p>
+        <p>{i + 1}</p>
+        <p>{data?.playerName}</p>
+        <p>{data?.playerLevel}</p>
       </li>
     );
   });
@@ -82,11 +35,11 @@ export default function LeaderBoard() {
     <section className="grid-style col-span-2 row-span-1">
       <h3>LeaderBoard</h3>
       <div className="border rounded-md m-2 p-1 bg-violet-100">
-        <div className="grid grid-cols-3 gap-4 border-b-2 border-black m-1 p-2 font-semibold">
-                    <p>Joueur</p>
-                    <p className="text-center">Rang</p>
-                    <p className="text-center">ELO</p>
-                </div>
+        <div className="grid grid-cols-3 gap-4 border-b-2 border-black m-1 p-2 font-semibold text-center">
+          <p>Rang</p>
+          <p>Joueur</p>
+          <p>Nb. Parties gagnées</p>
+        </div>
         <ul className="max-h-36 overflow-scroll">{displayData}</ul>
       </div>
     </section>

@@ -74,7 +74,7 @@ export default function HeaderPlayerInfos({ userStats, setUserStats }) {
       <img
         src={avatar}
         alt={`${userStats.pseudo} avatar`}
-        className="w-12 h-12 rounded-full object-cover m-2"
+        className="w-16 h-16 rounded-full object-cover m-2 border border-violet-200"
       />
 
   return (

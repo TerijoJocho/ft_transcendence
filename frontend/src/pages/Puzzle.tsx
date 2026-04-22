@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import Header from "../components/Header.tsx";
 
 type Cell = 0 | 1 | 2;
@@ -156,7 +156,7 @@ function TicTacToe() {
   const [scores, setScores] = useState({ player: 0, bot: 0, draws: 0 });
   const [showModal, setShowModal] = useState(true);
   const [moveCount, setMoveCount] = useState(0);
-  const [lastPlayerMove, setLastPlayerMove] = useState(-1);
+  // const [lastPlayerMove, setLastPlayerMove] = useState(-1);
   const [botThinking, setBotThinking] = useState(false);
 
   const initBoard = useCallback((selectedMode: Mode) => {
@@ -165,11 +165,11 @@ function TicTacToe() {
       fresh[4] = 1;
       setStatus("Le bot commence au centre.");
       setMoveCount(0);
-      setLastPlayerMove(-1);
+      // setLastPlayerMove(-1);
     } else {
       setStatus("À vous de jouer.");
       setMoveCount(0);
-      setLastPlayerMove(-1);
+      // setLastPlayerMove(-1);
     }
     setBoard(fresh);
     setGameOver(false);
@@ -193,7 +193,7 @@ function TicTacToe() {
     newBoard[idx] = 2;
     const newMoveCount = moveCount + 1;
     setBoard(newBoard);
-    setLastPlayerMove(idx);
+    // setLastPlayerMove(idx);
     setMoveCount(newMoveCount);
 
     const { winner, line } = checkWinner(newBoard);

@@ -17,12 +17,9 @@ import Tournament from "./pages/Tournament.tsx";
 import Chat from "./pages/Chat.tsx";
 import Profil from "./pages/Profil.tsx";
 import Friends from "./pages/Friends.tsx";
-<<<<<<< feat/dashboard-pages
 import { Puzzle } from "./pages/Puzzle.tsx";
-=======
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import TermsOfService from "./pages/TermsOfService.tsx";
->>>>>>> main
 
 function App() {
   // on récupère les fonctions login/clearAuth du contexte
