@@ -66,4 +66,10 @@ export class UsersController {
   async weeklyWinrate(@CurrentUser() user: { playerId: number }) {
     return this.UserService.weeklyWinrate(user.playerId);
   }
+
+  @Get('leaderboard')
+  @UseGuards(PassportJwtGuard)
+  async leaderboard() {
+    return this.UserService.getLeaderboard();
+  }
 }
