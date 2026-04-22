@@ -14,7 +14,7 @@ interface LevelProps {
 }
 
 export default function Level({ level }: LevelProps) {
-  const levelTitleMock = [
+  const levelTitleData = [
     {
       id: 1,
       title: "Pion",
@@ -53,37 +53,25 @@ export default function Level({ level }: LevelProps) {
   ];
 
   const currentLevel = level;
-  const nextLevelIndex = levelTitleMock.findIndex(
-    (lvl) => currentLevel < lvl.reach,
-  );
+  const nextLevelIndex = levelTitleData.findIndex((lvl) => currentLevel < lvl.reach);
   const isMaxRank = nextLevelIndex === -1;
 
-  const currentRankIndex = isMaxRank
-    ? levelTitleMock.length - 1
-    : nextLevelIndex - 1;
-  const currentRank =
-    currentRankIndex >= 0 ? levelTitleMock[currentRankIndex] : undefined;
-  const nextLevel = isMaxRank ? undefined : levelTitleMock[nextLevelIndex];
+  const currentRankIndex = isMaxRank ? levelTitleData.length - 1 : nextLevelIndex - 1;
+  const currentRank = currentRankIndex >= 0 ? levelTitleData[currentRankIndex] : undefined;
+  const nextLevel = isMaxRank ? undefined : levelTitleData[nextLevelIndex];
 
-  const lastIndex = levelTitleMock.length - 1;
-  const progressStart = isMaxRank
-    ? (levelTitleMock[lastIndex - 1]?.reach ?? 0)
-    : (currentRank?.reach ?? 0);
-  const progressEnd = isMaxRank
-    ? levelTitleMock[lastIndex].reach
-    : (nextLevel?.reach ?? levelTitleMock[lastIndex].reach);
+  const lastIndex = levelTitleData.length - 1;
+  const progressStart = isMaxRank ? (levelTitleData[lastIndex - 1]?.reach ?? 0) : (currentRank?.reach ?? 0);
+  const progressEnd = isMaxRank ? levelTitleData[lastIndex].reach : (nextLevel?.reach ?? levelTitleData[lastIndex].reach);
   const progressMax = Math.max(progressEnd - progressStart, 1);
-  const progressValue = Math.min(
-    Math.max(currentLevel - progressStart, 0),
-    progressMax,
-  );
+  const progressValue = Math.min(Math.max(currentLevel - progressStart, 0), progressMax);
 
   const findLevelImg = (): IconDefinition => {
     return currentRank?.img ?? fa0;
   };
 
   const findLevelImgToReach = (): IconDefinition => {
-    return nextLevel?.img ?? levelTitleMock[levelTitleMock.length - 1].img;
+    return nextLevel?.img ?? levelTitleData[levelTitleData.length - 1].img;
   };
 
   return (

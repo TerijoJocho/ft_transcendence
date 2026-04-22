@@ -13,9 +13,7 @@ import { useEffect, useState } from "react";
 import * as api from "../api/api.ts";
 
 function Dashboard() {
-  const [userStats, setUserStats] = useState<
-    UserStatsResponse | DashboardUserStats | null
-  >(null);
+  const [userStats, setUserStats] = useState<UserStatsResponse | DashboardUserStats | null>(null);
   useEffect(() => {
     try {
       async function fetchUser() {
@@ -23,7 +21,6 @@ function Dashboard() {
           ? mockDashboardUserStats
           : await api.userStats();
         setUserStats(userData);
-        console.log(userData);
       }
       fetchUser();
     } catch (error) {

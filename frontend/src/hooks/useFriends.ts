@@ -10,6 +10,8 @@ export type Friends = {
     avatarUrl: string | IconDefinition;
     isFriend: boolean;
     friendshipStatus: string;
+    level?: number;
+    lose?: number;
 };
 
 export function useFriends() {
