@@ -980,4 +980,29 @@ export class UtilsService {
       );
     }
   };
+
+  getLeaderboard = async () => {
+    try {
+      let query = this.Database.getDb()
+        .select({
+          playerId: playerTable.playerId,
+          playerName: playerTable.playerName,
+          playerLevel: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`.as('playerLevel'),
+        })
+        .from(playerTable)
+        .leftJoin(
+          participationTable,
+          eq(participationTable.playerId, playerTable.playerId),
+        )
+        .groupBy(playerTable.playerId, playerTable.playerName);
+
+      const leaderboard = await query.orderBy(desc(sql`playerLevel`));
+      return leaderboard;
+    } catch (error) {
+      this.throwDbUnavailable(
+        error,
+        'Database error during leaderboard retrieval.',
+      );
+    }
+  };
 }
