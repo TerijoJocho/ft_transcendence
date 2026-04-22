@@ -250,9 +250,15 @@ export function endGame(
   });
 }
 
-export function resignGame(gameId: number) {
+export function giveupGame(gameId: number) {
   return request(`/api/game/${gameId}/giveup`, {
     method: "POST",
+  });
+}
+
+export function cancelGame(gameId: number) {
+  return request(`/api/game/${gameId}/cancel`, {
+    method: "DELETE",
   });
 }
 
