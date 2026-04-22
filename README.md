@@ -1,201 +1,78 @@
-*This project has been created as part of the 42 curriculum by daavril, aistierl, kcharbon, kito_6864, y42bro.*
+This project has been created as part of the 42 curriculum by aistirl(Product Owner), daavril(Tech Lead), kcharbon(Project Manager), ychattou(Developer)
 
-# ft_transcendence — ChessWar
+DESCRIPTION
 
-## Description
-ChessWar is a web application built for the 42 ft_transcendence project.
-It provides secure user accounts, profile management, friends, private chat, and multiplayer chess with real-time synchronization.
+    Chess War:
+        
+        Plateforme de jeu multijoueur en temps réel, ce projet réunit plusieurs expériences interactives dans une seule application: un jeu d’échecs, un morpion et un chat live. L’objectif est de proposer une expérience fluide, compétitive et sociale, avec des échanges instantanés entre joueurs grâce au WebSocket.
 
-### Key features
-- Secure authentication (email/password, JWT access/refresh cookies)
-- OAuth login (Google)
-- Two-Factor Authentication (TOTP)
-- User profile management (update data, avatar, account deletion)
-- Friends system (search/add/remove/update status)
-- Private real-time chat (WebSocket)
-- Chess game modes (local + online real-time)
-- Match/session persistence APIs
-- Legal pages: Privacy Policy and Terms of Service
+        Au-delà des fonctionnalités de jeu, le projet met un fort accent sur la sécurité et la robustesse de l’infrastructure. Les secrets applicatifs sont centralisés et gérés via Vault, tandis qu’un WAF protège l’application en amont contre les requêtes malveillantes. Cette approche permet de combiner logique produit (jeu en direct) et bonnes pratiques DevSecOps (gestion sécurisée des secrets, filtrage du trafic, isolation des services).
 
----
+        L’architecture repose sur une stack moderne et complète: backend NestJS, frontend React, PostgreSQL pour la persistance, Redis pour la performance temps réel, communication WebSocket pour les interactions live, et orchestration Docker pour un déploiement reproductible en développement comme en intégration.
 
-## Instructions
+INSTRUCTION
 
-### Prerequisites
-- Docker + Docker Compose
-- Node.js 20+
-- npm
+    Pour lancer le projet taper: "docker compose up", à la racine du projet.
 
-### Environment setup
-1. Copy and fill environment files:
-   - Root: `.env` (based on `.env.example`)
-   - Backend: `backend/.env` (based on `backend/.env.example`)
-2. Never commit real secrets. Keep secrets in local env/Vault only.
+    Ouvrir un navigateur internet puis se rendre sur localhost
 
-### Run with Docker (recommended)
-```bash
-docker compose --profile dev up -d --build
-```
+    Une interface de connexion devrait s'afficher, si vous n'avez pas de compte cliquer sur "Créer un compte", vous aurez le choix entre une inscription classique ou passer par google. Une fois que votre compte est créé vous allez être redirigé sur la page de connexion.
 
-### Useful local commands
-```bash
-# Frontend
-npm --prefix frontend run lint
-npm --prefix frontend run build
+    Une fois connecté la page du dashboard s'affiche avec toutes les stats etc... Vous pourrez jouer aux échecs en local, en ligne avec plusieurs modes de jeu... Ou au morpion! Vous pourrez également ajouter des amis et leur envoyer des messages
 
-# Backend
-npm --prefix backend run lint
-npm --prefix backend run build
-npm --prefix backend run test -- --runInBand --passWithNoTests
-```
+    pour fermer le projet la commande à taper est: "docker compose down", toujours à la racine du projet
 
-### Access
-- App (nginx): `https://localhost`
-- Dev alternate port setup may use `https://localhost:9443`
+RESSOURCES
 
----
+TEAM INFORMATION
 
-## Team Information
+Project Management:
 
-### daavril (Daryl)
-- Roles: Product Owner, Frontend Lead, DevOps coordination
-- Responsibilities: Frontend architecture/integration, UX flows, deployment orchestration, team coordination
+    La team communiquait via Discord, dès le début nous nous sommes mis d'accord sur les tâches de chacun. Daryl sur le front, Ylan sur la partie game, Kalvin et Aisha sur la partie backend. Nous avons fait des points au minimum 1 fois par semaine pour savoir les avancées de chacun, utilisé GitHub Issues pour s'attribuer les tâches restantes au fil de notre avancée.
 
-### aistierl (Aïcha)
-- Roles: Backend Lead, Security contributor
-- Responsibilities: Auth architecture, token lifecycle, user/game backend integration
+Technical Stack:
+    Stack full JavaScript (backend en NestJS et frontend en React)
+    PostgreSQL pour la base de donée
+    Drizzle pour l'ORM
+    Docker/Docker-compose pour le deploiement
 
-### kcharbon (Kalvin)
-- Roles: Security/Infra Engineer, Backend contributor
-- Responsibilities: WAF/ModSecurity, Vault integration, backend hardening
 
-### kito_6864 (Ylan)
-- Roles: Gameplay Developer
-- Responsibilities: Chess logic/gameplay foundation and game behavior integration
+Database Schema:
 
-### y42bro (Yassine)
-- Roles: Realtime Systems Developer
-- Responsibilities: WebSocket game/chat integration, real-time synchronization, multiplayer runtime validation
 
----
+Modules:
+    WEB: 
+        - Use a frontend framework (React, NestJs) | 2points
+        - Implement real-time features using WebSockets | 2 points
+        - Allow users to interact with other users | 2 points
+        - A public API to interact with the database.. | 2 points
+        - Use an ORM for the database | 1 point
 
-## Project Management
-- Work organization: feature branches + pull requests + iterative integration
-- Task distribution: by module ownership (frontend/backend/security/realtime/gameplay)
-- Communication: Discord + in-school sync sessions
-- Tracking: Git history, PR reviews, branch-based integration
+    User Management:
+        - Standard user management and authentication | 2 points
+        - Game statistics and match history | 2 points
+        - Implement remote authentication with OAuth 2.0 | 1 point
+        - Implement a complete 2FA | 1 point
 
----
+    Artificial Intelligence:
+        - Introduce an AI Opponent for games | 2 points
 
-## Technical Stack
+    Cybersecurity:
+        - Implement WAF/ModSecurity (hardened) + HashiCorp Vault for secrets - 2 points
 
-### Frontend
-- React + TypeScript + Vite
-- TailwindCSS
-- socket.io-client
+    Gaming and user experience:
+        -  Implement a complete web-based game where users can play against each
+other | 2 points
 
-### Backend
-- NestJS + TypeScript
-- Socket.IO gateways
-- JWT auth (access/refresh), Passport strategies
-- Google OAuth
-- Speakeasy/qrcode for 2FA
+        - Remote players — Enable two players on separate computers to play the
+same game in real-time | 2 points **!! a voir reconnexion parti!!**
 
-### Data/Infra
-- PostgreSQL
-- Drizzle ORM
-- Redis
-- nginx + ModSecurity (WAF)
-- HashiCorp Vault
-- Docker Compose
+        - Game customization options -  Customizable game setting and Default options must be available  | 1 point **!! a voir !!**
+    
+    26 points totals
+Individual Contributions:
 
-### Major technical choices
-- NestJS for structured modular backend
-- React/Vite for fast frontend iteration
-- Socket.IO for robust bidirectional real-time events
-- Drizzle + PostgreSQL for typed relational data access
-- WAF + Vault for security baseline and secret management
+    j'ai implementé les modules Friendship, Users avec des methodes CRUD, j'ai aussi mis en place un par feu via MODSECURITY, et centralisé les secrets via Vault
 
----
 
-## Database Schema (summary)
-
-### players
-- `playerId` (PK), `mailAddress`, `playerName`, `pwd`, `avatarUrl`, `isGoogleUser`, timestamps
-
-### games
-- `gameId` (PK), `gameMode`, `gameStatus`, `gameResult`, move counters, timestamps
-
-### participation
-- Links players to games
-- Stores `playerColor`, `playerResult`
-- Constraints enforce one active pending game per player
-
-### friendship
-- User relationship table (`PENDING`/`ADDED`) with requester tracking
-
----
-
-## Features List
-- Authentication & session lifecycle (email/password, refresh, logout)
-- OAuth Google login
-- 2FA enable/verify/disable
-- Profile read/update/delete
-- Friends search/add/remove/status update
-- Real-time private chat (`/chat` namespace)
-- Real-time multiplayer game sync (`/game` namespace)
-- Game create/join/session/end/resign APIs
-- Legal pages available and linked from application UI
-
----
-
-## Modules
-
-### Chosen modules and points
-- **Web (Major)**: Frontend + Backend frameworks → **2 pts**
-- **Web (Major)**: Real-time features (WebSockets) → **2 pts**
-- **Web (Major)**: User interaction (chat + profile + friends) → **2 pts**
-- **Web (Minor)**: ORM usage (Drizzle) → **1 pt**
-- **User Management (Major)**: Standard user management/authentication → **2 pts**
-- **User Management (Minor)**: OAuth 2.0 (Google) → **1 pt**
-- **User Management (Minor)**: 2FA → **1 pt**
-- **Cybersecurity (Major)**: WAF/ModSecurity + Vault → **2 pts**
-- **Gaming UX (Major)**: Web-based game → **2 pts**
-- **Gaming UX (Major)**: Remote players in real-time → **2 pts**
-- **User Management (Minor)**: Game statistics/history integration surface → **1 pt**
-
-**Total claimed points: 18**
-
----
-
-## Individual Contributions (high-level)
-- Frontend integration and UX routing/layout
-- Backend module wiring and API evolution
-- Security infra setup (WAF + Vault)
-- Realtime gateways and socket event flows
-- Gameplay logic integration and online-state synchronization
-
-Challenges addressed:
-- Synchronizing frontend game state with backend/game room events
-- Runtime compatibility under nginx + HTTPS + socket upgrade paths
-- Keeping auth cookies and websocket handshake aligned
-
----
-
-## Resources
-- 42 subject PDF (`en.subject (1).pdf`)
-- NestJS docs: https://docs.nestjs.com/
-- React docs: https://react.dev/
-- Socket.IO docs: https://socket.io/docs/
-- Drizzle docs: https://orm.drizzle.team/
-- OWASP CRS: https://coreruleset.org/
-- Vault docs: https://developer.hashicorp.com/vault/docs
-
-### AI usage
-AI was used for:
-- Refactoring assistance and static analysis suggestions
-- Runtime debugging guidance
-- Test-flow scripting support
-- Compliance checklist consolidation
-
-All AI-generated output was reviewed, adapted, and validated with project-specific checks.
+doc a mettre par theme, securité, auth, 2FA, bcrypt, ect..
