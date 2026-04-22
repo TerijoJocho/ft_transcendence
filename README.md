@@ -28,6 +28,8 @@ TEAM INFORMATION
 
 Project Management:
 
+    Kalvin.
+
     La team communiquait via Discord, dès le début nous nous sommes mis d'accord sur les tâches de chacun. Daryl sur le front, Ylan sur la partie game, Kalvin et Aisha sur la partie backend. Nous avons fait des points au minimum 1 fois par semaine pour savoir les avancées de chacun, utilisé GitHub Issues pour s'attribuer les tâches restantes au fil de notre avancée.
 
 Technical Stack:
@@ -72,7 +74,7 @@ same game in real-time | 2 points **!! a voir reconnexion parti!!**
     26 points totals
 Individual Contributions:
 
-    j'ai implementé les modules Friendship, Users avec des methodes CRUD, j'ai aussi mis en place un par feu via MODSECURITY, et centralisé les secrets via Vault
+    Kalvin a implementé les modules Friendship, Users avec des methodes CRUD, mis en place un par feu via MODSECURITY, centralisé les secrets via Vault, une methode de connexion 2FA via topt, cyptage des password avec bcrypt
 
 
 doc a mettre par theme, securité, auth, 2FA, bcrypt, ect..
