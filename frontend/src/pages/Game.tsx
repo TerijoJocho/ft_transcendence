@@ -11,6 +11,7 @@ import {
   joinGame,
   endGame,
   giveupGame,
+  cancelGame,
   connectGameSocket,
 } from "../api/api.ts";
 
@@ -516,6 +517,19 @@ function ChessGame({
     onBack();
   }
 
+  async function handleCancelConfirm() {
+   setConfirmAction(null);
+   if (isOnline && online.gameId && !gameOver) {
+     try { // garde ça
+       await cancelGame(online.gameId); // garde ça
+       if (socketRef.current?.connected) { // garde ça aussi
+         socketRef.current.emit("cancel", { gameId: online.gameId }); //garde ça
+       } // garde ça aussi
+     } catch { } // garde ça
+   }
+   onBack();
+  }
+
   const hintSet    = new Set(hints.map(h => `${h.row},${h.col}`));
   const captureSet = new Set(hints.filter(h => h.capture).map(h => `${h.row},${h.col}`));
   const lowThreshold = initSeconds ? Math.min(30, initSeconds * 0.2) : 30;
@@ -633,13 +647,22 @@ function ChessGame({
 
           {/* Restart / Menu buttons — both require confirmation */}
           <div className="flex gap-4 mt-1">
-            <button
-              disabled={isOnline}
-              onClick={() => !isOnline && setConfirmAction("restart")}
-              className={`px-8 py-3 text-sm uppercase tracking-widest border rounded-md transition-all duration-200 ${isOnline ? "border-gray-700 text-gray-600 cursor-not-allowed opacity-40" : "border-rose-700 text-rose-400 hover:bg-rose-700/20 hover:border-rose-500"}`}
-            >
-              Restart
-            </button>
+            {/* nouveau bouton */}
+            {isOnline ? (
+              <button
+                onClick={() => setConfirmAction("cancel") }
+                className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-600 text-gray-400 rounded-md hover:bg-gray-600/20 hover:border-gray-400 transition-all duration-200"
+              >
+                Cancel
+              </button>
+            ) : (
+              <button
+                onClick={() => setConfirmAction("restart")}
+                className="px-8 py-3 text-sm uppercase tracking-widest border border-rose-700 text-rose-400 rounded-md hover:bg-rose-700/20 hover:border-rose-500 transition-all duration-200"
+              >
+                Restart
+              </button>
+            )}
             <button
               onClick={() => setConfirmAction("menu")}
               className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-700 text-gray-400 rounded-md hover:bg-gray-700/20 hover:border-gray-500 transition-all duration-200"
