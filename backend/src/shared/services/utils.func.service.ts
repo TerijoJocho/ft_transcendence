@@ -983,10 +983,11 @@ export class UtilsService {
 
   getLeaderboard = async () => {
     try {
-      const playerLevel = sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`.as(
-        'playerLevel',
-      );
-      let query = this.Database.getDb()
+      const playerLevel =
+        sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`.as(
+          'playerLevel',
+        );
+      const query = this.Database.getDb()
         .select({
           playerId: playerTable.playerId,
           playerName: playerTable.playerName,

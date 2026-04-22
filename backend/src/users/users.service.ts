@@ -327,7 +327,7 @@ export class UsersService {
     }
   }
 
-    async getLeaderboard(): Promise<leaderboardEntry[]> {
-      return this.utilsService.getLeaderboard();
-    }
+  async getLeaderboard(): Promise<leaderboardEntry[]> {
+    return this.utilsService.getLeaderboard();
+  }
 }
