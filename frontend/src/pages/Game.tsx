@@ -266,8 +266,8 @@ function ChessGame({
   const socketRef = useRef<Socket | null>(null);
   const isApplyingRemoteRef = useRef(false);
 
-  // Confirm modal: "restart" | "menu" | null
-  const [confirmAction, setConfirmAction] = useState<"restart" | "menu" | null>(null);
+  // Confirm modal: "restart" | "menu" | "cancel" | null
+  const [confirmAction, setConfirmAction] = useState<"restart" | "menu" | "cancel" | null>(null);
 
   // Drag-and-drop
   const [dragSource, setDragSource] = useState<[number, number] | null>(null);
@@ -518,16 +518,16 @@ function ChessGame({
   }
 
   async function handleCancelConfirm() {
-   setConfirmAction(null);
-   if (isOnline && online.gameId && !gameOver) {
-     try { // garde ça
-       await cancelGame(online.gameId); // garde ça
-       if (socketRef.current?.connected) { // garde ça aussi
-         socketRef.current.emit("cancel", { gameId: online.gameId }); //garde ça
-       } // garde ça aussi
-     } catch { } // garde ça
-   }
-   onBack();
+    setConfirmAction(null);
+    if (isOnline && online.gameId && !gameOver) {
+      try {
+        await cancelGame(online.gameId);
+        if (socketRef.current?.connected) {
+          socketRef.current.emit("cancel", { gameId: online.gameId });
+        }
+      } catch { }
+    }
+    onBack();
   }
 
   const hintSet    = new Set(hints.map(h => `${h.row},${h.col}`));
@@ -645,12 +645,11 @@ function ChessGame({
             </div>
           )}
 
-          {/* Restart / Menu buttons — both require confirmation */}
+          {/* Restart / Menu / Cancel buttons */}
           <div className="flex gap-4 mt-1">
-            {/* nouveau bouton */}
             {isOnline ? (
               <button
-                onClick={() => setConfirmAction("cancel") }
+                onClick={() => setConfirmAction("cancel")}
                 className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-600 text-gray-400 rounded-md hover:bg-gray-600/20 hover:border-gray-400 transition-all duration-200"
               >
                 Cancel
@@ -712,12 +711,15 @@ function ChessGame({
           message={
             confirmAction === "restart"
               ? "Relancer la partie ?"
+              : confirmAction === "cancel"
+              ? "Annuler la partie ? Elle sera supprimée."
               : isOnline && !gameOver
               ? "Retourner au menu ? Cela comptera comme une résignation."
               : "Retourner au tableau de bord ?"
           }
           onConfirm={async () => {
             if (confirmAction === "restart") { reset(); setConfirmAction(null); }
+            else if (confirmAction === "cancel") { await handleCancelConfirm(); }
             else { await handleMenuConfirm(); }
           }}
           onCancel={() => setConfirmAction(null)}
