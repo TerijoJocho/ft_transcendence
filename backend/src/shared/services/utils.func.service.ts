@@ -915,6 +915,8 @@ export class UtilsService {
       let cumulativeWins = 0;
       let cumulativeGames = 0;
       const points: { dayIndex: number; date: string; winrate: number }[] = [];
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
 
       for (let i = 0; i < 7; i++) {
         const date = new Date(currentWeekStart);
@@ -924,12 +926,17 @@ export class UtilsService {
         cumulativeWins += stats.wins;
         cumulativeGames += stats.games;
 
-        const winrate =
-          cumulativeGames === 0
-            ? 0
-            : Number(((cumulativeWins * 100) / cumulativeGames).toFixed(2));
+        if (date > today) {
+          const winrate = 0;
+          points.push({ dayIndex: i + 1, date: dateIso, winrate });
+        } else {
+          const winrate =
+            cumulativeGames === 0
+              ? 0
+              : Number(((cumulativeWins * 100) / cumulativeGames).toFixed(2));
 
-        points.push({ dayIndex: i + 1, date: dateIso, winrate });
+          points.push({ dayIndex: i + 1, date: dateIso, winrate });
+        }
       }
 
       return {
@@ -983,10 +990,11 @@ export class UtilsService {
 
   getLeaderboard = async () => {
     try {
-      const playerLevel = sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`.as(
-        'playerLevel',
-      );
-      let query = this.Database.getDb()
+      const playerLevel =
+        sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`.as(
+          'playerLevel',
+        );
+      const query = this.Database.getDb()
         .select({
           playerId: playerTable.playerId,
           playerName: playerTable.playerName,
