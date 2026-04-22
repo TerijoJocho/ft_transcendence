@@ -9,7 +9,8 @@ import {
   getGameSession,
   getPendingGames,
   joinGame,
-  resignGame,
+  endGame,
+  giveupGame,
   connectGameSocket,
 } from "../api/api.ts";
 
@@ -281,11 +282,32 @@ function ChessGame({
 
   const persistEndOfGame = useCallback(
     async (result: { winner: string; reason: string }, moveCount: number) => {
-      void result;
-      void moveCount;
-      if (isOnline) return;
+      if (!isOnline || !online.gameId) return;
+
+      const winnerNbMoves = Math.ceil(moveCount / 2);
+      const isDraw = result.winner === "Draw";
+
+      try {
+        if (isDraw) {
+          await endGame(online.gameId, {
+            totalNbMoves: moveCount,
+            winnerNbMoves,
+            gameResult: "DRAW",
+          });
+        } else {
+          const winnerColor = result.winner === "White" ? "WHITE" : "BLACK";
+          await endGame(online.gameId, {
+            totalNbMoves: moveCount,
+            winnerNbMoves,
+            gameResult: "WIN",
+            winnerColor,
+          });
+        }
+      } catch {
+        // Best effort only: realtime update still goes through websocket diffusion.
+      }
     },
-    [isOnline],
+    [isOnline, online.gameId],
   );
 
   const exportSnapshot = useCallback(() => {
@@ -485,9 +507,11 @@ function ChessGame({
     setConfirmAction(null);
     if (isOnline && online.gameId && !gameOver) {
       try {
-        if (socketRef.current?.connected) { socketRef.current.emit("resign", { gameId: online.gameId }); }
-        else { await resignGame(online.gameId); }
-      } catch { /* ignore */ }
+        await giveupGame(online.gameId);
+        if (socketRef.current?.connected) {
+          socketRef.current.emit("giveup", { gameId: online.gameId });
+        }
+      } catch { }
     }
     onBack();
   }
