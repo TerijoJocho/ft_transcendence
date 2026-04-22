@@ -115,6 +115,11 @@ export default function SignIn() {
       <p className="text-xs font-medium self-center">
         Vous avez déjà un compte ? <Link to="/login" className="text-amber-600 hover:underline">Connectez-vous</Link>
       </p>
+
+      <div className="mt-4 flex justify-center gap-4 text-xs text-gray-200">
+        <Link to="/privacy-policy" className="hover:underline">Politique de confidentialité</Link>
+        <Link to="/terms-of-service" className="hover:underline">Conditions d'utilisation</Link>
+      </div>
     </div>
   );
 }

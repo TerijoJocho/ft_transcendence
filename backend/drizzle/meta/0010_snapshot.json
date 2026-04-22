@@ -1,6 +1,6 @@
 {
-  "id": "c171e8dc-cc64-4fd6-b94c-0711bca159a7",
-  "prevId": "f925a1fc-debd-4ef4-b90c-42f834f14dda",
+  "id": "d6b185da-d909-4a70-8254-2d92dce132da",
+  "prevId": "93de611c-92fd-404f-8097-ccdb82253146",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -169,11 +169,19 @@
           "notNull": true,
           "default": "now()"
         },
+        "gameStartedAt": {
+          "name": "gameStartedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
         "gameCompletedAt": {
           "name": "gameCompletedAt",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": null
         },
         "gameStatus": {
           "name": "gameStatus",
@@ -208,6 +216,18 @@
         "checkmate": {
           "name": "checkmate",
           "value": "\"games\".\"gameStatus\" <> 'COMPLETED' OR (\"games\".\"totalNbMoves\" IS NOT NULL AND \"games\".\"winnerNbMoves\" IS NOT NULL)"
+        },
+        "game_started_not_null_if_ongoing_or_completed": {
+          "name": "game_started_not_null_if_ongoing_or_completed",
+          "value": "\"games\".\"gameStatus\" = 'PENDING' OR \"games\".\"gameStartedAt\" IS NOT NULL"
+        },
+        "game_completed_not_null_if_completed": {
+          "name": "game_completed_not_null_if_completed",
+          "value": "\"games\".\"gameStatus\" <> 'COMPLETED' OR \"games\".\"gameCompletedAt\" IS NOT NULL"
+        },
+        "winner_moves_less_than_total_moves": {
+          "name": "winner_moves_less_than_total_moves",
+          "value": "\"games\".\"winnerNbMoves\" <= \"games\".\"totalNbMoves\""
         }
       },
       "isRLSEnabled": false
@@ -436,6 +456,10 @@
         "pwd_required_for_non_google_users": {
           "name": "pwd_required_for_non_google_users",
           "value": "\"players\".\"isGoogleUser\" = true OR \"players\".\"pwd\" IS NOT NULL"
+        },
+        "google_user_cannot_enable_2FA": {
+          "name": "google_user_cannot_enable_2FA",
+          "value": "\"players\".\"isGoogleUser\" = false OR \"players\".\"twoFactorEnabled\" = false"
         }
       },
       "isRLSEnabled": false

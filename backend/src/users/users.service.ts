@@ -37,6 +37,22 @@ type UserStatsResponse = {
   gameHistoryList?: any[]; // Adjust type based on actual game history structure
 };
 
+type weeklyWinrateResponse = {
+  timezone: string;
+  weekStart: string;
+  points: {
+    dayIndex: number;
+    date: string;
+    winrate: number;
+  }[];
+};
+
+type leaderboardEntry = {
+  playerId: number;
+  playerName: string;
+  playerLevel: number;
+};
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -48,7 +64,7 @@ export class UsersService {
     mailAddress: string,
     gameName: string,
     pwd?: string,
-  ): Promise<playerSelect[]> {
+  ): Promise<{ [x: string]: unknown }[]> {
     const existingUser = (await this.utilsService.findPlayersBy(
       'or',
       undefined,
@@ -72,12 +88,12 @@ export class UsersService {
     };
 
     return (await this.utilsService.insertPlayers([currentPlayers], {
-      id: playerTable.playerId,
-      pseudo: playerTable.playerName,
-    })) as playerSelect[];
+      playerId: playerTable.playerId,
+      playerName: playerTable.playerName,
+    })) as { [x: string]: unknown }[];
   }
 
-  async getDataUser(playerId: number) {
+  async getDataUser(playerId: number): Promise<playerSelect> {
     const player = (await this.utilsService.findPlayersBy(
       'and',
       {
@@ -95,7 +111,7 @@ export class UsersService {
     return player[0];
   }
 
-  async deleteUserbyId(playerId: number, response: Response) {
+  async deleteUserbyId(playerId: number, response: Response): Promise<void> {
     const user = (await this.utilsService.findPlayersBy(
       'and',
       undefined,
@@ -289,7 +305,7 @@ export class UsersService {
     } as UserStatsResponse;
   }
 
-  async weeklyWinrate(playerId: number) {
+  async weeklyWinrate(playerId: number): Promise<weeklyWinrateResponse> {
     try {
       const user = (await this.utilsService.findPlayersBy(
         'and',
@@ -310,4 +326,8 @@ export class UsersService {
       );
     }
   }
+
+    async getLeaderboard(): Promise<leaderboardEntry[]> {
+      return this.utilsService.getLeaderboard();
+    }
 }

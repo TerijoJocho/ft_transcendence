@@ -88,7 +88,8 @@ export const gameTable = pgTable(
     totalNbMoves: integer(),
     winnerNbMoves: integer(),
     gameCreatedAt: timestamp().notNull().defaultNow(),
-    gameCompletedAt: timestamp(),
+    gameStartedAt: timestamp().default(null),
+    gameCompletedAt: timestamp().default(null),
     gameStatus: gameStatusEnum().notNull().default('PENDING'),
     gameResult: gameResultEnum().notNull().default('PENDING'),
     gameMode: gameModeEnum().notNull(),
@@ -97,6 +98,18 @@ export const gameTable = pgTable(
     check(
       'checkmate',
       sql`${pgTable.gameStatus} <> 'COMPLETED' OR (${pgTable.totalNbMoves} IS NOT NULL AND ${pgTable.winnerNbMoves} IS NOT NULL)`,
+    ),
+    check(
+      'game_started_not_null_if_ongoing_or_completed',
+      sql`${pgTable.gameStatus} = 'PENDING' OR ${pgTable.gameStartedAt} IS NOT NULL`,
+    ),
+    check(
+      'game_completed_not_null_if_completed',
+      sql`${pgTable.gameStatus} <> 'COMPLETED' OR ${pgTable.gameCompletedAt} IS NOT NULL`,
+    ),
+    check(
+      'winner_moves_less_than_total_moves',
+      sql`${pgTable.winnerNbMoves} <= ${pgTable.totalNbMoves}`,
     ),
   ],
 );
