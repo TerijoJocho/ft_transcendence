@@ -983,11 +983,14 @@ export class UtilsService {
 
   getLeaderboard = async () => {
     try {
+      const playerLevel = sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`.as(
+        'playerLevel',
+      );
       let query = this.Database.getDb()
         .select({
           playerId: playerTable.playerId,
           playerName: playerTable.playerName,
-          playerLevel: sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`.as('playerLevel'),
+          playerLevel,
         })
         .from(playerTable)
         .leftJoin(
@@ -996,7 +999,7 @@ export class UtilsService {
         )
         .groupBy(playerTable.playerId, playerTable.playerName);
 
-      const leaderboard = await query.orderBy(desc(sql`playerLevel`));
+      const leaderboard = await query.orderBy(desc(playerLevel));
       return leaderboard;
     } catch (error) {
       this.throwDbUnavailable(
