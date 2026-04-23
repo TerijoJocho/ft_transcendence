@@ -360,9 +360,19 @@ export function endGame(
   });
 }
 
-export function resignGame(gameId: number): Promise<void> {
-  return request<void>(`/api/game/${gameId}/giveup`, {
+export function giveupGame(gameId: number, data: {
+    totalNbMoves: number;
+    winnerNbMoves: number;
+  },) {
+  return request(`/api/game/${gameId}/giveup`, {
     method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function cancelGame(gameId: number) {
+  return request(`/api/game/${gameId}/cancel`, {
+    method: "DELETE",
   });
 }
 
