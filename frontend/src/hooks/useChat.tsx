@@ -4,7 +4,7 @@ import React, {
   useEffect,
   useRef,
   useState,
-  ReactNode,
+  type ReactNode,
 } from "react";
 import { connectChatSocket } from "../api/api";
 import type { Socket } from "socket.io-client";
