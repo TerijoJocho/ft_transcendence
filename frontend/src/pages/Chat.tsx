@@ -4,10 +4,7 @@ import { connectChatSocket, getFriendsList } from "../api/api.ts";
 import type { Socket } from "socket.io-client";
 import statusData from "../data/statusData.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faPaperPlane,
-  faCircle,
-} from "@fortawesome/free-solid-svg-icons";
+import { faPaperPlane, faCircle } from "@fortawesome/free-solid-svg-icons";
 import Level from "../components/Level.tsx";
 import Search from "../components/Search.tsx";
 
@@ -259,12 +256,12 @@ function Chat() {
                       className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-xs px-4 py-2 rounded-2xl text-sm
+                        className={`max-w-xs px-4 py-2 rounded-2xl text-sm break-all
                                     ${
                                       isMe
-                                      ? "bg-violet-600 text-white rounded-br-sm"
-                                      : "bg-gray-100 text-gray-800 rounded-bl-sm"
-                                  }`}
+                                        ? "bg-violet-600 text-white rounded-br-sm"
+                                        : "bg-gray-100 text-gray-800 rounded-bl-sm"
+                                    }`}
                       >
                         <p>{msg.content}</p>
                         <p
