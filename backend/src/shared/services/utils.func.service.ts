@@ -915,6 +915,8 @@ export class UtilsService {
       let cumulativeWins = 0;
       let cumulativeGames = 0;
       const points: { dayIndex: number; date: string; winrate: number }[] = [];
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
 
       for (let i = 0; i < 7; i++) {
         const date = new Date(currentWeekStart);
@@ -924,12 +926,17 @@ export class UtilsService {
         cumulativeWins += stats.wins;
         cumulativeGames += stats.games;
 
-        const winrate =
-          cumulativeGames === 0
-            ? 0
-            : Number(((cumulativeWins * 100) / cumulativeGames).toFixed(2));
+        if (date > today) {
+          const winrate = 0;
+          points.push({ dayIndex: i + 1, date: dateIso, winrate });
+        } else {
+          const winrate =
+            cumulativeGames === 0
+              ? 0
+              : Number(((cumulativeWins * 100) / cumulativeGames).toFixed(2));
 
-        points.push({ dayIndex: i + 1, date: dateIso, winrate });
+          points.push({ dayIndex: i + 1, date: dateIso, winrate });
+        }
       }
 
       return {
@@ -977,6 +984,35 @@ export class UtilsService {
       this.throwDbUnavailable(
         error,
         'Database error during pending games retrieval.',
+      );
+    }
+  };
+
+  getLeaderboard = async () => {
+    try {
+      const playerLevel =
+        sql<number>`COUNT(*) FILTER (WHERE ${participationTable.playerResult} = 'WIN')::int`.as(
+          'playerLevel',
+        );
+      const query = this.Database.getDb()
+        .select({
+          playerId: playerTable.playerId,
+          playerName: playerTable.playerName,
+          playerLevel,
+        })
+        .from(playerTable)
+        .leftJoin(
+          participationTable,
+          eq(participationTable.playerId, playerTable.playerId),
+        )
+        .groupBy(playerTable.playerId, playerTable.playerName);
+
+      const leaderboard = await query.orderBy(desc(playerLevel));
+      return leaderboard;
+    } catch (error) {
+      this.throwDbUnavailable(
+        error,
+        'Database error during leaderboard retrieval.',
       );
     }
   };

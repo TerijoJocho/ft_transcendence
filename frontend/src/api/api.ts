@@ -2,20 +2,125 @@ import { io, Socket } from "socket.io-client";
 import type { User } from "../auth/core/authCore.ts";
 import type { Friends } from "../hooks/useFriends.ts";
 import type { SearchUserResult } from "../components/AddFriends.tsx";
+
 const API_URL = window.location.origin;
 
-export type LoginResponse =
-  | User
-  | {
-      requiresTwoFactor: true;
-      message: string;
-    };
+type GameMode = "CLASSIC" | "BLITZ" | "BULLET";
+type GameColor = "WHITE" | "BLACK";
+type GameStatus = "PENDING" | "ONGOING" | "COMPLETED";
+type GameResult = "WIN" | "DRAW" | "LOSE" | "PENDING";
 
-async function request(
+export type LoginRequiresTwoFactorResponse = {
+  requiresTwoFactor: true;
+  message: string;
+};
+
+export type LoginResponse = User | LoginRequiresTwoFactorResponse;
+
+export type ApiMessageResponse = {
+  message: string;
+};
+
+export type RegisterResponse = Array<{
+  playerId: number;
+  playerName: string;
+}>;
+
+export type UserStatsGameHistoryEntry = {
+  gameId: number;
+  gameMode: GameMode;
+  playerColor: GameColor;
+  playerResult: GameResult;
+  opponentName: string | null;
+  gameDuration: string;
+};
+
+export type UserStatsResponse = {
+  id: number;
+  pseudo: string;
+  status: string;
+  elo: number;
+  winCount: number;
+  lossCount: number;
+  drawCount: number;
+  totalGames: number;
+  winrate: number;
+  favColor: string;
+  favGameMode: string;
+  currentWinStreak: number;
+  longestWinStreak: number;
+  gameHistoryList?: UserStatsGameHistoryEntry[];
+};
+
+export type WeeklyWinratePoint = {
+  dayIndex: number;
+  date: string;
+  winrate: number;
+};
+
+export type WeeklyWinrateResponse = {
+  timezone: string;
+  weekStart: string;
+  points: WeeklyWinratePoint[];
+};
+
+export type LeaderboardResponse = {
+  playerId: number;
+  playerName: string;
+  playerLevel: number;
+};
+
+export type TwoFactorSetupResponse = {
+  otpauthUrl: string;
+  base32: string;
+};
+
+export type TwoFactorActionResponse = {
+  success: true;
+};
+
+export type CreateGameResponse = {
+  gameId: number;
+};
+
+export type GameSessionResponse = {
+  gameId: number;
+  playerColor: GameColor;
+  gameStatus: GameStatus;
+  gameMode: GameMode;
+};
+
+export type PendingGameResponse = {
+  gameId: number;
+  gameMode: GameMode;
+  creatorName: string;
+  creatorId: number;
+  creatorColor: GameColor;
+  gameCreatedAt: string;
+};
+
+export type GameStateSnapshot = {
+  gameId: number;
+  board: string[][];
+  turn: "white" | "black";
+  moved: Record<string, boolean>;
+  ep: { row: number; col: number } | null;
+  halfmove: number;
+  history: string[];
+  gameOver: boolean;
+  status: string;
+  lastMove: number[] | null;
+  whiteTime: number | null;
+  blackTime: number | null;
+  clockStarted: boolean;
+  gameResult: { winner: string; reason: string } | null;
+};
+
+async function request<TResponse>(
   endpoint: string,
   options: RequestInit = {},
   isRetry = false,
-) {
+): Promise<TResponse> {
   const response = await fetch(`${API_URL}${endpoint}`, {
     credentials: "include",
     headers: {
@@ -30,21 +135,22 @@ async function request(
       credentials: "include",
     });
     if (!refresh.ok) throw new Error("Session expired");
-    return request(endpoint, options, true);
+    return request<TResponse>(endpoint, options, true);
   }
 
   const data = await response.json().catch(() => null);
 
   if (!response.ok) throw new Error(data?.message || "Erreur serveur");
 
-  return data;
+  return data as TResponse;
 }
 
+// Auth
 export function login(data: {
   identifier: string;
   password: string;
 }): Promise<LoginResponse> {
-  return request("/api/auth/login", {
+  return request<LoginResponse>("/api/auth/login", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -56,39 +162,40 @@ export function login2fa(data: {
   reply_code: string;
   redirect: boolean;
 }): Promise<User> {
-  return request("/api/auth/login2fa", {
+  return request<User>("/api/auth/login2fa", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
 
-//recupere les stats du joueur pour le dashboard
-export function userStats(data: { id: number }) {
-  return request("/api/auth/userStats", {
-    method: "GET",
-    body: JSON.stringify(data),
+export function google(): void {
+  window.location.assign(`${API_URL}/api/auth/google`);
+}
+
+export function logout(): Promise<ApiMessageResponse> {
+  return request<ApiMessageResponse>("/api/auth/logout", {
+    method: "POST",
   });
 }
 
+// Users
 export function register(data: {
   pseudo: string;
   mail: string;
   password: string;
-}) {
-  return request("/api/users/register", {
+}): Promise<RegisterResponse> {
+  return request<RegisterResponse>("/api/users/register", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
 
-//il y a deux me dans le backend, changer le nom de celui d'Aisha pour 'userStats'
 export function me(): Promise<User> {
-  return request("/api/users/me", {
+  return request<User>("/api/users/me", {
     method: "GET",
   });
 }
 
-//pour changer des infos sur le profil
 export function updateProfile(data: {
   id: number;
   pseudo: string;
@@ -96,7 +203,7 @@ export function updateProfile(data: {
   newPassword: string;
   confirmNewPassword: string;
   avatar: string;
-}) {
+}): Promise<ApiMessageResponse> {
   const payload: {
     pseudo?: string;
     email?: string;
@@ -109,130 +216,133 @@ export function updateProfile(data: {
   if (data.newPassword?.trim()) payload.newPassword = data.newPassword;
   if (data.avatar?.trim()) payload.avatar = data.avatar.trim();
 
-  return request("/api/users/update", {
+  return request<ApiMessageResponse>("/api/users/update", {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
 }
 
-//pour supp le compte
-export function deleteAccount() {
-  return request("/api/users/delete", {
+export function deleteAccount(): Promise<ApiMessageResponse> {
+  return request<ApiMessageResponse>("/api/users/delete", {
     method: "DELETE",
   });
 }
 
-export function logout() {
-  return request("/api/auth/logout", {
-    method: "POST",
-  });
-}
-
-// récupère la liste d'amis avec isFavFriend inclus
-export function getFriendsList(): Promise<Friends[]> {
-  return request("/api/friendship/get", {
+// récupère les stats du joueur pour le dashboard
+export function userStats(): Promise<UserStatsResponse> {
+  return request<UserStatsResponse>("/api/users/userStats", {
     method: "GET",
   });
 }
 
-// ajouter un ami
-export function addFriend(data: { userId: number }) {
-  return request("/api/friendship/add", {
+// récupère les winrate de la semaine
+export function weeklyWinrate(): Promise<WeeklyWinrateResponse> {
+  return request<WeeklyWinrateResponse>("/api/users/weeklyWinrate", {
+    method: "GET",
+  });
+}
+
+export function getLeaderboard(): Promise<LeaderboardResponse[]> {
+  return request<LeaderboardResponse[]>("/api/users/leaderboard", {
+    method: "GET",
+  });
+}
+
+// Friendship
+export function getFriendsList(): Promise<Friends[]> {
+  return request<Friends[]>("/api/friendship/get", {
+    method: "GET",
+  });
+}
+
+export function addFriend(data: { userId: number }): Promise<Friends> {
+  return request<Friends>("/api/friendship/add", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
 
-// enlever un ami
-export function removeFriend(data: { userId: number }) {
-  return request("/api/friendship/remove", {
+export function removeFriend(data: { userId: number }): Promise<string> {
+  return request<string>("/api/friendship/remove", {
     method: "DELETE",
     body: JSON.stringify(data),
   });
 }
 
-// bloquer un utilisateur
-export function changeFriendshipStatus(data: { userId: number }) {
-  return request("/api/friendship/changeFriendshipStatus", {
+export function changeFriendshipStatus(data: {
+  userId: number;
+}): Promise<string> {
+  return request<string>("/api/friendship/changeFriendshipStatus", {
     method: "PATCH",
     body: JSON.stringify(data),
   });
 }
 
-// requete pour chercher qqun
 export function searchUser(data: {
   username: string;
 }): Promise<SearchUserResult[]> {
   const params = new URLSearchParams({ username: data.username });
-  return request(`/api/friendship/search?${params.toString()}`, {
-    method: "GET",
-  });
-}
-
-// Lance le flux OAuth Google via une navigation complète du navigateur.
-export function google() {
-  window.location.assign(`${API_URL}/api/auth/google`);
+  return request<SearchUserResult[]>(
+    `/api/friendship/search?${params.toString()}`,
+    {
+      method: "GET",
+    },
+  );
 }
 
 // 2FA
-//genere le qr pour l'user
-//return otpauthUrl
-export function generate2FA() {
-  return request("/api/2FA/generate", {
+export function generate2FA(): Promise<TwoFactorSetupResponse> {
+  return request<TwoFactorSetupResponse>("/api/2FA/generate", {
     method: "POST",
   });
 }
 
-//active le 2FA apres que l'user donne le code
-export function activate2FA(data: { reply_code: string }) {
-  return request("/api/2FA/active", {
+export function activate2FA(data: {
+  reply_code: string;
+}): Promise<TwoFactorActionResponse> {
+  return request<TwoFactorActionResponse>("/api/2FA/active", {
     method: "PATCH",
     body: JSON.stringify(data),
   });
 }
 
-export function delete2FA(data: { pwd: string; replyCode: string }) {
-  return request("/api/2FA/delete", {
+export function delete2FA(data: {
+  pwd: string;
+  replyCode: string;
+}): Promise<TwoFactorActionResponse> {
+  return request<TwoFactorActionResponse>("/api/2FA/delete", {
     method: "DELETE",
     body: JSON.stringify(data),
   });
 }
-  
-export function createGame(data: { playerColor: "BLACK" | "WHITE"; gameMode: "CLASSIC" | "BLITZ" | "BULLET" }) {
-  return request("/api/game/create", {
+
+// Game
+export function createGame(data: {
+  playerColor: GameColor;
+  gameMode: GameMode;
+}): Promise<CreateGameResponse> {
+  return request<CreateGameResponse>("/api/game/create", {
     method: "POST",
     body: JSON.stringify(data),
-  }) as Promise<{ gameId: number }>;
+  });
 }
 
-export function joinGame(gameId: number) {
-  return request(`/api/game/${gameId}/join`, {
+export function joinGame(gameId: number): Promise<void> {
+  return request<void>(`/api/game/${gameId}/join`, {
     method: "POST",
   });
 }
-  
-export function getGameSession(gameId: number) {
-    return request(`/api/game/${gameId}/session`, {
-      method: "GET",
-    }) as Promise<{
-      gameId: number;
-      playerColor: "WHITE" | "BLACK";
-      gameStatus: "PENDING" | "ONGOING" | "COMPLETED";
-      gameMode: "CLASSIC" | "BLITZ" | "BULLET";
-    }>;
-}
-    
-export function getPendingGames() {
-  return request("/api/game/pending", {
+
+export function getGameSession(gameId: number): Promise<GameSessionResponse> {
+  return request<GameSessionResponse>(`/api/game/${gameId}/session`, {
     method: "GET",
-  }) as Promise<{
-    gameId: number;
-    gameMode: "CLASSIC" | "BLITZ" | "BULLET";
-    creatorName: string;
-    creatorId: number;
-    creatorColor: "WHITE" | "BLACK";
-    gameCreatedAt: Date;
-}[]>;
+  });
+}
+
+export function getPendingGames(): Promise<PendingGameResponse[]> {
+  return request<PendingGameResponse[]>("/api/game/pending", {
+    method: "GET",
+  });
 }
 
 export function endGame(
@@ -241,10 +351,10 @@ export function endGame(
     totalNbMoves: number;
     winnerNbMoves: number;
     gameResult: "WIN" | "DRAW";
-    winnerColor?: "WHITE" | "BLACK";
+    winnerColor?: GameColor;
   },
-) {
-  return request(`/api/game/${gameId}/end`, {
+): Promise<void> {
+  return request<void>(`/api/game/${gameId}/end`, {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -265,23 +375,6 @@ export function cancelGame(gameId: number) {
     method: "DELETE",
   });
 }
-
-export type GameStateSnapshot = {
-  gameId: number;
-  board: string[][];
-  turn: "white" | "black";
-  moved: Record<string, boolean>;
-  ep: { row: number; col: number } | null;
-  halfmove: number;
-  history: string[];
-  gameOver: boolean;
-  status: string;
-  lastMove: number[] | null;
-  whiteTime: number | null;
-  blackTime: number | null;
-  clockStarted: boolean;
-  gameResult: { winner: string; reason: string } | null;
-};
 
 export function connectGameSocket(): Socket {
   return io(`${API_URL}/game`, {
