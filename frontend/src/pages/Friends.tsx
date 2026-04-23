@@ -52,15 +52,15 @@ function Friends() {
           {filteredFriends.map((f) => {
             const friendStatus = statusData.find((st) => st.value === f.status);
             const friendAvatar = typeof f.avatarUrl === 'string'
-                          ? (<img src={f.avatarUrl} alt={`${f.pseudo} avatar`} className="w-5 h-5 rounded-full object-cover"/>)
+                          ? (<img src={f.avatarUrl} alt={`${f.pseudo} avatar`} className="w-10 h-10 rounded-full object-cover"/>)
                           : (<FontAwesomeIcon icon={faCircleUser}/>)
             return (
               <div key={f.id} className="flex items-center border-b p-4">
                 <div className="flex-1">
-                  <div className="text-4xl text-gray-300">{friendAvatar}</div>
+                  <div>{friendAvatar}</div>
                   <div>
                     <p>{f.pseudo}</p>
-                    <p className={`${friendStatus.style} w-fit`}>
+                    <p className={`${friendStatus.style} w-fit border-none mt-1`}>
                       {friendStatus.label}
                     </p>
                   </div>
