@@ -220,8 +220,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('cancel_game')
   async handleCancelGame(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: CancelPayload) {
-
+    @MessageBody() payload: CancelPayload,
+  ) {
     if (!payload?.gameId || payload.gameId <= 0) {
       client.emit('game_error', { message: 'Invalid game id.' });
       return;

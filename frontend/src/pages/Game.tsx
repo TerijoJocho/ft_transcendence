@@ -424,6 +424,7 @@ function ChessGame({
   const isApplyingRemoteRef = useRef(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setResolvedGameStatus(activeGameStatus ?? online.gameStatus ?? null);
   }, [activeGameStatus, online.gameStatus]);
 
@@ -864,7 +865,7 @@ function ChessGame({
         if (socketRef.current?.connected) {
           socketRef.current.emit("cancel", { gameId: online.gameId });
         }
-      } catch { }
+      } catch {console.err("Erreur produite lors de l'abandon du jeu") }
     }
     onBack();
   }

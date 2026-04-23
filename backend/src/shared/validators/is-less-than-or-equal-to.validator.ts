@@ -17,7 +17,7 @@ export function IsLessThanOrEqualTo(
       constraints: [property],
       validator: {
         validate(value: unknown, args: ValidationArguments) {
-          const [relatedPropertyName] = args.constraints;
+          const relatedPropertyName = args.constraints[0] as string;
           const relatedValue = (args.object as Record<string, unknown>)[
             relatedPropertyName
           ];

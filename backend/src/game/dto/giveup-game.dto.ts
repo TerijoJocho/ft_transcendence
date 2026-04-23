@@ -1,4 +1,4 @@
-import { IsNumber, IsPositive } from 'class-validator';
+import { IsNumber } from 'class-validator';
 import { IsLessThanOrEqualTo } from 'src/shared/validators/is-less-than-or-equal-to.validator';
 
 export class GiveupGameDto {
