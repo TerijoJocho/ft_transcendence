@@ -1,6 +1,6 @@
 This project has been created as part of the 42 curriculum by aistirl(Product Owner), daavril(Tech Lead), kcharbon(Project Manager), ychattou(Developer)
 
-DESCRIPTION
+# DESCRIPTION
 
     Chess War:
         
@@ -10,7 +10,7 @@ DESCRIPTION
 
         L’architecture repose sur une stack moderne et complète: backend NestJS, frontend React, PostgreSQL pour la persistance, Redis pour la performance temps réel, communication WebSocket pour les interactions live, et orchestration Docker pour un déploiement reproductible en développement comme en intégration.
 
-INSTRUCTION
+# INSTRUCTION
 
     Pour lancer le projet taper: "docker compose up", à la racine du projet.
     /!\ bien charger le dossier "secrets" pour docker compose /!\
@@ -23,29 +23,38 @@ INSTRUCTION
 
     pour fermer le projet la commande à taper est: "docker compose down", toujours à la racine du projet
 
-RESSOURCES
+# RESSOURCES
 
     - Vault : la série de vidéo yt de la chaine "Devoteam A Cloud France", 
     - Bcrypt: npmjs.com
     - owasp/modsecurity: hub.docker.com
     - speakeasy 2FA: npmjs.com
 
-TEAM INFORMATION
+# TEAM INFORMATION
 
+### Daryl:
+- Roles: Tech Lead, Frontend Lead, DevOps coordination
+- Responsibilities: Frontend architecture/integration, UX flows, deployment orchestration, team coordination
 
+### Aïcha:
+- Roles: Product Owner, Backend Lead, Security contributor
+- Responsibilities: Auth architecture, token lifecycle, game backend integration
 
-Kalvin - Project Management:
+### Kalvin:
+- Roles: Project Management, Security/Infra Engineer, Backend contributor
+- Responsibilities: WAF/ModSecurity, Vault integration, user/friendship/signin backend integration, backend hardening
 
-    La team communiquait via Discord, dès le début nous nous sommes mis d'accord sur les tâches de chacun. Daryl sur le front, Ylan sur la partie game, Kalvin et Aisha sur la partie backend. Nous avons fait des points au minimum 1 fois par semaine pour savoir les avancées de chacun, utilisé GitHub Issues pour s'attribuer les tâches restantes au fil de notre avancée.
+### Ylan:
+- Roles: Gameplay Developer
+- Responsibilities: Chess logic/gameplay foundation and game behavior integration
 
-Technical Stack:
+# Technical Stack:
     Stack full JavaScript (backend en NestJS et frontend en React)
     PostgreSQL pour la base de donée
     Drizzle pour l'ORM
     Docker/Docker-compose pour le deploiement
 
-
-Database Schema:
+# Database Schema:
     Tables:
         - players (infos compte, auth, 2FA, avatar)
         - games (statut, mode, timestamps, resultat)
@@ -53,7 +62,9 @@ Database Schema:
         - friendship (relation entre 2 joueurs, requester, statut)
         - participation (table de liaison entre players et games, avec couleur et resultat du joueur)
 
-Modules:
+# Features List:
+
+# Modules:
     WEB: 
         - Use a frontend framework (React, NestJs) | 2points
         - Implement real-time features using WebSockets | 2 points - pour pouvoir jouer en ligne, chat en direct..
@@ -81,11 +92,6 @@ Modules:
         - Game customization options -  Customizable game setting and Default options must be available  | 1 point **!! a voir !!**
     
     26 points totals
-Individual Contributions:
+# Individual Contributions:
 
-    Kalvin a implementé les modules Friendship, Users avec des methodes CRUD, mis en place un par feu via MODSECURITY, centralisé les secrets via Vault, une methode de connexion 2FA via topt, cyptage des password avec bcrypt
-    mes ressources ont été: 
-    - Vault : la série de vidéo yt de la chaine "Devoteam A Cloud France", 
-    pour toute les autre mise en place la documentations de Nest.io 
-
-doc a mettre par theme, securité, auth, 2FA, bcrypt, ect..
+    Kalvin a implementé les modules Friendship, Users, signin avec des methodes CRUD, mis en place un par feu via MODSECURITY, centralisé les secrets via Vault, une methode de connexion 2FA via topt, cyptage des passwords avec bcrypt
