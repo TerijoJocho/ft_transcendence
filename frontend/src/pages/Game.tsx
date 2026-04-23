@@ -232,10 +232,12 @@ function ChessGame({
   onBack,
   timeControl,
   online,
+  activeGameStatus,
 }: {
   onBack: () => void;
   timeControl: string;
   online: OnlineConfig;
+  activeGameStatus: OnlineConfig["gameStatus"];
 }) {
   const initSeconds = timeControl === "Bullet" ? 60 : timeControl === "Blitz" ? 300 : null;
   const hasClock = initSeconds !== null;
@@ -262,12 +264,19 @@ function ChessGame({
   const [onlineStatus, setOnlineStatus] = useState<string | null>(
     online.gameStatus === "PENDING" ? "En attente d'un deuxième joueur..." : null,
   );
+  const [resolvedGameStatus, setResolvedGameStatus] = useState<OnlineConfig["gameStatus"]>(
+    activeGameStatus ?? online.gameStatus ?? null,
+  );
   const [onlineError, setOnlineError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const isApplyingRemoteRef = useRef(false);
 
-  // Confirm modal: "restart" | "menu" | "cancel" | null
-  const [confirmAction, setConfirmAction] = useState<"restart" | "menu" | "cancel" | null>(null);
+  useEffect(() => {
+    setResolvedGameStatus(activeGameStatus ?? online.gameStatus ?? null);
+  }, [activeGameStatus, online.gameStatus]);
+
+  // Confirm modal: "restart" | "giveup" | "cancel" | null
+  const [confirmAction, setConfirmAction] = useState<"restart" | "giveup" | "cancel" | null>(null);
 
   // Drag-and-drop
   const [dragSource, setDragSource] = useState<[number, number] | null>(null);
@@ -370,10 +379,18 @@ function ChessGame({
     });
     socket.on("sync_state", (snapshot) => { if (snapshot) { applySnapshot(snapshot); setOnlineStatus("Partie synchronisée."); } });
     socket.on("remote_move", (snapshot) => { applySnapshot(snapshot); setOnlineStatus("Coup adverse reçu."); });
-    socket.on("player_joined", () => { setOnlineStatus("Deuxième joueur connecté. La partie commence."); });
+    socket.on("player_joined", () => {
+      setResolvedGameStatus("ONGOING");
+      setOnlineStatus("Deuxième joueur connecté. La partie commence.");
+    });
     socket.on("opponent_disconnected", () => { setOnlineError("L'adversaire s'est déconnecté."); });
     socket.on("game_error", (payload: { message?: string }) => { setOnlineError(payload?.message ?? "Erreur temps réel."); });
-    socket.on("game_over", (result) => { setGameResult(result ?? { winner: "Draw", reason: "finished" }); setGameOver(true); setOnlineStatus("Partie terminée."); });
+    socket.on("game_over", (result) => {
+      setResolvedGameStatus("COMPLETED");
+      setGameResult(result ?? { winner: "Draw", reason: "finished" });
+      setGameOver(true);
+      setOnlineStatus("Partie terminée.");
+    });
     return () => { socket.disconnect(); socketRef.current = null; };
   }, [isOnline, online.gameId, online.gameStatus, applySnapshot]);
 
@@ -504,15 +521,23 @@ function ChessGame({
     evalState(fb, next, newMoved, newEp, newHalfmove);
   }
 
-  async function handleMenuConfirm() {
+  async function handleGiveUpConfirm() {
     setConfirmAction(null);
+    const totalNbMoves = history.length;
+    const winnerNbMoves = player === "white"
+      ? Math.floor(totalNbMoves / 2)
+      : Math.ceil(totalNbMoves / 2);
+
     if (isOnline && online.gameId && !gameOver) {
       try {
-        await giveupGame(online.gameId);
+        await giveupGame(online.gameId, {
+          totalNbMoves: totalNbMoves,
+          winnerNbMoves: winnerNbMoves,
+        });
         if (socketRef.current?.connected) {
           socketRef.current.emit("giveup", { gameId: online.gameId });
         }
-      } catch { }
+      } catch (e) {console.log(e)}
     }
     onBack();
   }
@@ -528,6 +553,18 @@ function ChessGame({
       } catch { }
     }
     onBack();
+  }
+
+  function handleQuit()
+  {
+    console.log(resolvedGameStatus);
+    if (resolvedGameStatus === "PENDING") {
+      setConfirmAction("cancel");
+    } else if (resolvedGameStatus === "ONGOING") {
+      setConfirmAction("giveup");
+    } else {
+      onBack();
+    }
   }
 
   const hintSet    = new Set(hints.map(h => `${h.row},${h.col}`));
@@ -645,29 +682,35 @@ function ChessGame({
             </div>
           )}
 
-          {/* Restart / Menu / Cancel buttons */}
+          {/* Restart / giveup / Cancel buttons */}
           <div className="flex gap-4 mt-1">
-            {isOnline ? (
-              <button
-                onClick={() => setConfirmAction("cancel")}
-                className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-600 text-gray-400 rounded-md hover:bg-gray-600/20 hover:border-gray-400 transition-all duration-200"
-              >
-                Cancel
-              </button>
-            ) : (
+            {!isOnline &&(
+              <>
               <button
                 onClick={() => setConfirmAction("restart")}
                 className="px-8 py-3 text-sm uppercase tracking-widest border border-rose-700 text-rose-400 rounded-md hover:bg-rose-700/20 hover:border-rose-500 transition-all duration-200"
               >
                 Restart
               </button>
+              <button
+                onClick={() => setConfirmAction("giveup")}
+                className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-600 text-gray-400 rounded-md hover:bg-gray-600/20 hover:border-gray-400 transition-all duration-200"
+              >
+                ← Quitter
+              </button>
+              </>
             )}
-            <button
-              onClick={() => setConfirmAction("menu")}
-              className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-700 text-gray-400 rounded-md hover:bg-gray-700/20 hover:border-gray-500 transition-all duration-200"
-            >
-              ← Menu
-            </button>
+
+          {isOnline && (
+            <>
+              <button
+                onClick={handleQuit}
+                className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-700 text-gray-400 rounded-md hover:bg-gray-700/20 hover:border-gray-500 transition-all duration-200"
+              >
+                ← Quitter
+              </button>
+            </>
+          )}
           </div>
 
           {/* Game summary */}
@@ -714,13 +757,13 @@ function ChessGame({
               : confirmAction === "cancel"
               ? "Annuler la partie ? Elle sera supprimée."
               : isOnline && !gameOver
-              ? "Retourner au menu ? Cela comptera comme une résignation."
+              ? "Retourner au giveup ? Cela comptera comme une résignation."
               : "Retourner au tableau de bord ?"
           }
           onConfirm={async () => {
             if (confirmAction === "restart") { reset(); setConfirmAction(null); }
             else if (confirmAction === "cancel") { await handleCancelConfirm(); }
-            else { await handleMenuConfirm(); }
+            else { await handleGiveUpConfirm(); console.log("Confirmed giveup/Leave");}
           }}
           onCancel={() => setConfirmAction(null)}
         />
@@ -801,7 +844,7 @@ function Game() {
     setOnlinePlayerColor(null);
     setGameIdInput("");
     setMenuError(null);
-    navigate("/dashboard");
+    navigate("/game");
   }
 
   async function handleCreateGame() {
@@ -848,6 +891,7 @@ function Game() {
   }
 
   if (showChess) {
+    // console.log(activeGameStatus)
     return (
       <div className="border min-w-max">
         <div className="text-black"><Header title="Chess" /></div>
@@ -860,6 +904,7 @@ function Game() {
             playerColor: onlinePlayerColor,
             gameStatus: activeGameStatus,
           }}
+          activeGameStatus={activeGameStatus}
         />
       </div>
     );
