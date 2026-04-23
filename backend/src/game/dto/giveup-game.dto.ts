@@ -1,12 +1,13 @@
-import { IsNumber, IsPositive, Max } from 'class-validator';
+import { IsNumber, IsPositive } from 'class-validator';
+import { IsLessThanOrEqualTo } from 'src/shared/validators/is-less-than-or-equal-to.validator';
 
 export class GiveupGameDto {
   @IsNumber()
-  @IsPositive()
   readonly totalNbMoves: number;
 
   @IsNumber()
-  @IsPositive()
-  @Max(GiveupGameDto.prototype.totalNbMoves)
+  @IsLessThanOrEqualTo('totalNbMoves', {
+    message: 'winnerNbMoves must not be greater than totalNbMoves',
+  })
   readonly winnerNbMoves: number;
 }
