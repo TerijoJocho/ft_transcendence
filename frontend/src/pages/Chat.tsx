@@ -24,6 +24,7 @@ type ChatFriend = {
   avatarUrl: string | null;
   status?: string | null;
   level?: number;
+  lose?: number;
 };
 
 // ─── Composant ────────────────────────────────────────────────────────────────
