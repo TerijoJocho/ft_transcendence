@@ -9,7 +9,9 @@ import {
   getGameSession,
   getPendingGames,
   joinGame,
-  resignGame,
+  endGame,
+  giveupGame,
+  cancelGame,
   connectGameSocket,
 } from "../api/api.ts";
 import type { PendingGameResponse } from "../api/api.ts";
@@ -375,10 +377,12 @@ function ChessGame({
   onBack,
   timeControl,
   online,
+  activeGameStatus,
 }: {
   onBack: () => void;
   timeControl: string;
   online: OnlineConfig;
+  activeGameStatus: OnlineConfig["gameStatus"];
 }) {
   const initSeconds =
     timeControl === "Bullet" ? 60 : timeControl === "Blitz" ? 300 : null;
@@ -412,14 +416,20 @@ function ChessGame({
       ? "En attente d'un deuxième joueur..."
       : null,
   );
+  const [resolvedGameStatus, setResolvedGameStatus] = useState<OnlineConfig["gameStatus"]>(
+    activeGameStatus ?? online.gameStatus ?? null,
+  );
   const [onlineError, setOnlineError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const isApplyingRemoteRef = useRef(false);
 
-  // Confirm modal: "restart" | "menu" | null
-  const [confirmAction, setConfirmAction] = useState<"restart" | "menu" | null>(
-    null,
-  );
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setResolvedGameStatus(activeGameStatus ?? online.gameStatus ?? null);
+  }, [activeGameStatus, online.gameStatus]);
+
+  // Confirm modal: "restart" | "giveup" | "cancel" | null
+  const [confirmAction, setConfirmAction] = useState<"restart" | "giveup" | "cancel" | null>(null);
 
   // Drag-and-drop
   const [dragSource, setDragSource] = useState<[number, number] | null>(null);
@@ -435,11 +445,32 @@ function ChessGame({
 
   const persistEndOfGame = useCallback(
     async (result: { winner: string; reason: string }, moveCount: number) => {
-      void result;
-      void moveCount;
-      if (isOnline) return;
+      if (!isOnline || !online.gameId) return;
+
+      const winnerNbMoves = Math.ceil(moveCount / 2);
+      const isDraw = result.winner === "Draw";
+
+      try {
+        if (isDraw) {
+          await endGame(online.gameId, {
+            totalNbMoves: moveCount,
+            winnerNbMoves,
+            gameResult: "DRAW",
+          });
+        } else {
+          const winnerColor = result.winner === "White" ? "WHITE" : "BLACK";
+          await endGame(online.gameId, {
+            totalNbMoves: moveCount,
+            winnerNbMoves,
+            gameResult: "WIN",
+            winnerColor,
+          });
+        }
+      } catch {
+        // Best effort only: realtime update still goes through websocket diffusion.
+      }
     },
-    [isOnline],
+    [isOnline, online.gameId],
   );
 
   const exportSnapshot = useCallback(() => {
@@ -519,34 +550,21 @@ function ChessGame({
       socket.emit("join_game", { gameId: online.gameId });
       socket.emit("sync_request", { gameId: online.gameId });
     });
-    socket.on("sync_state", (snapshot) => {
-      if (snapshot) {
-        applySnapshot(snapshot);
-        setOnlineStatus("Partie synchronisée.");
-      }
-    });
-    socket.on("remote_move", (snapshot) => {
-      applySnapshot(snapshot);
-      setOnlineStatus("Coup adverse reçu.");
-    });
+    socket.on("sync_state", (snapshot) => { if (snapshot) { applySnapshot(snapshot); setOnlineStatus("Partie synchronisée."); } });
+    socket.on("remote_move", (snapshot) => { applySnapshot(snapshot); setOnlineStatus("Coup adverse reçu."); });
     socket.on("player_joined", () => {
+      setResolvedGameStatus("ONGOING");
       setOnlineStatus("Deuxième joueur connecté. La partie commence.");
     });
-    socket.on("opponent_disconnected", () => {
-      setOnlineError("L'adversaire s'est déconnecté.");
-    });
-    socket.on("game_error", (payload: { message?: string }) => {
-      setOnlineError(payload?.message ?? "Erreur temps réel.");
-    });
+    socket.on("opponent_disconnected", () => { setOnlineError("L'adversaire s'est déconnecté."); });
+    socket.on("game_error", (payload: { message?: string }) => { setOnlineError(payload?.message ?? "Erreur temps réel."); });
     socket.on("game_over", (result) => {
+      setResolvedGameStatus("COMPLETED");
       setGameResult(result ?? { winner: "Draw", reason: "finished" });
       setGameOver(true);
       setOnlineStatus("Partie terminée.");
     });
-    return () => {
-      socket.disconnect();
-      socketRef.current = null;
-    };
+    return () => { socket.disconnect(); socketRef.current = null; };
   }, [isOnline, online.gameId, online.gameStatus, applySnapshot]);
 
   useEffect(() => {
@@ -818,26 +836,54 @@ function ChessGame({
     evalState(fb, next, newMoved, newEp, newHalfmove);
   }
 
-  async function handleMenuConfirm() {
+  async function handleGiveUpConfirm() {
     setConfirmAction(null);
+    const totalNbMoves = history.length;
+    const winnerNbMoves = player === "white"
+      ? Math.floor(totalNbMoves / 2)
+      : Math.ceil(totalNbMoves / 2);
+
     if (isOnline && online.gameId && !gameOver) {
       try {
+        await giveupGame(online.gameId, {
+          totalNbMoves: totalNbMoves,
+          winnerNbMoves: winnerNbMoves,
+        });
         if (socketRef.current?.connected) {
-          socketRef.current.emit("resign", { gameId: online.gameId });
-        } else {
-          await resignGame(online.gameId);
+          socketRef.current.emit("giveup", { gameId: online.gameId });
         }
-      } catch {
-        /* ignore */
-      }
+      } catch (e) {console.log(e)}
     }
     onBack();
   }
 
-  const hintSet = new Set(hints.map((h) => `${h.row},${h.col}`));
-  const captureSet = new Set(
-    hints.filter((h) => h.capture).map((h) => `${h.row},${h.col}`),
-  );
+  async function handleCancelConfirm() {
+    setConfirmAction(null);
+    if (isOnline && online.gameId && !gameOver) {
+      try {
+        await cancelGame(online.gameId);
+        if (socketRef.current?.connected) {
+          socketRef.current.emit("cancel", { gameId: online.gameId });
+        }
+      } catch {console.error("Erreur produite lors de l'abandon du jeu") }
+    }
+    onBack();
+  }
+
+  function handleQuit()
+  {
+    console.log(resolvedGameStatus);
+    if (resolvedGameStatus === "PENDING") {
+      setConfirmAction("cancel");
+    } else if (resolvedGameStatus === "ONGOING") {
+      setConfirmAction("giveup");
+    } else {
+      onBack();
+    }
+  }
+
+  const hintSet    = new Set(hints.map(h => `${h.row},${h.col}`));
+  const captureSet = new Set(hints.filter(h => h.capture).map(h => `${h.row},${h.col}`));
   const lowThreshold = initSeconds ? Math.min(30, initSeconds * 0.2) : 30;
 
   return (
@@ -1048,21 +1094,35 @@ function ChessGame({
             </div>
           )}
 
-          {/* Restart / Menu buttons — both require confirmation */}
+          {/* Restart / giveup / Cancel buttons */}
           <div className="flex gap-4 mt-1">
-            <button
-              disabled={isOnline}
-              onClick={() => !isOnline && setConfirmAction("restart")}
-              className={`px-8 py-3 text-sm uppercase tracking-widest border rounded-md transition-all duration-200 ${isOnline ? "border-gray-700 text-gray-600 cursor-not-allowed opacity-40" : "border-rose-700 text-rose-400 hover:bg-rose-700/20 hover:border-rose-500"}`}
-            >
-              Restart
-            </button>
-            <button
-              onClick={() => setConfirmAction("menu")}
-              className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-700 text-gray-400 rounded-md hover:bg-gray-700/20 hover:border-gray-500 transition-all duration-200"
-            >
-              ← Menu
-            </button>
+            {!isOnline &&(
+              <>
+              <button
+                onClick={() => setConfirmAction("restart")}
+                className="px-8 py-3 text-sm uppercase tracking-widest border border-rose-700 text-rose-400 rounded-md hover:bg-rose-700/20 hover:border-rose-500 transition-all duration-200"
+              >
+                Restart
+              </button>
+              <button
+                onClick={() => setConfirmAction("giveup")}
+                className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-600 text-gray-400 rounded-md hover:bg-gray-600/20 hover:border-gray-400 transition-all duration-200"
+              >
+                ← Quitter
+              </button>
+              </>
+            )}
+
+          {isOnline && (
+            <>
+              <button
+                onClick={handleQuit}
+                className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-700 text-gray-400 rounded-md hover:bg-gray-700/20 hover:border-gray-500 transition-all duration-200"
+              >
+                ← Quitter
+              </button>
+            </>
+          )}
           </div>
 
           {/* Game summary */}
@@ -1127,17 +1187,16 @@ function ChessGame({
           message={
             confirmAction === "restart"
               ? "Relancer la partie ?"
+              : confirmAction === "cancel"
+              ? "Annuler la partie ? Elle sera supprimée."
               : isOnline && !gameOver
-                ? "Retourner au menu ? Cela comptera comme une résignation."
-                : "Retourner au tableau de bord ?"
+              ? "Retourner au giveup ? Cela comptera comme une résignation."
+              : "Retourner au tableau de bord ?"
           }
           onConfirm={async () => {
-            if (confirmAction === "restart") {
-              reset();
-              setConfirmAction(null);
-            } else {
-              await handleMenuConfirm();
-            }
+            if (confirmAction === "restart") { reset(); setConfirmAction(null); }
+            else if (confirmAction === "cancel") { await handleCancelConfirm(); }
+            else { await handleGiveUpConfirm(); console.log("Confirmed giveup/Leave");}
           }}
           onCancel={() => setConfirmAction(null)}
         />
@@ -1238,7 +1297,7 @@ function Game() {
     setOnlinePlayerColor(null);
     setGameIdInput("");
     setMenuError(null);
-    navigate("/dashboard");
+    navigate("/game");
   }
 
   async function handleCreateGame() {
@@ -1321,6 +1380,7 @@ function Game() {
   }
 
   if (showChess) {
+    // console.log(activeGameStatus)
     return (
       <div className="border min-w-max">
         <div className="text-black">
@@ -1335,6 +1395,7 @@ function Game() {
             playerColor: onlinePlayerColor,
             gameStatus: activeGameStatus,
           }}
+          activeGameStatus={activeGameStatus}
         />
       </div>
     );

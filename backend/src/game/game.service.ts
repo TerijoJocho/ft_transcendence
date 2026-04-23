@@ -123,6 +123,19 @@ export class GameService {
   }
 
   async joinGame(gameId: number, playerId: number) {
+    //check if player already joined this game
+    const playerParticipationRows =
+      (await this.utilsService.findParticipationsBy(
+        'and',
+        undefined,
+        eq(participationTable.gameId, gameId),
+        eq(participationTable.playerId, playerId),
+      )) as participationSelect[];
+
+    if (playerParticipationRows.length > 0) {
+      throw new ConflictException('Player already joined this game.');
+    }
+
     //check if game exists and is pending
     const gameRows: { [x: string]: unknown }[] | gameSelect[] =
       await this.utilsService.findGamesBy(
@@ -134,7 +147,6 @@ export class GameService {
     if (gameRows.length === 0)
       throw new NotFoundException('Game not found or already started.');
 
-    //create new participation for second player
     let newGameDtoObject: NewGameDto;
     const participationRows = (await this.utilsService.findParticipationsBy(
       'and',
@@ -144,7 +156,6 @@ export class GameService {
     )) as { [w: string]: any }[];
     if (participationRows.length === 0)
       throw new NotFoundException('First player participation not found.');
-
     if (participationRows[0].color === 'WHITE')
       newGameDtoObject = { playerColor: 'BLACK' };
     else newGameDtoObject = { playerColor: 'WHITE' };

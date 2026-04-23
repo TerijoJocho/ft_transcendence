@@ -3,9 +3,9 @@ import {
   IsNotEmpty,
   IsNumber,
   IsPositive,
-  Max,
   ValidateIf,
 } from 'class-validator';
+import { IsLessThanOrEqualTo } from 'src/shared/validators/is-less-than-or-equal-to.validator';
 
 export class EndGameDto {
   @IsNotEmpty()
@@ -18,7 +18,9 @@ export class EndGameDto {
 
   @IsNumber()
   @IsPositive()
-  @Max(EndGameDto.prototype.totalNbMoves)
+  @IsLessThanOrEqualTo('totalNbMoves', {
+    message: 'winnerNbMoves must not be greater than totalNbMoves',
+  })
   readonly winnerNbMoves: number;
 
   @IsNotEmpty()

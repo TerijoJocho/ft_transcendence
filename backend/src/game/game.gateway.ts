@@ -23,6 +23,8 @@ type GameStateSnapshot = {
   ep: { row: number; col: number } | null;
   halfmove: number;
   history: string[];
+  //totalNbMoves: number;
+  //winnerNbMoves: number;
   gameOver: boolean;
   status: string;
   lastMove: number[] | null;
@@ -39,7 +41,9 @@ type MovePayload = {
 
 type JoinPayload = { gameId: number };
 
-type ResignPayload = { gameId: number };
+type GiveUpPayload = { gameId: number };
+
+type CancelPayload = { gameId: number };
 
 @WebSocketGateway({
   namespace: '/game',
@@ -92,20 +96,20 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     if (!payload?.gameId || payload.gameId <= 0) {
       client.emit('game_error', { message: 'Invalid game id.' });
-      return;
+      return payload;
     }
 
     const user = (client.data as { user?: SocketUser }).user;
     if (!user) {
       client.emit('game_error', { message: 'Unauthorized player context.' });
-      return;
+      return payload;
     }
 
     try {
       await this.gameService.getSession(payload.gameId, user.playerId);
     } catch {
       client.emit('game_error', { message: 'Access denied for this game.' });
-      return;
+      return payload;
     }
 
     const room = this.gameRoom(payload.gameId);
@@ -178,51 +182,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.emit('move_ack', { ok: true });
 
     if (payload.state.gameOver) {
-      const totalNbMoves = payload.state.history.length;
-      const winnerNbMoves = Math.ceil(totalNbMoves / 2);
-      const isDraw = payload.state.gameResult?.winner === 'Draw';
-
-      try {
-        if (isDraw) {
-          await this.gameService.endGame(
-            {
-              totalNbMoves,
-              winnerNbMoves,
-              gameResult: 'DRAW',
-              winnerColor: 'WHITE',
-            },
-            payload.gameId,
-            user.playerId,
-          );
-        } else {
-          const winnerColor =
-            payload.state.gameResult?.winner === 'White' ? 'WHITE' : 'BLACK';
-          await this.gameService.endGame(
-            {
-              totalNbMoves,
-              winnerNbMoves,
-              gameResult: 'WIN',
-              winnerColor,
-            },
-            payload.gameId,
-            user.playerId,
-          );
-        }
-      } catch {
-        client.emit('game_error', {
-          message: 'Game state synced but persistence failed.',
-        });
-      }
-
       this.server.to(room).emit('game_over', payload.state.gameResult);
       this.gameStates.delete(payload.gameId);
     }
   }
 
-  @SubscribeMessage('resign')
-  async handleResign(
+  @SubscribeMessage('giveup')
+  async handleGiveUp(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: ResignPayload,
+    @MessageBody() payload: GiveUpPayload,
   ) {
     if (!payload?.gameId || payload.gameId <= 0) {
       client.emit('game_error', { message: 'Invalid game id.' });
@@ -237,27 +205,46 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     try {
       await this.gameService.getSession(payload.gameId, user.playerId);
-      const snapshot = this.gameStates.get(payload.gameId);
-      const totalNbMoves = snapshot?.history?.length ?? 0;
-      const winnerNbMoves = Math.ceil(totalNbMoves / 2);
-
-      await this.gameService.giveupGame(
-        {
-          totalNbMoves,
-          winnerNbMoves,
-        },
-        payload.gameId,
-        user.playerId,
-      );
-
-      this.server.to(this.gameRoom(payload.gameId)).emit('game_over', {
-        winner: 'opponent',
-        reason: 'resign',
-      });
-      this.gameStates.delete(payload.gameId);
     } catch {
-      client.emit('game_error', { message: 'Unable to resign from game.' });
+      client.emit('game_error', { message: 'Access denied for this game.' });
+      return;
     }
+
+    this.server.to(this.gameRoom(payload.gameId)).emit('game_over', {
+      winner: 'opponent',
+      reason: 'giveup',
+    });
+    this.gameStates.delete(payload.gameId);
+  }
+
+  @SubscribeMessage('cancel_game')
+  async handleCancelGame(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: CancelPayload,
+  ) {
+    if (!payload?.gameId || payload.gameId <= 0) {
+      client.emit('game_error', { message: 'Invalid game id.' });
+      return;
+    }
+
+    const user = (client.data as { user?: SocketUser }).user;
+    if (!user) {
+      client.emit('game_error', { message: 'Unauthorized player context.' });
+      return;
+    }
+
+    try {
+      await this.gameService.getSession(payload.gameId, user.playerId);
+    } catch {
+      client.emit('game_error', { message: 'Access denied for this game.' });
+      return;
+    }
+
+    this.server.to(this.gameRoom(payload.gameId)).emit('game_cancelled', {
+      gameId: payload.gameId,
+      playerId: user.playerId,
+    });
+    this.gameStates.delete(payload.gameId);
   }
 
   private authenticate(client: Socket): SocketUser | null {
