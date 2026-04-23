@@ -1,22 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Header from "../components/Header.tsx";
-import { connectChatSocket, getFriendsList } from "../api/api.ts";
-import type { Socket } from "socket.io-client";
+import { getFriendsList } from "../api/api.ts";
 import statusData from "../data/statusData.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane, faCircle } from "@fortawesome/free-solid-svg-icons";
 import Level from "../components/Level.tsx";
 import Search from "../components/Search.tsx";
+import { useChat } from "../hooks/useChat.tsx";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-type ChatMessage = {
-  id?: number;
-  from: number | "me";
-  to?: number;
-  content: string;
-  ts: string;
-};
 
 type ChatFriend = {
   id: number;
@@ -30,45 +22,15 @@ type ChatFriend = {
 // ─── Composant ────────────────────────────────────────────────────────────────
 
 function Chat() {
-  const socketRef = useRef<Socket | null>(null);
+  const { messages, sendMessage, joinRoom, error, setError } = useChat();
 
   const [friends, setFriends] = useState<ChatFriend[]>([]);
   const [peerId, setPeerId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<Record<number, ChatMessage[]>>({});
   const [text, setText] = useState("");
   const [search, setSearch] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // ── WebSocket setup ────────────────────────────────────────────────────────
-  useEffect(() => {
-    const chatSocket = connectChatSocket();
-    socketRef.current = chatSocket;
-
-    chatSocket.on("chat_history", (history: ChatMessage[]) => {
-      if (peerId === null) return;
-      setMessages((prev) => ({ ...prev, [peerId]: history ?? [] }));
-    });
-
-    chatSocket.on("recv_dm", (message: ChatMessage) => {
-      const senderId = typeof message.from === "number" ? message.from : peerId;
-      if (senderId === null) return;
-      setMessages((prev) => ({
-        ...prev,
-        [senderId]: [...(prev[senderId] ?? []), message],
-      }));
-    });
-
-    chatSocket.on("chat_error", (payload: { message?: string }) => {
-      setError(payload?.message ?? "Chat error");
-    });
-
-    return () => {
-      chatSocket.disconnect();
-      socketRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Removed WebSocket setup since it is handled by ChatProvider
 
   // ── Chargement de la liste d'amis ──────────────────────────────────────────
   useEffect(() => {
@@ -93,14 +55,13 @@ function Chat() {
             : "Impossible de charger la liste d'amis";
         setError(msg);
       });
-  }, []);
+  }, [setError]);
 
   // ── Join room quand on change de conversation ──────────────────────────────
   useEffect(() => {
-    const socket = socketRef.current;
-    if (!socket || peerId === null) return;
-    socket.emit("join_dm", { peerId });
-  }, [peerId]);
+    if (peerId === null) return;
+    joinRoom(peerId);
+  }, [peerId, joinRoom]);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const selectedFriend = useMemo(
@@ -112,36 +73,22 @@ function Chat() {
     (st) => st.value === selectedFriend?.status,
   );
 
-  const filteredFriends = friends.filter((f) =>
+  const filteredFriends = useMemo(() => friends.filter((f) =>
     f.pseudo.toLowerCase().includes(search.toLowerCase()),
-  );
+  ), [friends, search]);
 
-  const currentMessages = peerId !== null ? (messages[peerId] ?? []) : [];
+  const currentMessages = useMemo(() => peerId !== null ? (messages[peerId] ?? []) : [], [peerId, messages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentMessages]);
 
-  function sendMessage() {
-    const socket = socketRef.current;
-    if (!socket || peerId === null) return;
+  function handleSendMessage() {
+    if (peerId === null) return;
     const content = text.trim();
     if (!content) return;
 
-    socket.emit("send_dm", { peerId, content });
-
-    // Optimistic update
-    const optimistic: ChatMessage = {
-      from: "me",
-      to: peerId,
-      content,
-      ts: new Date().toISOString(),
-    };
-    setMessages((prev) => ({
-      ...prev,
-      [peerId]: [...(prev[peerId] ?? []), optimistic],
-    }));
-
+    sendMessage(peerId, content);
     setText("");
   }
 
@@ -301,12 +248,12 @@ function Chat() {
                   type="text"
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                  onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                   placeholder={`Message à ${selectedFriend.pseudo}...`}
                   className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-violet-400 transition-colors"
                 />
                 <button
-                  onClick={sendMessage}
+                  onClick={handleSendMessage}
                   disabled={!canSend}
                   className="bg-violet-600 hover:bg-violet-500 disabled:bg-gray-200 disabled:cursor-not-allowed text-white px-4 py-2 rounded-xl transition-colors"
                 >
