@@ -865,7 +865,7 @@ function ChessGame({
         if (socketRef.current?.connected) {
           socketRef.current.emit("cancel", { gameId: online.gameId });
         }
-      } catch {console.err("Erreur produite lors de l'abandon du jeu") }
+      } catch {console.error("Erreur produite lors de l'abandon du jeu") }
     }
     onBack();
   }
