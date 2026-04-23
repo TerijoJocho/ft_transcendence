@@ -7,7 +7,7 @@ export default function StatsCards({ userStats }) {
     <section className="grid-style col-span-4 flex flex-row justify-between">
       <article className="stat-style">
         <h3>Dernier taux de victoire</h3>
-        <p className="">{stats?.winrate ?? 0}</p>
+        <p className="">{Number.parseFloat(stats?.winrate).toFixed(2) ?? 0}</p>
       </article>
       <article className="stat-style">
         <h3>Série de victoires</h3>

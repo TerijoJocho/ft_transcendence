@@ -135,6 +135,11 @@ export class FriendshipService {
         )) as Array<{ id: number; pseudo: string; avatarUrl: string | null }>;
         const friend = rows[0];
         if (!friend) return null;
+
+        const stats = await this.utilsService.getGamesResCounts(friendId);
+        const levelVal = stats && stats[0] ? stats[0].totalWins : 0;
+        const totalLosses = stats && stats[0] ? stats[0].totalLosses : 0;
+
         return {
           id: friend.id,
           friendshipId: f.friendshipId,
@@ -143,6 +148,8 @@ export class FriendshipService {
           avatarUrl: friend.avatarUrl,
           isFriend: f.isFriend,
           friendshipStatus: f.isFriend ? 'ADDED' : 'PENDING',
+          level: levelVal,
+          lose: totalLosses,
         };
       }),
     );

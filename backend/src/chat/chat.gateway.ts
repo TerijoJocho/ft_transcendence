@@ -121,16 +121,25 @@ export class ChatGateway implements OnGatewayConnection {
       .find((chunk) => chunk.startsWith('Access='))
       ?.split('=')[1];
 
-    if (!accessToken) return null;
+    if (!accessToken) {
+      console.log('caca');
+      return null;
+    }
 
     try {
       const payload = this.jwtService.verify<{ sub: number }>(accessToken, {
         secret: process.env.JWT_ACCESS_TOKEN_SECRET,
       });
-      if (!payload?.sub) return null;
+      if (!payload?.sub) {
+        console.log('caca2');
+        return null;
+      }
       return { playerId: payload.sub };
     } catch {
-      return null;
+      {
+        console.log('caca3');
+        return null;
+      }
     }
   }
 
