@@ -250,9 +250,13 @@ export function endGame(
   });
 }
 
-export function giveupGame(gameId: number) {
+export function giveupGame(gameId: number, data: {
+    totalNbMoves: number;
+    winnerNbMoves: number;
+  },) {
   return request(`/api/game/${gameId}/giveup`, {
     method: "POST",
+    body: JSON.stringify(data),
   });
 }
 
