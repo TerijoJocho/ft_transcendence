@@ -101,7 +101,7 @@ export default function Level({ level, compact = false }: LevelProps) {
       )}
 
       <div
-        className={`h-3 ${compact ? "w-24 sm:w-40" : "w-40"} rounded-lg overflow-hidden border border-violet-400`}
+        className={`h-3 ${compact ? "w-24 sm:w-40" : "w-40"} rounded-lg overflow-hidden border border-violet-400 dark:border-[oklch(55.4%_0.135_66.442)]`}
       >
         <progress
           value={progressValue}
@@ -110,13 +110,13 @@ export default function Level({ level, compact = false }: LevelProps) {
         />
       </div>
 
-      <span className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 rounded bg-violet-500 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+      <span className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 rounded bg-violet-500 dark:bg-[oklch(55.4%_0.135_66.442)] px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
         {currentLevel} / {progressEnd}
       </span>
 
       <FontAwesomeIcon
         icon={findLevelImgToReach()}
-        className={`${isMaxRank ? `${currentRank?.color}` : "text-gray-300"} ${compact ? "text-sm sm:text-base" : "text-base"}`}
+        className={`${isMaxRank ? `${currentRank?.color}` : "text-gray-300 dark:text-zinc-600"} ${compact ? "text-sm sm:text-base" : "text-base"}`}
       />
     </div>
   );

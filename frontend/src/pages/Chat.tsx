@@ -111,7 +111,7 @@ function Chat() {
         {/* ── Colonne gauche : liste des conversations ── */}
         <section className="w-64 max-h-screen flex flex-col border-r border-zinc-200 dark:border-zinc-700 shrink-0">
           {/* Barre de recherche */}
-          <Search value={search} onChange={setSearch} />
+          <Search value={search} onChange={setSearch} className="dark:bg-zinc-900"/>
 
           {/* Liste des conversations */}
           <div className="overflow-y-auto flex-1">

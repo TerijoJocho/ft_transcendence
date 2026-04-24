@@ -13,7 +13,6 @@ import Login from "./pages/Login.tsx";
 import SignIn from "./pages/SignIn.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Game from "./pages/Game.tsx";
-import Tournament from "./pages/Tournament.tsx";
 import Chat from "./pages/Chat.tsx";
 import Profil from "./pages/Profil.tsx";
 import Friends from "./pages/Friends.tsx";
@@ -68,7 +67,6 @@ function App() {
           {/* redirection /dashboard */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/game" element={<Game />} />
-          <Route path="/tournament" element={<Tournament />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/profil" element={<Profil />} />
           <Route path="/friends" element={<Friends />} />

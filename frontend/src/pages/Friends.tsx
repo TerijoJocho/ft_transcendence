@@ -118,7 +118,7 @@ function Friends() {
 
         {/* Recherche d'utilisateur */}
         <section className="border border-gray-300 dark:border-zinc-600 h-auto lg:max-h-screen overflow-y-auto">
-          <p className="p-2 ">Ajouter de nouveaux amis</p>
+          <p className="p-2 dark:bg-zinc-900">Ajouter de nouveaux amis</p>
           <AddFriend />
         </section>
 

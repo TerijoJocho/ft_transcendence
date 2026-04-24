@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import * as api from "../api/api";
 import { mockWeeklyWinrateData, type WeeklyPoint } from "../data/mock_data";
 import USE_MOCK_DATA from "../config/dataConfig";
+import { useTheme } from "../theme/ThemeContext.tsx";
 
 ChartJS.register(
   CategoryScale,
@@ -22,17 +23,28 @@ ChartJS.register(
   Legend,
 );
 
-const labels = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+const labels = [
+  "Lundi",
+  "Mardi",
+  "Mercredi",
+  "Jeudi",
+  "Vendredi",
+  "Samedi",
+  "Dimanche",
+];
 
 export default function EloGraph() {
   const [points, setPoints] = useState<WeeklyPoint[]>([]);
+  const { isDark } = useTheme();
 
   useEffect(() => {
     async function load() {
-      const data = USE_MOCK_DATA ? mockWeeklyWinrateData : await api.weeklyWinrate();
+      const data = USE_MOCK_DATA
+        ? mockWeeklyWinrateData
+        : await api.weeklyWinrate();
       setPoints(data?.points ?? []);
       console.log(data);
-    };
+    }
     load();
   }, []);
 
@@ -44,10 +56,10 @@ export default function EloGraph() {
     responsive: true,
     maintainAspectRatio: false,
     scales: {
-        y: {
-          min: 0,
-          max: 100,
-        },
+      y: {
+        min: 0,
+        max: 100,
+      },
     },
     plugins: {
       legend: {
@@ -66,14 +78,14 @@ export default function EloGraph() {
       {
         label: "WinRate (%)",
         data: normalized,
-        backgroundColor: "oklch(70.2% 0.183 293.541)",
+        backgroundColor: !isDark ? "oklch(70.2% 0.183 293.541)" : "oklch(55.4% 0.135 66.442)",
       },
     ],
   };
 
   return (
     <section className="grid-style row-span-2 col-span-2 flex flex-col">
-      <div className="border rounded-md m-2 p-1 h-full">
+      <div className="border dark:border-zinc-700 rounded-md m-2 p-1 h-full">
         <Bar options={options} data={data} />
       </div>
     </section>

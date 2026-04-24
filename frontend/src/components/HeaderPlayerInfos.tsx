@@ -81,7 +81,7 @@ export default function HeaderPlayerInfos({ userStats, setUserStats }) {
   );
 
   return (
-    <header className="flex flex-row justify-end items-start sm:items-center m-2 mt-7 relative text-[#141301] gap-2">
+    <header className="flex flex-row justify-end items-start sm:items-center m-2 mt-7 relative text-[#141301] dark:text-zinc-100 gap-2">
       <p className="flex-1 title-style text-base sm:text-2xl">
         Bienvenue sur ChessWar
       </p>
@@ -105,7 +105,7 @@ export default function HeaderPlayerInfos({ userStats, setUserStats }) {
               className="
                                 flex flex-col gap-2 
                                 absolute right-0 top-full mt-1
-                                bg-black/5 backdrop-blur-sm border border-black/5
+                                bg-black/5 dark:bg-zinc-900/70 backdrop-blur-sm border border-black/5 dark:border-zinc-700
                                 rounded-2xl shadow-xl
                                 p-2 z-50
                             "

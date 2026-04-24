@@ -22,7 +22,7 @@ export default function LeaderBoard() {
     return (
       <li
         key={data?.playerId}
-        className="grid grid-cols-3 gap-4 p-2 border border-transparent hover:border-violet-400 bg-violet-200 rounded-md m-1 items-center text-center"
+        className="grid grid-cols-3 gap-4 p-2 border border-transparent hover:border-violet-400 dark:hover:border-yellow-500 bg-violet-200 dark:bg-yellow-700/60 rounded-md m-1 items-center text-center"
       >
         <p>{i + 1}</p>
         <p>{data?.playerName}</p>
@@ -34,8 +34,8 @@ export default function LeaderBoard() {
   return (
     <section className="grid-style col-span-1 md:col-span-2">
       <h3>LeaderBoard</h3>
-      <div className="border rounded-md m-2 p-1 bg-violet-100 overflow-x-auto">
-        <div className="grid grid-cols-3 gap-4 border-b-2 border-black m-1 p-2 font-semibold">
+      <div className="border rounded-md m-2 p-1 bg-violet-100 dark:bg-yellow-900/60 dark:border-zinc-700 overflow-x-auto">
+        <div className="grid grid-cols-3 gap-4 border-b-2 border-black dark:border-zinc-600 m-1 p-2 font-semibold">
           <p className="text-center">Rang</p>
           <p className="text-center">Joueur</p>
           <p className="text-center">Nb. Parties gagnées</p>

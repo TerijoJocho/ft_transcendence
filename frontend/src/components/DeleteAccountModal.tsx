@@ -34,11 +34,11 @@ export default function DeleteAccountModal({
           name="delete"
           value={deleteInput}
           onChange={(e) => setDeleteInput(e.target.value)}
-          className="rounded-sm p-2 text-black w-full"
+          className="input-style"
         />
         <div className="flex gap-2 mt-4">
           <button
-            className="flex-1 p-3 bg-white text-red-500 rounded-md"
+            className="flex-1 p-3 bg-white dark:bg-zinc-800 text-red-500 rounded-md"
             onClick={() => (setWantToDelete(false), setDeleteInput(""))}
           >
             Annuler

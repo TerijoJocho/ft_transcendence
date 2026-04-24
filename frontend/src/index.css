@@ -91,6 +91,14 @@ body,
   background-color: #8b5cf6;
 }
 
+.dark .level-style::-webkit-progress-value {
+  background-color: oklch(55.4% 0.135 66.442);
+}
+
 .level-style::-moz-progress-bar {
   background-color: #8b5cf6;
+}
+
+.dark .level-style::-moz-progress-bar {
+  background-color: oklch(55.4% 0.135 66.442);
 }

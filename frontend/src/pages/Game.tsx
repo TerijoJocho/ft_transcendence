@@ -293,7 +293,7 @@ function Clock({
   return (
     <div
       className={`px-5 py-2 rounded-lg border font-mono text-2xl font-semibold tracking-widest transition-all duration-300
-      ${low ? "border-rose-500 text-rose-400 bg-rose-500/10" : active ? "border-gray-400 text-white bg-gray-700" : "border-gray-700 text-gray-500 bg-gray-900"}`}
+      ${low ? "border-violet-500 dark:border-yellow-500 text-violet-500 dark:text-yellow-400 bg-violet-500/10 dark:bg-yellow-500/10" : active ? "border-gray-400 dark:border-zinc-500 text-gray-900 dark:text-zinc-100 bg-gray-200 dark:bg-zinc-700" : "border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-900"}`}
     >
       {formatTime(seconds)}
     </div>
@@ -311,20 +311,20 @@ function ConfirmModal({
 }) {
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl p-8 flex flex-col items-center gap-6 shadow-2xl max-w-sm w-full mx-4">
-        <p className="text-white text-center text-base font-medium">
+      <div className="bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-xl p-8 flex flex-col items-center gap-6 shadow-2xl max-w-sm w-full mx-4">
+        <p className="text-gray-900 dark:text-zinc-100 text-center text-base font-medium">
           {message}
         </p>
         <div className="flex gap-4 w-full">
           <button
             onClick={onConfirm}
-            className="flex-1 py-3 text-sm uppercase tracking-widest border border-rose-700 text-rose-400 rounded-md hover:bg-rose-700/20 hover:border-rose-500 transition-all"
+            className="flex-1 py-3 text-sm uppercase tracking-widest border border-violet-700 dark:border-yellow-700 text-violet-500 dark:text-yellow-400 rounded-md hover:bg-violet-700/20 dark:hover:bg-yellow-700/20 hover:border-violet-500 dark:hover:border-yellow-500 transition-all"
           >
             Confirmer
           </button>
           <button
             onClick={onCancel}
-            className="flex-1 py-3 text-sm uppercase tracking-widest border border-gray-700 text-gray-400 rounded-md hover:bg-gray-700/20 hover:border-gray-500 transition-all"
+            className="flex-1 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 rounded-md hover:bg-gray-300/30 dark:hover:bg-zinc-700/20 hover:border-gray-400 dark:hover:border-zinc-500 transition-all"
           >
             Annuler
           </button>
@@ -962,14 +962,14 @@ function ChessGame({
   const botClockLabel = isFlipped ? "Black" : "White";
 
   return (
-    <div className="text-white w-full bg-white">
+    <div className="text-gray-900 dark:text-zinc-100 w-full bg-gray-50 dark:bg-zinc-800 transition-colors duration-300">
       {isOnline && online.gameId && (
         <div className="flex justify-end px-6 pt-4">
-          <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2">
-            <span className="text-xs uppercase tracking-widest text-gray-500">
+          <div className="flex items-center gap-2 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg px-4 py-2">
+            <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
               Game ID
             </span>
-            <span className="font-mono text-violet-400 font-semibold text-sm select-all">
+            <span className="font-mono text-violet-400 dark:text-yellow-600 font-semibold text-sm select-all">
               {online.gameId}
             </span>
           </div>
@@ -978,13 +978,13 @@ function ChessGame({
       <div className="flex gap-6 p-4 sm:p-6 justify-center items-start flex-wrap">
         {/* Move history */}
         <div
-          className="w-52 bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col"
+          className="w-52 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg p-4 flex flex-col"
           style={{ height: "520px" }}
         >
-          <p className="text-xs uppercase tracking-widest text-gray-500 mb-2 pb-2 border-b border-gray-700 flex-shrink-0">
+          <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400 mb-2 pb-2 border-b border-gray-300 dark:border-zinc-700 flex-shrink-0">
             Moves
           </p>
-          <div className="flex gap-2 text-xs uppercase tracking-widest text-gray-500 mb-1 flex-shrink-0">
+          <div className="flex gap-2 text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400 mb-1 flex-shrink-0">
             <span className="w-6"></span>
             <span className="w-16">White</span>
             <span className="w-16">Black</span>
@@ -995,13 +995,13 @@ function ChessGame({
           >
             {Array.from({ length: Math.ceil(history.length / 2) }, (_, i) => (
               <div key={i} className="flex gap-2 text-sm">
-                <span className="text-gray-600 w-6 flex-shrink-0">
+                <span className="text-gray-600 dark:text-zinc-500 w-6 flex-shrink-0">
                   {i + 1}.
                 </span>
-                <span className="text-gray-300 w-16">
+                <span className="text-gray-700 dark:text-zinc-300 w-16">
                   {history[i * 2] ?? ""}
                 </span>
-                <span className="text-gray-400 w-16">
+                <span className="text-gray-500 dark:text-zinc-400 w-16">
                   {history[i * 2 + 1] ?? ""}
                 </span>
               </div>
@@ -1013,7 +1013,7 @@ function ChessGame({
           {/* Top clock */}
           {hasClock && (
             <div className="flex items-center gap-3 self-end">
-              <span className="text-xs uppercase tracking-widest text-gray-500">
+              <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
                 {topClockLabel}
               </span>
               <Clock
@@ -1026,13 +1026,15 @@ function ChessGame({
           {!hasClock && (
             <div className="flex items-center gap-4">
               <span
-                className={`text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border transition-all duration-200 ${player === "black" && !gameOver ? "border-rose-500 text-rose-400 bg-rose-500/10" : "border-gray-700 text-gray-500"}`}
+                className={`text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border transition-all duration-200 ${player === "black" && !gameOver ? "border-violet-500 dark:border-yellow-500 text-violet-500 dark:text-yellow-400 bg-violet-500/10 dark:bg-yellow-500/10" : "border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-zinc-400"}`}
               >
                 Black
               </span>
-              <span className="text-xs text-gray-600 tracking-widest">vs</span>
+              <span className="text-xs text-gray-600 dark:text-zinc-400 tracking-widest">
+                vs
+              </span>
               <span
-                className={`text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border transition-all duration-200 ${player === "white" && !gameOver ? "border-rose-500 text-rose-400 bg-rose-500/10" : "border-gray-700 text-gray-500"}`}
+                className={`text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border transition-all duration-200 ${player === "white" && !gameOver ? "border-violet-500 dark:border-yellow-500 text-violet-500 dark:text-yellow-400 bg-violet-500/10 dark:bg-yellow-500/10" : "border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-zinc-400"}`}
               >
                 White
               </span>
@@ -1041,7 +1043,7 @@ function ChessGame({
 
           {/* Status bar */}
           <div
-            className={`text-xs uppercase tracking-widest h-5 text-center transition-colors ${gameOver ? "text-rose-400 font-semibold" : status.includes("check") ? "text-rose-400" : "text-gray-500"}`}
+            className={`text-xs uppercase tracking-widest h-5 text-center transition-colors ${gameOver ? "text-violet-500 dark:text-yellow-400 font-semibold" : status.includes("check") ? "text-violet-500 dark:text-yellow-400" : "text-gray-500 dark:text-zinc-400"}`}
           >
             {status ||
               `${player.charAt(0).toUpperCase() + player.slice(1)}'s turn`}
@@ -1049,20 +1051,17 @@ function ChessGame({
 
           {/* Only show the waiting message, all other log messages are commented out */}
           {isOnline && onlineStatus && onlineStatus.includes("attente") && (
-            <p
-              style={{ color: "#7c3aed", fontWeight: 600 }}
-              className="text-xs tracking-wide text-center uppercase"
-            >
+            <p className="text-xs tracking-wide text-center uppercase font-semibold text-violet-600 dark:text-yellow-400">
               {onlineStatus}
             </p>
           )}
-          {/* {isOnline && onlineError && <p className="text-xs text-rose-400 tracking-wide text-center">{onlineError}</p>} */}
+          {/* {isOnline && onlineError && <p className="text-xs text-violet-500 dark:text-yellow-400 tracking-wide text-center">{onlineError}</p>} */}
 
           {/* Board */}
-          <div className="p-2.5 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl">
+          <div className="p-2.5 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg shadow-2xl">
             <div className="flex items-start">
               <div
-                className="flex flex-col justify-around pr-1.5 text-xs text-gray-600 select-none"
+                className="flex flex-col justify-around pr-1.5 text-xs text-gray-600 dark:text-zinc-400 select-none"
                 style={{ height: "480px" }}
               >
                 {rankLabels.map((n) => (
@@ -1071,7 +1070,7 @@ function ChessGame({
               </div>
               <div>
                 <div
-                  className="grid border border-gray-600"
+                  className="grid border border-gray-400 dark:border-zinc-600"
                   style={{
                     gridTemplateColumns: "repeat(8,60px)",
                     gridTemplateRows: "repeat(8,60px)",
@@ -1104,7 +1103,7 @@ function ChessGame({
                       let bgClass = light ? "bg-amber-100" : "bg-amber-900";
                       if (isLast && !isSel)
                         bgClass = light ? "bg-yellow-300" : "bg-yellow-700";
-                      if (isSel) bgClass = "bg-rose-400";
+                      if (isSel) bgClass = "bg-violet-400 dark:bg-yellow-500";
                       if (
                         isDragOver &&
                         (hintSet.has(key) || captureSet.has(key))
@@ -1147,17 +1146,17 @@ function ChessGame({
                             {PIECES[piece] || ""}
                           </span>
                           {isHint && !isDragOver && (
-                            <span className="absolute w-[18px] h-[18px] rounded-full bg-rose-500/50 pointer-events-none" />
+                            <span className="absolute w-[18px] h-[18px] rounded-full bg-violet-500/50 dark:bg-yellow-500/50 pointer-events-none" />
                           )}
                           {isCap && !isDragOver && (
-                            <span className="absolute inset-0 border-[4px] border-rose-500/65 pointer-events-none" />
+                            <span className="absolute inset-0 border-[4px] border-violet-500/65 dark:border-yellow-500/65 pointer-events-none" />
                           )}
                         </div>
                       );
                     }),
                   )}
                 </div>
-                <div className="flex justify-around pt-1 text-xs text-gray-600 select-none">
+                <div className="flex justify-around pt-1 text-xs text-gray-600 dark:text-zinc-400 select-none">
                   {fileLabels.map((l) => (
                     <span key={l}>{l}</span>
                   ))}
@@ -1169,7 +1168,7 @@ function ChessGame({
           {/* Bottom clock */}
           {hasClock && (
             <div className="flex items-center gap-3 self-end">
-              <span className="text-xs uppercase tracking-widest text-gray-500">
+              <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
                 {botClockLabel}
               </span>
               <Clock
@@ -1186,13 +1185,13 @@ function ChessGame({
               <>
                 <button
                   onClick={() => setConfirmAction("restart")}
-                  className="px-8 py-3 text-sm uppercase tracking-widest border border-rose-700 text-rose-400 rounded-md hover:bg-rose-700/20 hover:border-rose-500 transition-all duration-200"
+                  className="px-8 py-3 text-sm uppercase tracking-widest border border-violet-700 dark:border-yellow-700 text-violet-500 dark:text-yellow-400 rounded-md hover:bg-violet-700/20 dark:hover:bg-yellow-700/20 hover:border-violet-500 dark:hover:border-yellow-500 transition-all duration-200"
                 >
                   Restart
                 </button>
                 <button
                   onClick={() => setConfirmAction("giveup")}
-                  className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-600 text-gray-400 rounded-md hover:bg-gray-600/20 hover:border-gray-400 transition-all duration-200"
+                  className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 rounded-md hover:bg-gray-300/30 dark:hover:bg-zinc-700/20 hover:border-gray-400 dark:hover:border-zinc-500 transition-all duration-200"
                 >
                   ← Quitter
                 </button>
@@ -1202,7 +1201,7 @@ function ChessGame({
               <>
                 <button
                   onClick={handleQuit}
-                  className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-700 text-gray-400 rounded-md hover:bg-gray-700/20 hover:border-gray-500 transition-all duration-200"
+                  className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 rounded-md hover:bg-gray-300/30 dark:hover:bg-zinc-700/20 hover:border-gray-400 dark:hover:border-zinc-500 transition-all duration-200"
                 >
                   ← Quitter
                 </button>
@@ -1242,16 +1241,16 @@ function ChessGame({
       {/* Game summary popup — center overlay */}
       {gameResult && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-40">
-          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 flex flex-col gap-4 shadow-2xl w-full max-w-sm mx-4">
-            <p className="text-xs uppercase tracking-widest text-gray-500 pb-2 border-b border-gray-700">
+          <div className="bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl p-6 flex flex-col gap-4 shadow-2xl w-full max-w-sm mx-4">
+            <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400 pb-2 border-b border-gray-300 dark:border-zinc-700">
               Game summary
             </p>
             <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-widest text-gray-500">
+              <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
                 Result
               </span>
               <span
-                className={`text-sm font-semibold ${gameResult.winner === "Draw" ? "text-gray-300" : "text-rose-400"}`}
+                className={`text-sm font-semibold ${gameResult.winner === "Draw" ? "text-gray-600 dark:text-zinc-300" : "text-violet-500 dark:text-yellow-400"}`}
               >
                 {gameResult.winner === "Draw"
                   ? `Draw — ${gameResult.reason}`
@@ -1262,32 +1261,32 @@ function ChessGame({
               </span>
             </div>
             <div className="grid grid-cols-3 gap-3">
-              <div className="flex flex-col items-center bg-gray-800 rounded-lg py-3">
-                <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">
+              <div className="flex flex-col items-center bg-gray-200 dark:bg-zinc-800 rounded-lg py-3">
+                <span className="text-xs text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1">
                   Total
                 </span>
-                <span className="text-2xl font-semibold text-white">
+                <span className="text-2xl font-semibold text-gray-900 dark:text-zinc-100">
                   {history.length}
                 </span>
               </div>
-              <div className="flex flex-col items-center bg-gray-800 rounded-lg py-3">
-                <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">
+              <div className="flex flex-col items-center bg-gray-200 dark:bg-zinc-800 rounded-lg py-3">
+                <span className="text-xs text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1">
                   White
                 </span>
-                <span className="text-2xl font-semibold text-white">
+                <span className="text-2xl font-semibold text-gray-900 dark:text-zinc-100">
                   {Math.ceil(history.length / 2)}
                 </span>
               </div>
-              <div className="flex flex-col items-center bg-gray-800 rounded-lg py-3">
-                <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">
+              <div className="flex flex-col items-center bg-gray-200 dark:bg-zinc-800 rounded-lg py-3">
+                <span className="text-xs text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1">
                   Black
                 </span>
-                <span className="text-2xl font-semibold text-white">
+                <span className="text-2xl font-semibold text-gray-900 dark:text-zinc-100">
                   {Math.floor(history.length / 2)}
                 </span>
               </div>
             </div>
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-gray-500 dark:text-zinc-400 text-center">
               Retour automatique dans 5s…
             </p>
             <button
@@ -1296,7 +1295,7 @@ function ChessGame({
                   clearTimeout(redirectTimerRef.current);
                 onBack();
               }}
-              className="w-full py-3 text-sm uppercase tracking-widest bg-violet-600 text-white rounded-md hover:bg-violet-500 transition-all"
+              className="w-full py-3 text-sm uppercase tracking-widest bg-violet-600 dark:bg-yellow-600 text-white rounded-md hover:bg-violet-500 dark:hover:bg-yellow-500 transition-all"
             >
               OK
             </button>
@@ -1307,8 +1306,8 @@ function ChessGame({
       {/* Promotion modal */}
       {pendingPromo && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 flex flex-col items-center gap-4 shadow-2xl">
-            <p className="text-xs uppercase tracking-widest text-gray-400">
+          <div className="bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl p-6 flex flex-col items-center gap-4 shadow-2xl">
+            <p className="text-xs uppercase tracking-widest text-gray-600 dark:text-zinc-400">
               Promote pawn
             </p>
             <div className="flex gap-3">
@@ -1319,7 +1318,7 @@ function ChessGame({
                 <div
                   key={p}
                   onClick={() => selectPromo(p)}
-                  className="w-16 h-16 flex items-center justify-center text-4xl bg-gray-800 border border-gray-700 rounded-lg cursor-pointer hover:border-rose-500 hover:bg-rose-500/10 transition-all"
+                  className="w-16 h-16 flex items-center justify-center text-4xl bg-gray-200 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg cursor-pointer hover:border-violet-500 dark:hover:border-yellow-500 hover:bg-violet-500/10 dark:hover:bg-yellow-500/10 transition-all"
                 >
                   {PIECES[p]}
                 </div>
@@ -1408,9 +1407,10 @@ function Game() {
 
   const btnBase =
     "w-44 py-3 rounded-md text-base font-semibold border transition";
-  const btnActive = "bg-violet-500 text-white border-violet-500";
+  const btnActive =
+    "bg-violet-500 dark:bg-yellow-600 text-white border-violet-500 dark:border-yellow-600 hover:bg-violet-400 dark:hover:bg-yellow-500";
   const btnInactive =
-    "bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-200 border-gray-300 dark:border-zinc-700 hover:border-violet-500 hover:text-violet-500";
+    "bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-200 border-gray-300 dark:border-zinc-700 hover:border-violet-500 hover:text-violet-500 dark:hover:border-yellow-500 dark:hover:text-yellow-400";
   const btnDisabled =
     "bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 border-gray-200 dark:border-zinc-700 cursor-not-allowed opacity-70";
 
@@ -1560,7 +1560,7 @@ function Game() {
 
   if (showChess) {
     return (
-      <div className="border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 min-w-max transition-colors duration-300">
+      <div className="border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 min-w-max transition-colors duration-300">
         <div className="text-black dark:text-zinc-100">
           <Header title="Chess" />
         </div>
@@ -1580,7 +1580,7 @@ function Game() {
   }
 
   return (
-    <div className="border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 min-w-max transition-colors duration-300">
+    <div className="border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 min-w-max transition-colors duration-300">
       <div className="text-black dark:text-zinc-100">
         <Header title="Démarrez une partie !" />
       </div>
@@ -1590,7 +1590,7 @@ function Game() {
             <div className="flex flex-row gap-4">
               <button
                 onClick={() => setShowCreateOptions(true)}
-                className="w-64 py-3 text-base font-semibold bg-violet-500 text-white rounded-md hover:bg-violet-400 transition"
+                className="w-64 py-3 text-base font-semibold bg-violet-500 dark:bg-yellow-600 text-white rounded-md hover:bg-violet-400 dark:hover:bg-yellow-500 transition"
               >
                 Créer une partie
               </button>
@@ -1620,7 +1620,7 @@ function Game() {
                 </div>
                 <button
                   onClick={() => void loadPendingGames()}
-                  className="px-3 py-2 text-sm border border-gray-300 dark:border-zinc-700 rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 transition"
+                  className="button"
                 >
                   Rafraîchir
                 </button>
@@ -1658,7 +1658,7 @@ function Game() {
                         onClick={() =>
                           void handleJoinExistingGame(pendingGame.gameId)
                         }
-                        className={`px-4 py-2 rounded-md text-sm transition ${pendingGame.creatorId === user?.id ? "bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 cursor-not-allowed" : "bg-violet-500 text-white hover:bg-violet-400"}`}
+                        className={`px-4 py-2 rounded-md text-sm transition ${pendingGame.creatorId === user?.id ? "bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 cursor-not-allowed" : "bg-violet-500 dark:bg-yellow-600 text-white hover:bg-violet-400 dark:hover:bg-yellow-500"}`}
                       >
                         {pendingGame.creatorId === user?.id
                           ? "Ta partie"
@@ -1668,7 +1668,11 @@ function Game() {
                   ))}
               </div>
             </div>
-            {menuError && <p className="text-sm text-red-500">{menuError}</p>}
+            {menuError && (
+              <p className="text-sm text-violet-600 dark:text-yellow-400">
+                {menuError}
+              </p>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center gap-6">
@@ -1711,11 +1715,15 @@ function Game() {
             </div>
             <button
               onClick={handleCreateGame}
-              className="mt-2 w-56 py-3 text-base font-semibold bg-violet-500 text-white rounded-md hover:bg-violet-400 transition"
+              className="mt-2 w-56 py-3 text-base font-semibold bg-violet-500 dark:bg-yellow-600 text-white rounded-md hover:bg-violet-400 dark:hover:bg-yellow-500 transition"
             >
               Commencer
             </button>
-            {menuError && <p className="text-sm text-red-500">{menuError}</p>}
+            {menuError && (
+              <p className="text-sm text-violet-600 dark:text-yellow-400">
+                {menuError}
+              </p>
+            )}
             <button
               onClick={() => {
                 setShowCreateOptions(false);
@@ -1724,7 +1732,7 @@ function Game() {
                 setColor("Blanc");
                 setMenuError(null);
               }}
-              className="px-6 py-2 text-sm font-medium border border-violet-300 text-violet-500 rounded-md hover:bg-violet-50 hover:border-violet-500 transition"
+              className="px-6 py-2 text-sm font-medium border border-violet-300 dark:border-yellow-700 text-violet-500 dark:text-yellow-400 rounded-md hover:bg-violet-50 dark:hover:bg-yellow-900/30 hover:border-violet-500 dark:hover:border-yellow-500 transition"
             >
               ← Retour
             </button>
