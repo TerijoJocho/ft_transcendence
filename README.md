@@ -10,17 +10,14 @@ The architecture relies on a modern and comprehensive technology stack: NestJS b
 
 # INSTRUCTION
 
-    Pour lancer le projet taper: "docker compose up", à la racine du projet.
-    /!\ bien charger le dossier "secrets" pour docker compose /!\
-    /!\ compléter le .env en affectant des valeurs aux variables d'environnement /!\
-
-    Ouvrir un navigateur internet puis se rendre sur localhost
-
-    Une interface de connexion devrait s'afficher, si vous n'avez pas de compte cliquer sur "Créer un compte", vous aurez le choix entre une inscription classique ou passer par google. Une fois que votre compte est créé vous allez être redirigé sur la page de connexion.
-
-    Une fois connecté la page du dashboard s'affiche avec toutes les stats etc... Vous pourrez jouer aux échecs en local, en ligne avec plusieurs modes de jeu... Ou au morpion! Vous pourrez également ajouter des amis et leur envoyer des messages
-
-    Pour fermer le projet la commande à taper est: "docker compose down", toujours à la racine du projet
+//////////////////////////////////////
+Pour lancer le projet taper: "docker compose up", à la racine du projet.
+/!\ bien charger le dossier "secrets" pour docker compose /!\
+/!\ compléter le .env en affectant des valeurs aux variables d'environnement /!\
+Ouvrir un navigateur internet puis se rendre sur localhost
+Une interface de connexion devrait s'afficher, si vous n'avez pas de compte cliquer sur "Créer un compte", vous aurez le choix entre une inscription classique ou passer par google. Une fois que votre compte est créé vous allez être redirigé sur la page de connexion.
+Une fois connecté la page du dashboard s'affiche avec toutes les stats etc... Vous pourrez jouer aux échecs en local, en ligne avec plusieurs modes de jeu... Ou au morpion! Vous pourrez également ajouter des amis et leur envoyer des messages
+Pour fermer le projet la commande à taper est: "docker compose down", toujours à la racine du projet
 
 # RESSOURCES
 
