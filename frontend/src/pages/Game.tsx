@@ -17,21 +17,28 @@ import {
 import type { PendingGameResponse } from "../api/api.ts";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChessBishop, faChessKing, faChessKnight, faChessPawn, faChessQueen, faChessRook } from "@fortawesome/free-solid-svg-icons";
+import {
+  faChessBishop,
+  faChessKing,
+  faChessKnight,
+  faChessPawn,
+  faChessQueen,
+  faChessRook,
+} from "@fortawesome/free-solid-svg-icons";
 
 const PIECES = {
-  r: <FontAwesomeIcon icon={faChessRook} className="text-black/90"/>,
-  n: <FontAwesomeIcon icon={faChessKnight} className="text-black/90"/>,
-  b: <FontAwesomeIcon icon={faChessBishop} className="text-black/90"/>,
-  q: <FontAwesomeIcon icon={faChessQueen} className="text-black/90"/>,
-  k: <FontAwesomeIcon icon={faChessKing} className="text-black/90"/>,
-  p: <FontAwesomeIcon icon={faChessPawn} className="text-black/90"/>,
-  R: <FontAwesomeIcon icon={faChessRook} className="text-white/90"/>,
-  N: <FontAwesomeIcon icon={faChessKnight} className="text-white/90"/>,
-  B: <FontAwesomeIcon icon={faChessBishop} className="text-white/90"/>,
-  Q: <FontAwesomeIcon icon={faChessQueen} className="text-white/90"/>,
-  K: <FontAwesomeIcon icon={faChessKing} className="text-white/90"/>,
-  P: <FontAwesomeIcon icon={faChessPawn} className="text-white/90"/>,
+  r: <FontAwesomeIcon icon={faChessRook} className="text-black/90" />,
+  n: <FontAwesomeIcon icon={faChessKnight} className="text-black/90" />,
+  b: <FontAwesomeIcon icon={faChessBishop} className="text-black/90" />,
+  q: <FontAwesomeIcon icon={faChessQueen} className="text-black/90" />,
+  k: <FontAwesomeIcon icon={faChessKing} className="text-black/90" />,
+  p: <FontAwesomeIcon icon={faChessPawn} className="text-black/90" />,
+  R: <FontAwesomeIcon icon={faChessRook} className="text-white/90" />,
+  N: <FontAwesomeIcon icon={faChessKnight} className="text-white/90" />,
+  B: <FontAwesomeIcon icon={faChessBishop} className="text-white/90" />,
+  Q: <FontAwesomeIcon icon={faChessQueen} className="text-white/90" />,
+  K: <FontAwesomeIcon icon={faChessKing} className="text-white/90" />,
+  P: <FontAwesomeIcon icon={faChessPawn} className="text-white/90" />,
 };
 
 const INIT_BOARD = () => [
@@ -401,6 +408,9 @@ function ChessGame({
   const fileLabels = isFlipped
     ? ["h", "g", "f", "e", "d", "c", "b", "a"]
     : ["a", "b", "c", "d", "e", "f", "g", "h"];
+  const boardCellSize = "clamp(34px, 9vw, 60px)";
+  const boardSize = `calc(${boardCellSize} * 8)`;
+  const pieceSize = `calc(${boardCellSize} * 0.6)`;
 
   const [board, setBoard] = useState(INIT_BOARD);
   const [player, setPlayer] = useState("white");
@@ -988,11 +998,11 @@ function ChessGame({
           </div>
         </div>
       )}
-      <div className="flex gap-6 p-4 sm:p-6 justify-center items-start flex-wrap">
+      <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 p-3 sm:p-6 justify-center items-stretch xl:items-start">
         {/* Move history */}
         <div
-          className="w-52 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg p-4 flex flex-col"
-          style={{ height: "520px" }}
+          className="w-full xl:w-52 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg p-4 flex flex-col"
+          style={{ height: "min(45vh, 520px)" }}
         >
           <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400 mb-2 pb-2 border-b border-gray-300 dark:border-zinc-700 flex-shrink-0">
             Moves
@@ -1022,10 +1032,10 @@ function ChessGame({
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-3 w-full xl:w-auto">
           {/* Top clock */}
           {hasClock && (
-            <div className="flex items-center gap-3 self-end">
+            <div className="flex items-center gap-3 self-center sm:self-end">
               <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
                 {topClockLabel}
               </span>
@@ -1071,11 +1081,11 @@ function ChessGame({
           {/* {isOnline && onlineError && <p className="text-xs text-violet-500 dark:text-yellow-400 tracking-wide text-center">{onlineError}</p>} */}
 
           {/* Board */}
-          <div className="p-2.5 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg shadow-2xl">
+          <div className="p-2 sm:p-2.5 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg shadow-2xl max-w-full overflow-x-auto">
             <div className="flex items-start">
               <div
                 className="flex flex-col justify-around pr-1.5 text-xs text-gray-600 dark:text-zinc-400 select-none"
-                style={{ height: "480px" }}
+                style={{ height: boardSize }}
               >
                 {rankLabels.map((n) => (
                   <span key={n}>{n}</span>
@@ -1085,8 +1095,8 @@ function ChessGame({
                 <div
                   className="grid border border-gray-400 dark:border-zinc-600"
                   style={{
-                    gridTemplateColumns: "repeat(8,60px)",
-                    gridTemplateRows: "repeat(8,60px)",
+                    gridTemplateColumns: `repeat(8, ${boardCellSize})`,
+                    gridTemplateRows: `repeat(8, ${boardCellSize})`,
                   }}
                 >
                   {displayRows.map((r) =>
@@ -1113,9 +1123,13 @@ function ChessGame({
                         !gameOver &&
                         !pendingPromo;
                       const light = (r + c) % 2 === 0;
-                      let bgClass = light ? "bg-gray-300 dark:bg-zinc-400" : "bg-gray-600 dark:bg-zinc-700";
+                      let bgClass = light
+                        ? "bg-gray-300 dark:bg-zinc-400"
+                        : "bg-gray-600 dark:bg-zinc-700";
                       if (isLast && !isSel)
-                        bgClass = light ? "bg-violet-300 dark:bg-yellow-300" : "bg-violet-600 dark:bg-yellow-600";
+                        bgClass = light
+                          ? "bg-violet-300 dark:bg-yellow-300"
+                          : "bg-violet-600 dark:bg-yellow-600";
                       if (isSel) bgClass = "bg-violet-400 dark:bg-yellow-400";
                       if (
                         isDragOver &&
@@ -1142,7 +1156,12 @@ function ChessGame({
                       return (
                         <div
                           key={key}
-                          className={`w-[60px] h-[60px] flex items-center justify-center text-[36px] select-none relative ${bgClass} hover:brightness-110 transition-all ${isDraggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"}`}
+                          className={`flex items-center justify-center select-none relative ${bgClass} hover:brightness-110 transition-all ${isDraggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"}`}
+                          style={{
+                            width: boardCellSize,
+                            height: boardCellSize,
+                            fontSize: pieceSize,
+                          }}
                           onClick={() => handleClick(r, c)}
                           draggable={isDraggable}
                           onDragStart={(e) => handleDragStart(e, r, c)}
@@ -1152,14 +1171,20 @@ function ChessGame({
                         >
                           <span
                             style={{
-                              ...pieceStyle,                              
+                              ...pieceStyle,
                               opacity: isDragSrc ? 0.35 : 1,
                             }}
                           >
                             {PIECES[piece] || ""}
                           </span>
                           {isHint && !isDragOver && (
-                            <span className="absolute w-[18px] h-[18px] rounded-full bg-violet-500/50 dark:bg-yellow-500/50 pointer-events-none" />
+                            <span
+                              className="absolute rounded-full bg-violet-500/50 dark:bg-yellow-500/50 pointer-events-none"
+                              style={{
+                                width: `calc(${boardCellSize} * 0.3)`,
+                                height: `calc(${boardCellSize} * 0.3)`,
+                              }}
+                            />
                           )}
                           {isCap && !isDragOver && (
                             <span className="absolute inset-0 border-[4px] border-violet-500/65 dark:border-yellow-500/65 pointer-events-none" />
@@ -1180,7 +1205,7 @@ function ChessGame({
 
           {/* Bottom clock */}
           {hasClock && (
-            <div className="flex items-center gap-3 self-end">
+            <div className="flex items-center gap-3 self-center sm:self-end">
               <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
                 {botClockLabel}
               </span>
@@ -1193,18 +1218,18 @@ function ChessGame({
           )}
 
           {/* Buttons */}
-          <div className="flex gap-4 mt-1">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-1 w-full sm:w-auto">
             {!isOnline && (
               <>
                 <button
                   onClick={() => setConfirmAction("restart")}
-                  className="px-8 py-3 text-sm uppercase tracking-widest border border-violet-700 dark:border-yellow-700 text-violet-500 dark:text-yellow-400 rounded-md hover:bg-violet-700/20 dark:hover:bg-yellow-700/20 hover:border-violet-500 dark:hover:border-yellow-500 transition-all duration-200"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 text-sm uppercase tracking-widest border border-violet-700 dark:border-yellow-700 text-violet-500 dark:text-yellow-400 rounded-md hover:bg-violet-700/20 dark:hover:bg-yellow-700/20 hover:border-violet-500 dark:hover:border-yellow-500 transition-all duration-200"
                 >
                   Restart
                 </button>
                 <button
                   onClick={() => setConfirmAction("giveup")}
-                  className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 rounded-md hover:bg-gray-300/30 dark:hover:bg-zinc-700/20 hover:border-gray-400 dark:hover:border-zinc-500 transition-all duration-200"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 rounded-md hover:bg-gray-300/30 dark:hover:bg-zinc-700/20 hover:border-gray-400 dark:hover:border-zinc-500 transition-all duration-200"
                 >
                   ← Quitter
                 </button>
@@ -1214,7 +1239,7 @@ function ChessGame({
               <>
                 <button
                   onClick={handleQuit}
-                  className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 rounded-md hover:bg-gray-300/30 dark:hover:bg-zinc-700/20 hover:border-gray-400 dark:hover:border-zinc-500 transition-all duration-200"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 rounded-md hover:bg-gray-300/30 dark:hover:bg-zinc-700/20 hover:border-gray-400 dark:hover:border-zinc-500 transition-all duration-200"
                 >
                   ← Quitter
                 </button>
@@ -1419,7 +1444,7 @@ function Game() {
   const [menuError, setMenuError] = useState<string | null>(null);
 
   const btnBase =
-    "w-44 py-3 rounded-md text-base font-semibold border transition";
+    "w-full sm:w-44 py-3 rounded-md text-base font-semibold border transition";
   const btnActive =
     "bg-violet-500 dark:bg-yellow-600 text-white border-violet-500 dark:border-yellow-600 hover:bg-violet-400 dark:hover:bg-yellow-500";
   const btnInactive =
@@ -1573,7 +1598,7 @@ function Game() {
 
   if (showChess) {
     return (
-      <div className="border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 min-w-max transition-colors duration-300">
+      <div className="border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 w-full min-w-0 transition-colors duration-300">
         <div className="text-black dark:text-zinc-100">
           <Header title="Chess" />
         </div>
@@ -1593,7 +1618,7 @@ function Game() {
   }
 
   return (
-    <div className="border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 min-w-max transition-colors duration-300">
+    <div className="border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 w-full min-w-0 transition-colors duration-300">
       <div className="text-black dark:text-zinc-100">
         <Header title="Démarrez une partie !" />
       </div>
@@ -1602,21 +1627,21 @@ function Game() {
           <div className="flex flex-col gap-6 items-center w-full max-w-3xl px-6">
             <button
               onClick={() => setShowCreateOptions(true)}
-              className="button w-64 py-3"
+              className="button w-full sm:w-64 py-3"
             >
               Créer une partie
             </button>
-            <div className="flex gap-4 items-center">
+            <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center w-full max-w-xl">
               <input
                 type="text"
                 value={gameIdInput}
                 onChange={(e) => setGameIdInput(e.target.value)}
                 placeholder="ID de partie"
-                className="w-64 block rounded-md border border-gray-300 px-3 py-3 text-black bg-white dark:bg-zinc-800 dark:text-white"
+                className="w-full sm:w-64 block rounded-md border border-gray-300 px-3 py-3 text-black bg-white dark:bg-zinc-800 dark:text-white"
               />
               <button
                 onClick={() => handleJoinExistingGame()}
-                className="button w-64 py-3 !mt-0 !mb-0"
+                className="button w-full sm:w-64 py-3 !mt-0 !mb-0"
               >
                 Rejoindre une partie
               </button>
@@ -1688,8 +1713,8 @@ function Game() {
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-6">
-            <div className="flex flex-row gap-4">
+          <div className="flex flex-col items-center gap-6 w-full max-w-xl px-6">
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               {(["Local", "En ligne"] as Mode[]).map((m) => (
                 <button
                   key={m}
@@ -1703,7 +1728,7 @@ function Game() {
                 </button>
               ))}
             </div>
-            <div className="flex flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               {(["Bullet", "Blitz", "Normal"] as TimeControl[]).map((t) => (
                 <button
                   key={t}
@@ -1714,7 +1739,7 @@ function Game() {
                 </button>
               ))}
             </div>
-            <div className="flex flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               {(["Blanc", "Noir"] as Color[]).map((c) => (
                 <button
                   key={c}
