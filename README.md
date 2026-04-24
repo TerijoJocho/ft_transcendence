@@ -21,32 +21,37 @@ docker compose up
 > Charger le dossier "secrets" pour docker compose
 > Compléter le .env en affectant des valeurs aux variables d'environnement
 
-> [!NOTE]
-> Ouvrir un navigateur internet puis se rendre sur
+[!NOTE]
+Ouvrir un navigateur internet puis se rendre sur:
 ```text
 https://localhost
 ```
-> Une interface de connexion devrait s'afficher, si vous n'avez pas de compte cliquer sur "Créer un compte", vous aurez le choix entre une inscription classique ou passer par google. 
-> Une fois que votre compte est créé vous allez être redirigé sur la page de connexion, connectz-vous.
-> Enfin, la page du dashboard s'affiche avec toutes les stats etc... Vous pourrez jouer aux échecs en local, en ligne avec plusieurs modes de jeu... Ou au morpion! Vous pourrez également ajouter des amis et leur envoyer des messages
-> Pour fermer le projet la commande à taper à la racine du projet est:
+Une interface de connexion devrait s'afficher, si vous n'avez pas de compte cliquer sur "Créer un compte", vous aurez le choix entre une inscription classique ou passer par google.
+
+Une fois que votre compte est créé vous allez être redirigé sur la page de connexion, connectz-vous.
+
+Enfin, la page du dashboard s'affiche avec toutes les stats etc... Vous pourrez jouer aux échecs en local, en ligne avec plusieurs modes de jeu... Ou au morpion! Vous pourrez également ajouter des amis et leur envoyer des messages.
+
+Pour fermer le projet la commande à taper à la racine du projet est:
 ```bash
 docker compose down
 ```
 
 # RESSOURCES
 
-    Général: Stackoverflow, Reddit
-    - Vault : la série de vidéo yt de la chaine "Devoteam A Cloud France", 
-    - Bcrypt: npmjs.com
-    - owasp/modsecurity: hub.docker.com
-    - speakeasy 2FA: npmjs.com
+Général: Stackoverflow, Reddit
+- Vault : la série de vidéo yt de la chaine "Devoteam A Cloud France", 
+- Bcrypt: npmjs.com
+- owasp/modsecurity: hub.docker.com
+- speakeasy 2FA: npmjs.com
+- React(code coté frontend): openClassroom, scrimba, youtube, react.dev, instagram, tiktok
+- Docker / Docker compose: projet inception, peer learning
 
 # TEAM INFORMATION
 
 ## Daryl:
 - Roles: Tech Lead (Frontend Lead, DevOps coordination)
-- Responsibilities: ////////////////////////////////
+- Responsibilities: Stack decision-making, GitHub repository setup and coordination, full frontend development, UI/UX design, Docker containerization support.
 
 ## Aïcha:
 - Roles: Product Owner (Data engineer, Backend Lead, Security contributor)
@@ -70,7 +75,7 @@ GitHub Issues and Discord were used respectively for project management and comm
 **Languages & Core Frameworks:**
 - Language: Full-stack JavaScript/TypeScript
 - Backend: NestJS
-- Frontend: React
+- Frontend: React, TailWindCSS
 
 **Development & Execution:**
 - Frontend dev server: Vite
@@ -103,7 +108,8 @@ GitHub Issues and Discord were used respectively for project management and comm
     
 ![ERD](./documentation/erd.png)
 
-Business rules :
+### Business rules :
+
 - A player can participate at one game at a time, but multiple games in its lifetime.
 - A player can either be black or white for a game.
 - A game exists only if it has one or two unique players.
@@ -116,13 +122,18 @@ Business rules :
 - All game have a creation date, and if not cancelled, a start date and end date.
 - User sending a friendship request must be part of the relationship.
 
-Cardinality :
+### Cardinality :
+
 - PLAYER <- PARTICIPATION -> GAME : ratio M:N
+
 A player play one game at a time but the database records multiple games for one player over time.
+
 - PLAYER <- FRIENDSHIP -> : ratio M:N
+
 A player can befriend with multiple players, and a friend can befriend multiple players too.
 
-Domain constraints :
+### Domain constraints :
+
 - player(1,2)_id : unique number.
 - mail_address : unique string in valid mail format.
 - player_name : unique string made of alphanumerical characters.
@@ -152,7 +163,8 @@ Domain constraints :
 
 ![RS](./documentation/rel_schema.png)
 
-Datatypes :
+### Datatypes :
+
 - player(1,2)_id : INT
 - player_name : VARCHAR(n)
 - mail_adress : VARCHAR(n)
@@ -178,8 +190,8 @@ Datatypes :
 - total_nb_moves : INT
 - winner_nb_moves: INT
 
-Notes : 
-Primary keys IDs are auto-incrementing. Stats for each player are calculated by querying Participation and Game tables.
+> [!NOTE]
+> Primary keys IDs are auto-incrementing. Stats for each player are calculated by querying Participation and Game tables.
 
 # Features List:
 
@@ -188,7 +200,7 @@ Primary keys IDs are auto-incrementing. Stats for each player are calculated by 
 - Full-stack web application with React frontend + NestJS backend.
 - API exposed under `/api/*` behind NGINX reverse proxy.
 - Session handling through secure HTTP-only cookies for access and refresh tokens.
-- Protected/private routes and public-only routes on the frontend (route guards).
+- Private routes and public-only routes on the frontend (route guards).
 - Global Day mode / Night mode theme switch across the full webapp, with light-to-dark color adaptation for every screen including the chessboard and UI components.
 - Dockerized local/dev and prod-like environments.
 
@@ -355,8 +367,12 @@ Primary keys IDs are auto-incrementing. Stats for each player are calculated by 
 
 # Individual Contributions:
 
-- Kalvin was responsible of the backend hardening: WAF, firewall with ModSecurity, Vault integration for secrets management, 2FA authentication feature, password hashing and salt. He also worked on users and friendship-related backend and websocket integration.
-- Aicha was in charge of the database design and management, Drizzle ORM and Redis cache implementation, backend microservice-based architecture, authentication features (including token lifecycle and Google OAuth) and game-related backend and websocket integration.
-- Daryl /////////////////////////////
-- Ylan took care of the chess gameplay implementation (frontend algorithm and rendering), frontend rendering of lobby creation and matchmaking interfaces.
-Everyone took part in the testing phases and code reviews.
+- > Kalvin was responsible of the backend hardening: WAF, firewall with ModSecurity, Vault integration for secrets management, 2FA authentication feature, password hashing and salt. He also worked on users and friendship-related backend and websocket integration.
+- > Aicha was in charge of the database design and management, Drizzle ORM and Redis cache implementation, backend microservice-based architecture, authentication features (including token lifecycle and Google OAuth) and game-related backend and websocket integration.
+
+- > Daryl led the entire frontend of Chess War, from architecture to pixel-level polish. He designed and built every page of the application — login, signup, dashboard, profile, friends, game, tournament, chat — along with all their associated logic: form validation, route guards (public/private routes), auth context and hook (useAuth), token lifecycle handling, and API integration against the NestJS backend. He implemented a clean separation of concerns across the frontend, with reusable components (Header, SideBar, Search, StatsCards, EloGraph, LastMatches, LeaderBoard, Achievement, TournamentHistory, DailyPuzzle), typed API calls, and custom hooks (useFriends). The sidebar navigation, profile editing flow (including 2FA QR activation and removal), friend search with debounce, and account deletion confirmation modal were all built and polished by him. On the infrastructure side, Daryl set up the GitHub repository and put in place a CI pipeline using GitHub Actions for linting and build validation, along with Husky pre-commit hooks to enforce code quality standards across the team. He also handled the Docker containerization of the frontend service and contributed to the overall docker-compose orchestration alongside the team.
+
+- > Ylan took care of the chess gameplay implementation (frontend algorithm and rendering), frontend rendering of lobby creation and matchmaking interfaces.
+
+> [!IMPORTANT]
+> Everyone took part in the testing phases and code reviews.
