@@ -432,6 +432,7 @@ function ChessGame({
   const [onlineError, setOnlineError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const isApplyingRemoteRef = useRef(false);
+  const hasHydratedOnlineStateRef = useRef(false);
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -469,26 +470,27 @@ function ChessGame({
   const persistEndOfGame = useCallback(
     async (result: { winner: string; reason: string }, moveCount: number) => {
       if (!isOnline || !online.gameId) return;
-      const winnerNbMoves = Math.ceil(moveCount / 2);
+      const safeMoveCount = Math.max(moveCount, 1);
+      const winnerNbMoves = Math.ceil(safeMoveCount / 2);
       const isDraw = result.winner === "Draw";
       try {
         if (isDraw) {
           await endGame(online.gameId, {
-            totalNbMoves: moveCount,
+            totalNbMoves: safeMoveCount,
             winnerNbMoves,
             gameResult: "DRAW",
           });
         } else {
           const winnerColor = result.winner === "White" ? "WHITE" : "BLACK";
           await endGame(online.gameId, {
-            totalNbMoves: moveCount,
+            totalNbMoves: safeMoveCount,
             winnerNbMoves,
             gameResult: "WIN",
             winnerColor,
           });
         }
-      } catch {
-        /* best effort */
+      } catch (error) {
+        console.error("Failed to persist end of game:", error);
       }
     },
     [isOnline, online.gameId],
@@ -558,12 +560,14 @@ function ChessGame({
 
   useEffect(() => {
     if (!isOnline || !online.gameId) {
+      hasHydratedOnlineStateRef.current = false;
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
       }
       return;
     }
+    hasHydratedOnlineStateRef.current = false;
     const socket = connectGameSocket();
     socketRef.current = socket;
     socket.on("connect", () => {
@@ -586,8 +590,10 @@ function ChessGame({
           current === "COMPLETED" ? current : "ONGOING",
         );
       }
+      hasHydratedOnlineStateRef.current = true;
     });
     socket.on("remote_move", (snapshot) => {
+      hasHydratedOnlineStateRef.current = true;
       applySnapshot(snapshot);
       setResolvedGameStatus((current) =>
         current === "COMPLETED" ? current : "ONGOING",
@@ -692,16 +698,18 @@ function ChessGame({
     setDragOver(null);
   }, [initSeconds]);
 
-  const lastEmittedBoardRef = useRef<string>("");
+  const lastEmittedStateRef = useRef<string>("");
 
   useEffect(() => {
     if (!isOnline) return;
+    if (!hasHydratedOnlineStateRef.current) return;
+    if (isApplyingRemoteRef.current) return;
     const socket = socketRef.current;
     const snapshot = exportSnapshot();
     if (!socket || !snapshot) return;
-    const boardKey = JSON.stringify(board) + player;
-    if (boardKey === lastEmittedBoardRef.current) return;
-    lastEmittedBoardRef.current = boardKey;
+    const stateKey = JSON.stringify(snapshot);
+    if (stateKey === lastEmittedStateRef.current) return;
+    lastEmittedStateRef.current = stateKey;
     socket.emit("move", { gameId: snapshot.gameId, state: snapshot });
   }, [
     board,
@@ -722,13 +730,13 @@ function ChessGame({
     online.playerColor,
   ]);
 
-  function evalState(b, next, m, newEp, hm) {
+  function evalState(b, next, m, newEp, hm, moveCount) {
     if (hm >= 100) {
       const r = { winner: "Draw", reason: "50-move rule" };
       setStatus("Draw — 50-move rule");
       setGameOver(true);
       setGameResult(r);
-      void persistEndOfGame(r, hm);
+      void persistEndOfGame(r, moveCount);
       return;
     }
     const inChk = isInCheck(b, next, newEp),
@@ -739,13 +747,13 @@ function ChessGame({
       setStatus(`Checkmate — ${winner} wins!`);
       setGameOver(true);
       setGameResult(r);
-      void persistEndOfGame(r, hm);
+      void persistEndOfGame(r, moveCount);
     } else if (!inChk && !hasL) {
       const r = { winner: "Draw", reason: "stalemate" };
       setStatus("Stalemate — Draw");
       setGameOver(true);
       setGameResult(r);
-      void persistEndOfGame(r, hm);
+      void persistEndOfGame(r, moveCount);
     } else if (inChk)
       setStatus(`${next === "white" ? "White" : "Black"} is in check!`);
     else setStatus("");
@@ -792,6 +800,7 @@ function ChessGame({
       return true;
     }
     const next = player === "white" ? "black" : "white";
+    const nextMoveCount = history.length + 1;
     setHistory((h) => [
       ...h,
       toNotation(sr, sc, dr, dc, mp, target, nb, next, newEp),
@@ -801,7 +810,7 @@ function ChessGame({
     setEp(newEp);
     setHalfmove(newHalfmove);
     setPlayer(next);
-    evalState(nb, next, newMoved, newEp, newHalfmove);
+    evalState(nb, next, newMoved, newEp, newHalfmove, nextMoveCount);
     return true;
   }
 
@@ -893,6 +902,7 @@ function ChessGame({
       toNotation(sr, sc, row, col, mp, target, fb, next, newEp) +
       "=" +
       p.toUpperCase();
+    const nextMoveCount = history.length + 1;
     setHistory((h) => [...h, n]);
     setBoard(fb);
     setMoved(newMoved);
@@ -900,7 +910,7 @@ function ChessGame({
     setHalfmove(newHalfmove);
     setPlayer(next);
     setPendingPromo(null);
-    evalState(fb, next, newMoved, newEp, newHalfmove);
+    evalState(fb, next, newMoved, newEp, newHalfmove, nextMoveCount);
   }
 
   async function handleGiveUpConfirm() {
