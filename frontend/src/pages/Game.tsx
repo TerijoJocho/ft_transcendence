@@ -439,6 +439,19 @@ function ChessGame({
     setResolvedGameStatus(activeGameStatus ?? online.gameStatus ?? null);
   }, [activeGameStatus, online.gameStatus]);
 
+  useEffect(() => {
+    if (!isOnline) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOnlineStatus(null);
+      return;
+    }
+    if (resolvedGameStatus === "PENDING") {
+      setOnlineStatus("En attente d'un deuxième joueur...");
+      return;
+    }
+    setOnlineStatus(null);
+  }, [isOnline, resolvedGameStatus]);
+
   // Confirm modal: "restart" | "giveup" | "cancel" | null
   const [confirmAction, setConfirmAction] = useState<
     "restart" | "giveup" | "cancel" | null
@@ -557,16 +570,28 @@ function ChessGame({
       setOnlineError(null);
       socket.emit("join_game", { gameId: online.gameId });
       socket.emit("sync_request", { gameId: online.gameId });
+      void (async () => {
+        try {
+          const session = await getGameSession(online.gameId);
+          setResolvedGameStatus(session.gameStatus);
+        } catch {
+          /* best effort */
+        }
+      })();
     });
     socket.on("sync_state", (snapshot) => {
       if (snapshot) {
         applySnapshot(snapshot);
-        // setOnlineStatus("Partie synchronisée.");
+        setResolvedGameStatus((current) =>
+          current === "COMPLETED" ? current : "ONGOING",
+        );
       }
     });
     socket.on("remote_move", (snapshot) => {
       applySnapshot(snapshot);
-      // setOnlineStatus("Coup adverse reçu.");
+      setResolvedGameStatus((current) =>
+        current === "COMPLETED" ? current : "ONGOING",
+      );
     });
     socket.on("player_joined", () => {
       setResolvedGameStatus("ONGOING");
@@ -581,6 +606,7 @@ function ChessGame({
     });
     socket.on("game_over", (result) => {
       setResolvedGameStatus("COMPLETED");
+      setOnlineStatus(null);
       setGameResult(result ?? { winner: "Draw", reason: "finished" });
       setGameOver(true);
       // setOnlineStatus("Partie terminée.");
@@ -1310,23 +1336,72 @@ type Mode = "Local" | "En ligne" | null;
 type TimeControl = "Bullet" | "Blitz" | "Normal" | null;
 type Color = "Blanc" | "Noir" | null;
 
+const GAME_VIEW_STORAGE_KEY = "ft_transcendence:game:view-state";
+
+type PersistedGameViewState = {
+  showChess: boolean;
+  mode: Mode;
+  timeControl: TimeControl;
+  color: Color;
+  activeGameId: number | null;
+  activeGameStatus: "PENDING" | "ONGOING" | "COMPLETED" | null;
+  onlinePlayerColor: "WHITE" | "BLACK" | null;
+};
+
+function getInitialGameViewState(): PersistedGameViewState {
+  const defaults: PersistedGameViewState = {
+    showChess: false,
+    mode: "Local",
+    timeControl: "Normal",
+    color: "Blanc",
+    activeGameId: null,
+    activeGameStatus: null,
+    onlinePlayerColor: null,
+  };
+
+  try {
+    const raw = localStorage.getItem(GAME_VIEW_STORAGE_KEY);
+    if (!raw) return defaults;
+    const parsed = JSON.parse(raw) as Partial<PersistedGameViewState>;
+    if (!parsed || parsed.showChess !== true) return defaults;
+    return {
+      ...defaults,
+      ...parsed,
+      showChess: true,
+    };
+  } catch {
+    return defaults;
+  }
+}
+
 function Game() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const initialGameViewStateRef = useRef<PersistedGameViewState>(
+    getInitialGameViewState(),
+  );
   const [showCreateOptions, setShowCreateOptions] = useState(false);
-  const [showChess, setShowChess] = useState(false);
+  const [showChess, setShowChess] = useState(
+    initialGameViewStateRef.current.showChess,
+  );
   // Pre-selected defaults: Local, Normal (Classic), Blanc
-  const [mode, setMode] = useState<Mode>("Local");
-  const [timeControl, setTimeControl] = useState<TimeControl>("Normal");
-  const [color, setColor] = useState<Color>("Blanc");
+  const [mode, setMode] = useState<Mode>(initialGameViewStateRef.current.mode);
+  const [timeControl, setTimeControl] = useState<TimeControl>(
+    initialGameViewStateRef.current.timeControl,
+  );
+  const [color, setColor] = useState<Color>(
+    initialGameViewStateRef.current.color,
+  );
   const [gameIdInput, setGameIdInput] = useState("");
-  const [activeGameId, setActiveGameId] = useState<number | null>(null);
+  const [activeGameId, setActiveGameId] = useState<number | null>(
+    initialGameViewStateRef.current.activeGameId,
+  );
   const [activeGameStatus, setActiveGameStatus] = useState<
     "PENDING" | "ONGOING" | "COMPLETED" | null
-  >(null);
+  >(initialGameViewStateRef.current.activeGameStatus);
   const [onlinePlayerColor, setOnlinePlayerColor] = useState<
     "WHITE" | "BLACK" | null
-  >(null);
+  >(initialGameViewStateRef.current.onlinePlayerColor);
   const [pendingGames, setPendingGames] = useState<PendingGame[]>([]);
   const [isLoadingPendingGames, setIsLoadingPendingGames] = useState(false);
   const [menuError, setMenuError] = useState<string | null>(null);
@@ -1362,6 +1437,32 @@ function Game() {
       void loadPendingGames();
     }
   }, [showCreateOptions, showChess, loadPendingGames]);
+
+  useEffect(() => {
+    if (!showChess) {
+      localStorage.removeItem(GAME_VIEW_STORAGE_KEY);
+      return;
+    }
+
+    const stateToPersist: PersistedGameViewState = {
+      showChess,
+      mode,
+      timeControl,
+      color,
+      activeGameId,
+      activeGameStatus,
+      onlinePlayerColor,
+    };
+    localStorage.setItem(GAME_VIEW_STORAGE_KEY, JSON.stringify(stateToPersist));
+  }, [
+    showChess,
+    mode,
+    timeControl,
+    color,
+    activeGameId,
+    activeGameStatus,
+    onlinePlayerColor,
+  ]);
 
   function handleBack() {
     setShowChess(false);
