@@ -151,7 +151,7 @@ function Login() {
 
       <button
         onClick={api.google}
-        className="p-2 bg-white w-fit text-black rounded-lg mb-6 self-center hover:text-white hover:bg-black"
+        className="p-2 bg-white dark:bg-zinc-900 w-fit text-black dark:text-zinc-100 border border-transparent dark:border-zinc-700 rounded-lg mb-6 self-center hover:text-white hover:bg-black dark:hover:bg-zinc-800"
       >
         Se connecter avec Google
       </button>
@@ -162,6 +162,15 @@ function Login() {
           Créer un compte
         </Link>
       </p>
+
+      <div className="mt-4 flex justify-center gap-4 text-xs text-gray-200 dark:text-zinc-300">
+        <Link to="/privacy-policy" className="hover:underline">
+          Politique de confidentialité
+        </Link>
+        <Link to="/terms-of-service" className="hover:underline">
+          Conditions d'utilisation
+        </Link>
+      </div>
     </div>
   );
 }

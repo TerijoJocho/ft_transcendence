@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 
-import * as api from "./api/api.ts"
+import * as api from "./api/api.ts";
 import { useAuth } from "./auth/useAuth";
 
 import PrivateRoute from "./auth/PrivateRoute.tsx";
@@ -17,6 +17,9 @@ import Tournament from "./pages/Tournament.tsx";
 import Chat from "./pages/Chat.tsx";
 import Profil from "./pages/Profil.tsx";
 import Friends from "./pages/Friends.tsx";
+import { Puzzle } from "./pages/Puzzle.tsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
+import TermsOfService from "./pages/TermsOfService.tsx";
 
 function App() {
   // on récupère les fonctions login/clearAuth du contexte
@@ -24,23 +27,24 @@ function App() {
 
   useEffect(() => {
     // au démarrage de l'app, vérifie qui est connecté en appelant me()
-    api.me() //utiliser le get de /user
+    api
+      .me() //utiliser le get de /user
       .then((user) => login(user)) //si connecté, on lance login() pour enregistrer le user
       .catch(() => clearAuth()); // si erreur -> pas connecté, on lance clearAuth() pour avoir user === null
   }, [login, clearAuth]);
   // Les dépendances assurent que cet effet s'exécute si login/clearAuth changent
 
-  if (isLoading)
-    return (
-      <div>
-        Loading...
-      </div>
-    );
+  if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-[#DCE1E9]">
+    <div className="min-h-screen bg-[#DCE1E9] dark:bg-zinc-700 text-white dark:text-zinc-100 transition-colors duration-300">
       <Routes>
         {/* Routes publiques */}
+        <Route element={<PublicLayout />}>
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+        </Route>
+
         <Route
           element={
             <PublicRoute>
@@ -51,7 +55,6 @@ function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignIn />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
         </Route>
 
         {/* Routes privées */}
@@ -69,7 +72,10 @@ function App() {
           <Route path="/chat" element={<Chat />} />
           <Route path="/profil" element={<Profil />} />
           <Route path="/friends" element={<Friends />} />
+          <Route path="/puzzle" element={<Puzzle />} />
         </Route>
+
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </div>
   );
