@@ -293,13 +293,7 @@ function Clock({
   return (
     <div
       className={`px-5 py-2 rounded-lg border font-mono text-2xl font-semibold tracking-widest transition-all duration-300
-      ${
-        low
-          ? "border-rose-500 text-rose-400 bg-rose-500/10"
-          : active
-            ? "border-gray-400 text-white bg-gray-700"
-            : "border-gray-700 text-gray-500 bg-gray-900"
-      }`}
+      ${low ? "border-rose-500 text-rose-400 bg-rose-500/10" : active ? "border-gray-400 text-white bg-gray-700" : "border-gray-700 text-gray-500 bg-gray-900"}`}
     >
       {formatTime(seconds)}
     </div>
@@ -390,6 +384,21 @@ function ChessGame({
   const isOnline =
     online.enabled && online.gameId !== null && online.playerColor !== null;
 
+  // Board flip for black player online
+  const isFlipped = isOnline && online.playerColor === "BLACK";
+  const displayRows = isFlipped
+    ? [7, 6, 5, 4, 3, 2, 1, 0]
+    : [0, 1, 2, 3, 4, 5, 6, 7];
+  const displayCols = isFlipped
+    ? [7, 6, 5, 4, 3, 2, 1, 0]
+    : [0, 1, 2, 3, 4, 5, 6, 7];
+  const rankLabels = isFlipped
+    ? [1, 2, 3, 4, 5, 6, 7, 8]
+    : [8, 7, 6, 5, 4, 3, 2, 1];
+  const fileLabels = isFlipped
+    ? ["h", "g", "f", "e", "d", "c", "b", "a"]
+    : ["a", "b", "c", "d", "e", "f", "g", "h"];
+
   const [board, setBoard] = useState(INIT_BOARD);
   const [player, setPlayer] = useState("white");
   const [selected, setSelected] = useState(null);
@@ -416,40 +425,52 @@ function ChessGame({
       ? "En attente d'un deuxième joueur..."
       : null,
   );
-  const [resolvedGameStatus, setResolvedGameStatus] = useState<OnlineConfig["gameStatus"]>(
-    activeGameStatus ?? online.gameStatus ?? null,
-  );
+  const [resolvedGameStatus, setResolvedGameStatus] = useState<
+    OnlineConfig["gameStatus"]
+  >(activeGameStatus ?? online.gameStatus ?? null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [onlineError, setOnlineError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const isApplyingRemoteRef = useRef(false);
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setResolvedGameStatus(activeGameStatus ?? online.gameStatus ?? null);
   }, [activeGameStatus, online.gameStatus]);
 
-  // Confirm modal: "restart" | "giveup" | "cancel" | null
-  const [confirmAction, setConfirmAction] = useState<"restart" | "giveup" | "cancel" | null>(null);
+  useEffect(() => {
+    if (!isOnline) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOnlineStatus(null);
+      return;
+    }
+    if (resolvedGameStatus === "PENDING") {
+      setOnlineStatus("En attente d'un deuxième joueur...");
+      return;
+    }
+    setOnlineStatus(null);
+  }, [isOnline, resolvedGameStatus]);
 
-  // Drag-and-drop
+  // Confirm modal: "restart" | "giveup" | "cancel" | null
+  const [confirmAction, setConfirmAction] = useState<
+    "restart" | "giveup" | "cancel" | null
+  >(null);
+
   const [dragSource, setDragSource] = useState<[number, number] | null>(null);
   const [dragOver, setDragOver] = useState<[number, number] | null>(null);
 
-  // Auto-scroll history to bottom
   const historyRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (historyRef.current) {
+    if (historyRef.current)
       historyRef.current.scrollTop = historyRef.current.scrollHeight;
-    }
   }, [history]);
 
   const persistEndOfGame = useCallback(
     async (result: { winner: string; reason: string }, moveCount: number) => {
       if (!isOnline || !online.gameId) return;
-
       const winnerNbMoves = Math.ceil(moveCount / 2);
       const isDraw = result.winner === "Draw";
-
       try {
         if (isDraw) {
           await endGame(online.gameId, {
@@ -467,7 +488,7 @@ function ChessGame({
           });
         }
       } catch {
-        // Best effort only: realtime update still goes through websocket diffusion.
+        /* best effort */
       }
     },
     [isOnline, online.gameId],
@@ -549,22 +570,51 @@ function ChessGame({
       setOnlineError(null);
       socket.emit("join_game", { gameId: online.gameId });
       socket.emit("sync_request", { gameId: online.gameId });
+      void (async () => {
+        try {
+          const session = await getGameSession(online.gameId);
+          setResolvedGameStatus(session.gameStatus);
+        } catch {
+          /* best effort */
+        }
+      })();
     });
-    socket.on("sync_state", (snapshot) => { if (snapshot) { applySnapshot(snapshot); setOnlineStatus("Partie synchronisée."); } });
-    socket.on("remote_move", (snapshot) => { applySnapshot(snapshot); setOnlineStatus("Coup adverse reçu."); });
+    socket.on("sync_state", (snapshot) => {
+      if (snapshot) {
+        applySnapshot(snapshot);
+        setResolvedGameStatus((current) =>
+          current === "COMPLETED" ? current : "ONGOING",
+        );
+      }
+    });
+    socket.on("remote_move", (snapshot) => {
+      applySnapshot(snapshot);
+      setResolvedGameStatus((current) =>
+        current === "COMPLETED" ? current : "ONGOING",
+      );
+    });
     socket.on("player_joined", () => {
       setResolvedGameStatus("ONGOING");
       setOnlineStatus("Deuxième joueur connecté. La partie commence.");
     });
-    socket.on("opponent_disconnected", () => { setOnlineError("L'adversaire s'est déconnecté."); });
-    socket.on("game_error", (payload: { message?: string }) => { setOnlineError(payload?.message ?? "Erreur temps réel."); });
+    socket.on("opponent_disconnected", () => {
+      // setOnlineError("L'adversaire s'est déconnecté.");
+    });
+    socket.on("game_error", (payload: { message?: string }) => {
+      void payload;
+      // setOnlineError(payload?.message ?? "Erreur temps réel.");
+    });
     socket.on("game_over", (result) => {
       setResolvedGameStatus("COMPLETED");
+      setOnlineStatus(null);
       setGameResult(result ?? { winner: "Draw", reason: "finished" });
       setGameOver(true);
-      setOnlineStatus("Partie terminée.");
+      // setOnlineStatus("Partie terminée.");
     });
-    return () => { socket.disconnect(); socketRef.current = null; };
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
   }, [isOnline, online.gameId, online.gameStatus, applySnapshot]);
 
   useEffect(() => {
@@ -607,6 +657,18 @@ function ChessGame({
     history.length,
     persistEndOfGame,
   ]);
+
+  // Auto-redirect 5 seconds after game ends
+  useEffect(() => {
+    if (gameOver) {
+      redirectTimerRef.current = setTimeout(() => {
+        onBack();
+      }, 5000);
+    }
+    return () => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+    };
+  }, [gameOver, onBack]);
 
   const reset = useCallback(() => {
     clearInterval(intervalRef.current!);
@@ -689,13 +751,13 @@ function ChessGame({
     else setStatus("");
   }
 
-  // Shared move execution used by both click and drag
   function executeMove(
     sr: number,
     sc: number,
     dr: number,
     dc: number,
   ): boolean {
+    if (isOnline && resolvedGameStatus !== "ONGOING") return false;
     if (!isLegalMove(board, sr, sc, dr, dc, player, moved, ep)) return false;
     if (hasClock && !clockStarted) setClockStarted(true);
     const {
@@ -745,6 +807,7 @@ function ChessGame({
 
   function handleClick(r, c) {
     if (gameOver || pendingPromo) return;
+    if (isOnline && resolvedGameStatus !== "ONGOING") return;
     if (isOnline) {
       const expectedTurn = online.playerColor === "WHITE" ? "white" : "black";
       if (player !== expectedTurn) return;
@@ -769,6 +832,10 @@ function ChessGame({
 
   function handleDragStart(e: React.DragEvent, r: number, c: number) {
     if (gameOver || pendingPromo) {
+      e.preventDefault();
+      return;
+    }
+    if (isOnline && resolvedGameStatus !== "ONGOING") {
       e.preventDefault();
       return;
     }
@@ -839,20 +906,18 @@ function ChessGame({
   async function handleGiveUpConfirm() {
     setConfirmAction(null);
     const totalNbMoves = history.length;
-    const winnerNbMoves = player === "white"
-      ? Math.floor(totalNbMoves / 2)
-      : Math.ceil(totalNbMoves / 2);
-
+    const winnerNbMoves =
+      player === "white"
+        ? Math.floor(totalNbMoves / 2)
+        : Math.ceil(totalNbMoves / 2);
     if (isOnline && online.gameId && !gameOver) {
       try {
-        await giveupGame(online.gameId, {
-          totalNbMoves: totalNbMoves,
-          winnerNbMoves: winnerNbMoves,
-        });
-        if (socketRef.current?.connected) {
+        await giveupGame(online.gameId, { totalNbMoves, winnerNbMoves });
+        if (socketRef.current?.connected)
           socketRef.current.emit("giveup", { gameId: online.gameId });
-        }
-      } catch (e) {console.log(e)}
+      } catch (e) {
+        console.log(e);
+      }
     }
     onBack();
   }
@@ -862,16 +927,16 @@ function ChessGame({
     if (isOnline && online.gameId && !gameOver) {
       try {
         await cancelGame(online.gameId);
-        if (socketRef.current?.connected) {
+        if (socketRef.current?.connected)
           socketRef.current.emit("cancel", { gameId: online.gameId });
-        }
-      } catch {console.error("Erreur produite lors de l'abandon du jeu") }
+      } catch {
+        console.error("Erreur produite lors de l'abandon du jeu");
+      }
     }
     onBack();
   }
 
-  function handleQuit()
-  {
+  function handleQuit() {
     console.log(resolvedGameStatus);
     if (resolvedGameStatus === "PENDING") {
       setConfirmAction("cancel");
@@ -882,12 +947,22 @@ function ChessGame({
     }
   }
 
-  const hintSet    = new Set(hints.map(h => `${h.row},${h.col}`));
-  const captureSet = new Set(hints.filter(h => h.capture).map(h => `${h.row},${h.col}`));
+  const hintSet = new Set(hints.map((h) => `${h.row},${h.col}`));
+  const captureSet = new Set(
+    hints.filter((h) => h.capture).map((h) => `${h.row},${h.col}`),
+  );
   const lowThreshold = initSeconds ? Math.min(30, initSeconds * 0.2) : 30;
 
+  // Clock labels/values based on board flip
+  const topClockPlayer = isFlipped ? "white" : "black";
+  const botClockPlayer = isFlipped ? "black" : "white";
+  const topClockSeconds = isFlipped ? whiteTime! : blackTime!;
+  const botClockSeconds = isFlipped ? blackTime! : whiteTime!;
+  const topClockLabel = isFlipped ? "White" : "Black";
+  const botClockLabel = isFlipped ? "Black" : "White";
+
   return (
-    <div className="text-white">
+    <div className="text-white w-full bg-white">
       {isOnline && online.gameId && (
         <div className="flex justify-end px-6 pt-4">
           <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2">
@@ -900,15 +975,20 @@ function ChessGame({
           </div>
         </div>
       )}
-      <div className="flex gap-6 p-6 justify-center items-start flex-wrap">
-        {/* Move history — 2 moves per row, scrollable */}
+      <div className="flex gap-6 p-4 sm:p-6 justify-center items-start flex-wrap">
+        {/* Move history */}
         <div
           className="w-52 bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col"
           style={{ height: "520px" }}
         >
-          <p className="text-xs uppercase tracking-widest text-gray-500 mb-3 pb-2 border-b border-gray-700 flex-shrink-0">
+          <p className="text-xs uppercase tracking-widest text-gray-500 mb-2 pb-2 border-b border-gray-700 flex-shrink-0">
             Moves
           </p>
+          <div className="flex gap-2 text-xs uppercase tracking-widest text-gray-500 mb-1 flex-shrink-0">
+            <span className="w-6"></span>
+            <span className="w-16">White</span>
+            <span className="w-16">Black</span>
+          </div>
           <div
             ref={historyRef}
             className="overflow-y-auto flex-1 flex flex-col gap-1 pr-1"
@@ -930,15 +1010,16 @@ function ChessGame({
         </div>
 
         <div className="flex flex-col items-center gap-3">
+          {/* Top clock */}
           {hasClock && (
             <div className="flex items-center gap-3 self-end">
               <span className="text-xs uppercase tracking-widest text-gray-500">
-                Black
+                {topClockLabel}
               </span>
               <Clock
-                seconds={blackTime!}
-                active={player === "black" && clockStarted && !gameOver}
-                low={blackTime! <= lowThreshold}
+                seconds={topClockSeconds}
+                active={player === topClockPlayer && clockStarted && !gameOver}
+                low={topClockSeconds <= lowThreshold}
               />
             </div>
           )}
@@ -957,22 +1038,25 @@ function ChessGame({
               </span>
             </div>
           )}
+
+          {/* Status bar */}
           <div
             className={`text-xs uppercase tracking-widest h-5 text-center transition-colors ${gameOver ? "text-rose-400 font-semibold" : status.includes("check") ? "text-rose-400" : "text-gray-500"}`}
           >
             {status ||
               `${player.charAt(0).toUpperCase() + player.slice(1)}'s turn`}
           </div>
-          {isOnline && onlineStatus && (
-            <p className="text-xs text-sky-300 tracking-wide text-center">
+
+          {/* Only show the waiting message, all other log messages are commented out */}
+          {isOnline && onlineStatus && onlineStatus.includes("attente") && (
+            <p
+              style={{ color: "#7c3aed", fontWeight: 600 }}
+              className="text-xs tracking-wide text-center uppercase"
+            >
               {onlineStatus}
             </p>
           )}
-          {isOnline && onlineError && (
-            <p className="text-xs text-rose-400 tracking-wide text-center">
-              {onlineError}
-            </p>
-          )}
+          {/* {isOnline && onlineError && <p className="text-xs text-rose-400 tracking-wide text-center">{onlineError}</p>} */}
 
           {/* Board */}
           <div className="p-2.5 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl">
@@ -981,7 +1065,7 @@ function ChessGame({
                 className="flex flex-col justify-around pr-1.5 text-xs text-gray-600 select-none"
                 style={{ height: "480px" }}
               >
-                {[8, 7, 6, 5, 4, 3, 2, 1].map((n) => (
+                {rankLabels.map((n) => (
                   <span key={n}>{n}</span>
                 ))}
               </div>
@@ -993,8 +1077,9 @@ function ChessGame({
                     gridTemplateRows: "repeat(8,60px)",
                   }}
                 >
-                  {board.map((row, r) =>
-                    row.map((piece, c) => {
+                  {displayRows.map((r) =>
+                    displayCols.map((c) => {
+                      const piece = board[r][c];
                       const key = `${r},${c}`;
                       const isSel =
                         selected && selected[0] === r && selected[1] === c;
@@ -1073,7 +1158,7 @@ function ChessGame({
                   )}
                 </div>
                 <div className="flex justify-around pt-1 text-xs text-gray-600 select-none">
-                  {["a", "b", "c", "d", "e", "f", "g", "h"].map((l) => (
+                  {fileLabels.map((l) => (
                     <span key={l}>{l}</span>
                   ))}
                 </div>
@@ -1081,103 +1166,49 @@ function ChessGame({
             </div>
           </div>
 
+          {/* Bottom clock */}
           {hasClock && (
             <div className="flex items-center gap-3 self-end">
               <span className="text-xs uppercase tracking-widest text-gray-500">
-                White
+                {botClockLabel}
               </span>
               <Clock
-                seconds={whiteTime!}
-                active={player === "white" && clockStarted && !gameOver}
-                low={whiteTime! <= lowThreshold}
+                seconds={botClockSeconds}
+                active={player === botClockPlayer && clockStarted && !gameOver}
+                low={botClockSeconds <= lowThreshold}
               />
             </div>
           )}
 
-          {/* Restart / giveup / Cancel buttons */}
+          {/* Buttons */}
           <div className="flex gap-4 mt-1">
-            {!isOnline &&(
+            {!isOnline && (
               <>
-              <button
-                onClick={() => setConfirmAction("restart")}
-                className="px-8 py-3 text-sm uppercase tracking-widest border border-rose-700 text-rose-400 rounded-md hover:bg-rose-700/20 hover:border-rose-500 transition-all duration-200"
-              >
-                Restart
-              </button>
-              <button
-                onClick={() => setConfirmAction("giveup")}
-                className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-600 text-gray-400 rounded-md hover:bg-gray-600/20 hover:border-gray-400 transition-all duration-200"
-              >
-                ← Quitter
-              </button>
+                <button
+                  onClick={() => setConfirmAction("restart")}
+                  className="px-8 py-3 text-sm uppercase tracking-widest border border-rose-700 text-rose-400 rounded-md hover:bg-rose-700/20 hover:border-rose-500 transition-all duration-200"
+                >
+                  Restart
+                </button>
+                <button
+                  onClick={() => setConfirmAction("giveup")}
+                  className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-600 text-gray-400 rounded-md hover:bg-gray-600/20 hover:border-gray-400 transition-all duration-200"
+                >
+                  ← Quitter
+                </button>
               </>
             )}
-
-          {isOnline && (
-            <>
-              <button
-                onClick={handleQuit}
-                className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-700 text-gray-400 rounded-md hover:bg-gray-700/20 hover:border-gray-500 transition-all duration-200"
-              >
-                ← Quitter
-              </button>
-            </>
-          )}
+            {isOnline && (
+              <>
+                <button
+                  onClick={handleQuit}
+                  className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-700 text-gray-400 rounded-md hover:bg-gray-700/20 hover:border-gray-500 transition-all duration-200"
+                >
+                  ← Quitter
+                </button>
+              </>
+            )}
           </div>
-
-          {/* Game summary */}
-          {gameResult &&
-            (() => {
-              const totalMoves = history.length;
-              const whiteMoves = Math.ceil(totalMoves / 2);
-              const blackMoves = Math.floor(totalMoves / 2);
-              const isDraw = gameResult.winner === "Draw";
-              return (
-                <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-xl p-5 flex flex-col gap-4">
-                  <p className="text-xs uppercase tracking-widest text-gray-500 pb-2 border-b border-gray-700">
-                    Game summary
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs uppercase tracking-widest text-gray-500">
-                      Result
-                    </span>
-                    <span
-                      className={`text-sm font-semibold ${isDraw ? "text-gray-300" : "text-rose-400"}`}
-                    >
-                      {isDraw
-                        ? `Draw — ${gameResult.reason}`
-                        : `${gameResult.winner} wins by ${gameResult.reason}`}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="flex flex-col items-center bg-gray-800 rounded-lg py-3">
-                      <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">
-                        Total
-                      </span>
-                      <span className="text-2xl font-semibold text-white">
-                        {totalMoves}
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-center bg-gray-800 rounded-lg py-3">
-                      <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">
-                        White
-                      </span>
-                      <span className="text-2xl font-semibold text-white">
-                        {whiteMoves}
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-center bg-gray-800 rounded-lg py-3">
-                      <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">
-                        Black
-                      </span>
-                      <span className="text-2xl font-semibold text-white">
-                        {blackMoves}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
         </div>
       </div>
 
@@ -1188,18 +1219,89 @@ function ChessGame({
             confirmAction === "restart"
               ? "Relancer la partie ?"
               : confirmAction === "cancel"
-              ? "Annuler la partie ? Elle sera supprimée."
-              : isOnline && !gameOver
-              ? "Retourner au giveup ? Cela comptera comme une résignation."
-              : "Retourner au tableau de bord ?"
+                ? "Annuler la partie ? Elle sera supprimée."
+                : isOnline && !gameOver
+                  ? "Retourner au giveup ? Cela comptera comme une résignation."
+                  : "Retourner au tableau de bord ?"
           }
           onConfirm={async () => {
-            if (confirmAction === "restart") { reset(); setConfirmAction(null); }
-            else if (confirmAction === "cancel") { await handleCancelConfirm(); }
-            else { await handleGiveUpConfirm(); console.log("Confirmed giveup/Leave");}
+            if (confirmAction === "restart") {
+              reset();
+              setConfirmAction(null);
+            } else if (confirmAction === "cancel") {
+              await handleCancelConfirm();
+            } else {
+              await handleGiveUpConfirm();
+              console.log("Confirmed giveup/Leave");
+            }
           }}
           onCancel={() => setConfirmAction(null)}
         />
+      )}
+
+      {/* Game summary popup — center overlay */}
+      {gameResult && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-40">
+          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 flex flex-col gap-4 shadow-2xl w-full max-w-sm mx-4">
+            <p className="text-xs uppercase tracking-widest text-gray-500 pb-2 border-b border-gray-700">
+              Game summary
+            </p>
+            <div className="flex items-center justify-between">
+              <span className="text-xs uppercase tracking-widest text-gray-500">
+                Result
+              </span>
+              <span
+                className={`text-sm font-semibold ${gameResult.winner === "Draw" ? "text-gray-300" : "text-rose-400"}`}
+              >
+                {gameResult.winner === "Draw"
+                  ? `Draw — ${gameResult.reason}`
+                  : gameResult.reason === "resign" ||
+                      gameResult.winner === "opponent"
+                    ? "You win — opponent resigned"
+                    : `${gameResult.winner} wins by ${gameResult.reason}`}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-col items-center bg-gray-800 rounded-lg py-3">
+                <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">
+                  Total
+                </span>
+                <span className="text-2xl font-semibold text-white">
+                  {history.length}
+                </span>
+              </div>
+              <div className="flex flex-col items-center bg-gray-800 rounded-lg py-3">
+                <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">
+                  White
+                </span>
+                <span className="text-2xl font-semibold text-white">
+                  {Math.ceil(history.length / 2)}
+                </span>
+              </div>
+              <div className="flex flex-col items-center bg-gray-800 rounded-lg py-3">
+                <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">
+                  Black
+                </span>
+                <span className="text-2xl font-semibold text-white">
+                  {Math.floor(history.length / 2)}
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 text-center">
+              Retour automatique dans 5s…
+            </p>
+            <button
+              onClick={() => {
+                if (redirectTimerRef.current)
+                  clearTimeout(redirectTimerRef.current);
+                onBack();
+              }}
+              className="w-full py-3 text-sm uppercase tracking-widest bg-violet-600 text-white rounded-md hover:bg-violet-500 transition-all"
+            >
+              OK
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Promotion modal */}
@@ -1234,22 +1336,72 @@ type Mode = "Local" | "En ligne" | null;
 type TimeControl = "Bullet" | "Blitz" | "Normal" | null;
 type Color = "Blanc" | "Noir" | null;
 
+const GAME_VIEW_STORAGE_KEY = "ft_transcendence:game:view-state";
+
+type PersistedGameViewState = {
+  showChess: boolean;
+  mode: Mode;
+  timeControl: TimeControl;
+  color: Color;
+  activeGameId: number | null;
+  activeGameStatus: "PENDING" | "ONGOING" | "COMPLETED" | null;
+  onlinePlayerColor: "WHITE" | "BLACK" | null;
+};
+
+function getInitialGameViewState(): PersistedGameViewState {
+  const defaults: PersistedGameViewState = {
+    showChess: false,
+    mode: "Local",
+    timeControl: "Normal",
+    color: "Blanc",
+    activeGameId: null,
+    activeGameStatus: null,
+    onlinePlayerColor: null,
+  };
+
+  try {
+    const raw = localStorage.getItem(GAME_VIEW_STORAGE_KEY);
+    if (!raw) return defaults;
+    const parsed = JSON.parse(raw) as Partial<PersistedGameViewState>;
+    if (!parsed || parsed.showChess !== true) return defaults;
+    return {
+      ...defaults,
+      ...parsed,
+      showChess: true,
+    };
+  } catch {
+    return defaults;
+  }
+}
+
 function Game() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const initialGameViewStateRef = useRef<PersistedGameViewState>(
+    getInitialGameViewState(),
+  );
   const [showCreateOptions, setShowCreateOptions] = useState(false);
-  const [showChess, setShowChess] = useState(false);
-  const [mode, setMode] = useState<Mode>(null);
-  const [timeControl, setTimeControl] = useState<TimeControl>(null);
-  const [color, setColor] = useState<Color>(null);
+  const [showChess, setShowChess] = useState(
+    initialGameViewStateRef.current.showChess,
+  );
+  // Pre-selected defaults: Local, Normal (Classic), Blanc
+  const [mode, setMode] = useState<Mode>(initialGameViewStateRef.current.mode);
+  const [timeControl, setTimeControl] = useState<TimeControl>(
+    initialGameViewStateRef.current.timeControl,
+  );
+  const [color, setColor] = useState<Color>(
+    initialGameViewStateRef.current.color,
+  );
   const [gameIdInput, setGameIdInput] = useState("");
-  const [activeGameId, setActiveGameId] = useState<number | null>(null);
+  const [activeGameId, setActiveGameId] = useState<number | null>(
+    initialGameViewStateRef.current.activeGameId,
+  );
   const [activeGameStatus, setActiveGameStatus] = useState<
     "PENDING" | "ONGOING" | "COMPLETED" | null
-  >(null);
+  >(initialGameViewStateRef.current.activeGameStatus);
   const [onlinePlayerColor, setOnlinePlayerColor] = useState<
     "WHITE" | "BLACK" | null
-  >(null);
+  >(initialGameViewStateRef.current.onlinePlayerColor);
   const [pendingGames, setPendingGames] = useState<PendingGame[]>([]);
   const [isLoadingPendingGames, setIsLoadingPendingGames] = useState(false);
   const [menuError, setMenuError] = useState<string | null>(null);
@@ -1286,12 +1438,39 @@ function Game() {
     }
   }, [showCreateOptions, showChess, loadPendingGames]);
 
+  useEffect(() => {
+    if (!showChess) {
+      localStorage.removeItem(GAME_VIEW_STORAGE_KEY);
+      return;
+    }
+
+    const stateToPersist: PersistedGameViewState = {
+      showChess,
+      mode,
+      timeControl,
+      color,
+      activeGameId,
+      activeGameStatus,
+      onlinePlayerColor,
+    };
+    localStorage.setItem(GAME_VIEW_STORAGE_KEY, JSON.stringify(stateToPersist));
+  }, [
+    showChess,
+    mode,
+    timeControl,
+    color,
+    activeGameId,
+    activeGameStatus,
+    onlinePlayerColor,
+  ]);
+
   function handleBack() {
     setShowChess(false);
     setShowCreateOptions(false);
-    setMode(null);
-    setTimeControl(null);
-    setColor(null);
+    // Reset to defaults
+    setMode("Local");
+    setTimeControl("Normal");
+    setColor("Blanc");
     setActiveGameId(null);
     setActiveGameStatus(null);
     setOnlinePlayerColor(null);
@@ -1380,9 +1559,8 @@ function Game() {
   }
 
   if (showChess) {
-    // console.log(activeGameStatus)
     return (
-      <div className="border min-w-max">
+      <div className="border w-full bg-white">
         <div className="text-black">
           <Header title="Chess" />
         </div>
@@ -1402,7 +1580,7 @@ function Game() {
   }
 
   return (
-    <div className="border min-w-max">
+    <div className="border w-full bg-white">
       <div className="text-black">
         <Header title="Démarrez une partie !" />
       </div>
@@ -1418,7 +1596,7 @@ function Game() {
               </button>
               <button
                 onClick={() => handleJoinExistingGame()}
-                className="w-64 py-3 text-base font-semibold border border-gray-400 rounded-md text-black hover:bg-gray-100 transition"
+                className="w-64 py-3 text-base font-semibold border border-violet-500 rounded-md text-violet-500 hover:bg-violet-50 transition"
               >
                 Rejoindre une partie
               </button>
@@ -1428,9 +1606,9 @@ function Game() {
               value={gameIdInput}
               onChange={(e) => setGameIdInput(e.target.value)}
               placeholder="ID de partie"
-              className="w-64 rounded-md border border-gray-300 px-3 py-2 text-black bg-white"
+              className="w-64 rounded-md border border-violet-400 px-3 py-2 text-black bg-white focus:outline-none focus:ring-2 focus:ring-violet-400"
             />
-            <div className="w-full bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div className="w-full bg-white rounded-xl border border-violet-400 p-5 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-xs uppercase tracking-widest text-gray-500">
@@ -1442,7 +1620,7 @@ function Game() {
                 </div>
                 <button
                   onClick={() => void loadPendingGames()}
-                  className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition"
+                  className="px-3 py-2 text-sm border border-violet-400 text-violet-500 rounded-md hover:bg-violet-50 transition"
                 >
                   Rafraîchir
                 </button>
@@ -1462,7 +1640,7 @@ function Game() {
                   pendingGames.map((pendingGame) => (
                     <div
                       key={pendingGame.gameId}
-                      className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 px-4 py-3"
+                      className="flex items-center justify-between gap-4 rounded-lg border border-violet-200 px-4 py-3"
                     >
                       <div>
                         <p className="font-medium text-gray-900">
@@ -1500,7 +1678,7 @@ function Game() {
                   key={m}
                   onClick={() => {
                     setMode(m);
-                    if (m === "Local") setColor(null);
+                    if (m === "Local") setColor("Blanc");
                   }}
                   className={`${btnBase} ${mode === m ? btnActive : btnInactive}`}
                 >
@@ -1541,12 +1719,12 @@ function Game() {
             <button
               onClick={() => {
                 setShowCreateOptions(false);
-                setMode(null);
-                setTimeControl(null);
-                setColor(null);
+                setMode("Local");
+                setTimeControl("Normal");
+                setColor("Blanc");
                 setMenuError(null);
               }}
-              className="text-sm text-gray-400 hover:text-white underline transition"
+              className="px-6 py-2 text-sm font-medium border border-violet-300 text-violet-500 rounded-md hover:bg-violet-50 hover:border-violet-500 transition"
             >
               ← Retour
             </button>
