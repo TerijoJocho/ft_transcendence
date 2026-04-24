@@ -668,16 +668,16 @@ function ChessGame({
   ]);
 
   // Auto-redirect 5 seconds after game ends
-  useEffect(() => {
-    if (gameOver) {
-      redirectTimerRef.current = setTimeout(() => {
-        onBack();
-      }, 5000);
-    }
-    return () => {
-      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
-    };
-  }, [gameOver, onBack]);
+  // useEffect(() => {
+  //   if (gameOver) {
+  //     redirectTimerRef.current = setTimeout(() => {
+  //       onBack();
+  //     }, 60000);
+  //   }
+  //   return () => {
+  //     if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+  //   };
+  // }, [gameOver, onBack]);
 
   const reset = useCallback(() => {
     clearInterval(intervalRef.current!);
@@ -1263,14 +1263,14 @@ function ChessGame({
                 Result
               </span>
               <span
-                className={`text-sm font-semibold ${gameResult.winner === "Draw" ? "text-gray-600 dark:text-zinc-300" : "text-violet-500 dark:text-yellow-400"}`}
+                className={`text-xs font-semibold ${gameResult.winner === "Draw" ? "text-gray-600 dark:text-zinc-300" : "text-violet-500 dark:text-yellow-400"}`}
               >
                 {gameResult.winner === "Draw"
                   ? `Draw — ${gameResult.reason}`
                   : gameResult.reason === "resign" ||
                       gameResult.winner === "opponent"
-                    ? "You win — opponent resigned"
-                    : `${gameResult.winner} wins by ${gameResult.reason}`}
+                    ? "Vous avez gagné, votre adversaire a abandonné"
+                    : `${gameResult.winner} gagne par ${gameResult.reason}`}
               </span>
             </div>
             <div className="grid grid-cols-3 gap-3">
@@ -1299,9 +1299,9 @@ function ChessGame({
                 </span>
               </div>
             </div>
-            <p className="text-xs text-gray-500 dark:text-zinc-400 text-center">
-              Retour automatique dans 5s…
-            </p>
+            {/* <p className="text-xs text-gray-500 dark:text-zinc-400 text-center">
+              Retour automatique dans 60s
+            </p> */}
             <button
               onClick={() => {
                 if (redirectTimerRef.current)
