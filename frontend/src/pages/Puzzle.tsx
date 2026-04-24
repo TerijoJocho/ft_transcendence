@@ -144,53 +144,29 @@ function easyBotMove(board: Cell[], moveCount: number): number {
 }
 
 function ModeModal({ onSelect }: { onSelect: (mode: Mode) => void }) {
-
   return (
-
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-
-      <div className="bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-xl p-8 flex flex-col items-center gap-6 shadow-2xl max-w-sm w-full mx-4">
-
+      <div className="bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-xl p-6 sm:p-8 flex flex-col items-center gap-6 shadow-2xl max-w-sm w-full mx-4">
         <p className="text-gray-900 dark:text-zinc-100 text-center text-base font-medium">
-
           Choisir la difficulté
-
         </p>
-
-        <div className="flex gap-4 w-full">
-
+        <div className="flex flex-col sm:flex-row gap-4 w-full">
           <button
-
             onClick={() => onSelect("easy")}
-
             className="flex-1 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-600 dark:text-zinc-300 rounded-md hover:bg-gray-300/30 dark:hover:bg-zinc-700/20 hover:border-gray-400 dark:hover:border-zinc-500 transition-all"
-
           >
-
             Facile
-
           </button>
-
           <button
-
             onClick={() => onSelect("hard")}
-
             className="flex-1 py-3 text-sm uppercase tracking-widest border border-violet-700 dark:border-yellow-700 text-violet-500 dark:text-yellow-400 rounded-md hover:bg-violet-700/20 dark:hover:bg-yellow-700/20 hover:border-violet-500 dark:hover:border-yellow-500 transition-all"
-
           >
-
             Difficile
-
           </button>
-
         </div>
-
       </div>
-
     </div>
-
   );
-
 }
 
 function TicTacToe() {
@@ -204,6 +180,7 @@ function TicTacToe() {
   const [moveCount, setMoveCount] = useState(0);
   // const [lastPlayerMove, setLastPlayerMove] = useState(-1);
   const [botThinking, setBotThinking] = useState(false);
+  const cellSize = "clamp(84px, 22vw, 120px)";
 
   const initBoard = useCallback((selectedMode: Mode) => {
     const fresh: Cell[] = Array(9).fill(0);
@@ -290,110 +267,107 @@ function TicTacToe() {
   }
 
   return (
-  <div className="text-gray-900 dark:text-zinc-100 w-full bg-gray-50 dark:bg-zinc-800 transition-colors duration-300">
-    <div className="flex gap-6 p-6 justify-center items-start flex-wrap">
-      {/* SCORE PANEL */}
-      <div
-        className="w-52 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg p-4 flex flex-col"
-        style={{ height: "320px" }}
-      >
-        <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400 mb-3 pb-2 border-b border-gray-300 dark:border-zinc-700 flex-shrink-0">
-          Scores
-        </p>
+    <div className="text-gray-900 dark:text-zinc-100 w-full bg-gray-50 dark:bg-zinc-800 transition-colors duration-300">
+      <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 p-3 sm:p-6 justify-center items-stretch xl:items-start">
+        {/* SCORE PANEL */}
+        <div className="order-2 xl:order-1 w-full xl:w-52 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg p-3 sm:p-4 flex flex-col h-auto xl:h-[320px]">
+          <p className="text-[11px] sm:text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400 mb-2 sm:mb-3 pb-2 border-b border-gray-300 dark:border-zinc-700 flex-shrink-0">
+            Scores
+          </p>
 
-        <div className="flex flex-col gap-3 mt-2">
-          <div className="flex justify-between items-center">
-            <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
-              Vous
-            </span>
-            <span className="text-2xl font-semibold text-gray-900 dark:text-zinc-100">
-              {scores.player}
-            </span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
-              Bot
-            </span>
-            <span className="text-2xl font-semibold text-gray-900 dark:text-zinc-100">
-              {scores.bot}
-            </span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
-              Nuls
-            </span>
-            <span className="text-2xl font-semibold text-gray-900 dark:text-zinc-100">
-              {scores.draws}
-            </span>
-          </div>
-
-          {mode && (
-            <div className="mt-4 pt-3 border-t border-gray-300 dark:border-zinc-700">
-              <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
-                Mode
+          <div className="flex flex-col gap-2 sm:gap-3 mt-1 sm:mt-2">
+            <div className="flex justify-between items-center gap-3">
+              <span className="text-[11px] sm:text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
+                Vous
               </span>
-
-              <p
-                className={`text-sm font-semibold mt-1 ${
-                  mode === "hard"
-                    ? "text-violet-500 dark:text-yellow-400"
-                    : "text-gray-700 dark:text-zinc-300"
-                }`}
-              >
-                {mode === "hard" ? "Difficile" : "Facile"}
-              </p>
+              <span className="text-xl sm:text-2xl leading-none font-semibold text-gray-900 dark:text-zinc-100 tabular-nums">
+                {scores.player}
+              </span>
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* BOARD */}
-      <div className="flex flex-col items-center gap-3">
-        <div
-          className={`text-xs uppercase tracking-widest h-5 text-center transition-colors ${
-            gameOver && status.includes("gagnez")
-              ? "text-violet-500 dark:text-yellow-400 font-semibold"
-              : gameOver && status.includes("gagne")
-              ? "text-violet-500 dark:text-yellow-400 font-semibold"
-              : gameOver
-              ? "text-gray-600 dark:text-zinc-300 font-semibold"
-              : botThinking
-              ? "text-gray-500 dark:text-zinc-400"
-              : "text-gray-500 dark:text-zinc-400"
-          }`}
-        >
-          {status}
+            <div className="flex justify-between items-center gap-3">
+              <span className="text-[11px] sm:text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
+                Bot
+              </span>
+              <span className="text-xl sm:text-2xl leading-none font-semibold text-gray-900 dark:text-zinc-100 tabular-nums">
+                {scores.bot}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center gap-3">
+              <span className="text-[11px] sm:text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
+                Nuls
+              </span>
+              <span className="text-xl sm:text-2xl leading-none font-semibold text-gray-900 dark:text-zinc-100 tabular-nums">
+                {scores.draws}
+              </span>
+            </div>
+
+            {mode && (
+              <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-gray-300 dark:border-zinc-700">
+                <span className="text-[11px] sm:text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
+                  Mode
+                </span>
+
+                <p
+                  className={`text-xs sm:text-sm font-semibold mt-1 ${
+                    mode === "hard"
+                      ? "text-violet-500 dark:text-yellow-400"
+                      : "text-gray-700 dark:text-zinc-300"
+                  }`}
+                >
+                  {mode === "hard" ? "Difficile" : "Facile"}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="p-2.5 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg shadow-2xl">
+        {/* BOARD */}
+        <div className="order-1 xl:order-2 flex flex-col items-center gap-3 w-full xl:w-auto">
           <div
-            className="grid gap-1.5"
-            style={{
-              gridTemplateColumns: "repeat(3, 120px)",
-              gridTemplateRows: "repeat(3, 120px)",
-            }}
+            className={`text-[10px] sm:text-xs uppercase tracking-wider sm:tracking-widest min-h-5 text-center transition-colors ${
+              gameOver && status.includes("gagnez")
+                ? "text-violet-500 dark:text-yellow-400 font-semibold"
+                : gameOver && status.includes("gagne")
+                  ? "text-violet-500 dark:text-yellow-400 font-semibold"
+                  : gameOver
+                    ? "text-gray-600 dark:text-zinc-300 font-semibold"
+                    : botThinking
+                      ? "text-gray-500 dark:text-zinc-400"
+                      : "text-gray-500 dark:text-zinc-400"
+            }`}
           >
-            {board.map((cell, idx) => {
-              const isWin = winLine?.includes(idx);
-              const light = (Math.floor(idx / 3) + (idx % 3)) % 2 === 0;
+            {status}
+          </div>
 
-              let bgClass = light
-                ? "bg-gray-300 dark:bg-zinc-600"
-                : "bg-gray-500 dark:bg-zinc-700";
+          <div className="p-2 sm:p-2.5 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg shadow-2xl max-w-full overflow-x-auto">
+            <div
+              className="grid gap-1.5"
+              style={{
+                gridTemplateColumns: `repeat(3, ${cellSize})`,
+                gridTemplateRows: `repeat(3, ${cellSize})`,
+              }}
+            >
+              {board.map((cell, idx) => {
+                const isWin = winLine?.includes(idx);
+                const light = (Math.floor(idx / 3) + (idx % 3)) % 2 === 0;
 
-              if (isWin) {
-                bgClass = light
-                  ? "bg-violet-300 dark:bg-yellow-500"
-                  : "bg-violet-500 dark:bg-yellow-600";
-              }
+                let bgClass = light
+                  ? "bg-gray-300 dark:bg-zinc-600"
+                  : "bg-gray-500 dark:bg-zinc-700";
 
-              return (
-                <div
-                  key={idx}
-                  onClick={() => handleCellClick(idx)}
-                  className={`w-[120px] h-[120px] flex items-center justify-center select-none relative rounded-sm transition-all
+                if (isWin) {
+                  bgClass = light
+                    ? "bg-violet-300 dark:bg-yellow-500"
+                    : "bg-violet-500 dark:bg-yellow-600";
+                }
+
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => handleCellClick(idx)}
+                    className={`flex items-center justify-center select-none relative rounded-sm transition-all
                     ${bgClass}
                     ${
                       cell === 0 && !gameOver && !botThinking
@@ -401,81 +375,82 @@ function TicTacToe() {
                         : "cursor-default"
                     }
                   `}
-                >
-                  {cell === 2 && (
-                    <span
-                      className="text-violet-600 dark:text-yellow-400 font-bold"
-                      style={{
-                        fontSize: "52px",
-                        lineHeight: 1,
-                      }}
-                    >
-                      ✕
-                    </span>
-                  )}
+                    style={{ width: cellSize, height: cellSize }}
+                  >
+                    {cell === 2 && (
+                      <span
+                        className="text-violet-600 dark:text-yellow-400 font-bold"
+                        style={{
+                          fontSize: "clamp(2.5rem, 12vw, 52px)",
+                          lineHeight: 1,
+                        }}
+                      >
+                        ✕
+                      </span>
+                    )}
 
-                  {cell === 1 && (
-                    <span
-                      className="text-gray-900 dark:text-zinc-100 font-bold"
-                      style={{
-                        fontSize: "52px",
-                        lineHeight: 1,
-                      }}
-                    >
-                      ○
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+                    {cell === 1 && (
+                      <span
+                        className="text-gray-900 dark:text-zinc-100 font-bold"
+                        style={{
+                          fontSize: "clamp(2.5rem, 12vw, 52px)",
+                          lineHeight: 1,
+                        }}
+                      >
+                        ○
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* BUTTONS */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-1 w-full sm:w-auto">
+            <button
+              onClick={() => initBoard(mode)}
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 text-sm uppercase tracking-widest border border-violet-700 dark:border-yellow-700 text-violet-500 dark:text-yellow-400 rounded-md hover:bg-violet-700/20 dark:hover:bg-yellow-700/20 hover:border-violet-500 dark:hover:border-yellow-500 transition-all duration-200"
+            >
+              Restart
+            </button>
+
+            <button
+              onClick={() => setShowModal(true)}
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 rounded-md hover:bg-gray-300/20 dark:hover:bg-zinc-700/20 transition-all duration-200"
+            >
+              Mode
+            </button>
+          </div>
+
+          {/* LEGEND */}
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400 mt-1">
+            <span className="flex items-center gap-2">
+              <span className="text-violet-600 dark:text-yellow-400 text-base">
+                ✕
+              </span>
+              Vous
+            </span>
+
+            <span className="flex items-center gap-2">
+              <span className="text-gray-900 dark:text-zinc-100 text-base">
+                ○
+              </span>
+              Bot
+            </span>
           </div>
         </div>
-
-        {/* BUTTONS */}
-        <div className="flex gap-4 mt-1">
-          <button
-            onClick={() => initBoard(mode)}
-            className="px-8 py-3 text-sm uppercase tracking-widest border border-violet-700 dark:border-yellow-700 text-violet-500 dark:text-yellow-400 rounded-md hover:bg-violet-700/20 dark:hover:bg-yellow-700/20 hover:border-violet-500 dark:hover:border-yellow-500 transition-all duration-200"
-          >
-            Restart
-          </button>
-
-          <button
-            onClick={() => setShowModal(true)}
-            className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 rounded-md hover:bg-gray-300/20 dark:hover:bg-zinc-700/20 transition-all duration-200"
-          >
-            Mode
-          </button>
-        </div>
-
-        {/* LEGEND */}
-        <div className="flex gap-6 text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400 mt-1">
-          <span className="flex items-center gap-2">
-            <span className="text-violet-600 dark:text-yellow-400 text-base">
-              ✕
-            </span>
-            Vous
-          </span>
-
-          <span className="flex items-center gap-2">
-            <span className="text-gray-900 dark:text-zinc-100 text-base">
-              ○
-            </span>
-            Bot
-          </span>
-        </div>
       </div>
-    </div>
 
-    {showModal && <ModeModal onSelect={selectMode} />}
-  </div>
-);
+      {showModal && <ModeModal onSelect={selectMode} />}
+    </div>
+  );
 }
 
 export function Puzzle() {
   return (
     <>
-      <div className="rounded-md border border-gray-200 dark:border-zinc-700 w-full bg-white dark:bg-zinc-800 transition-colors duration-300">
+      <div className="h-full rounded-md border border-gray-200 dark:border-zinc-700 w-full bg-white dark:bg-zinc-800 transition-colors duration-300">
         <div className="text-black dark:text-zinc-100">
           <Header title="Puzzle" />
         </div>

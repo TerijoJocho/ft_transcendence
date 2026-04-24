@@ -302,7 +302,7 @@ function Clock({
 }) {
   return (
     <div
-      className={`px-5 py-2 rounded-lg border font-mono text-2xl font-semibold tracking-widest transition-all duration-300
+      className={`px-3 sm:px-5 py-2 rounded-lg border font-mono text-lg sm:text-2xl font-semibold tracking-widest transition-all duration-300
       ${low ? "border-violet-500 dark:border-yellow-500 text-violet-500 dark:text-yellow-400 bg-violet-500/10 dark:bg-yellow-500/10" : active ? "border-gray-400 dark:border-zinc-500 text-gray-900 dark:text-zinc-100 bg-gray-200 dark:bg-zinc-700" : "border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-900"}`}
     >
       {formatTime(seconds)}
@@ -1001,7 +1001,7 @@ function ChessGame({
       <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 p-3 sm:p-6 justify-center items-stretch xl:items-start">
         {/* Move history */}
         <div
-          className="w-full xl:w-52 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg p-4 flex flex-col"
+          className="order-2 xl:order-1 w-full xl:w-52 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg p-4 flex flex-col"
           style={{ height: "min(45vh, 520px)" }}
         >
           <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400 mb-2 pb-2 border-b border-gray-300 dark:border-zinc-700 flex-shrink-0">
@@ -1032,7 +1032,7 @@ function ChessGame({
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-3 w-full xl:w-auto">
+        <div className="order-1 xl:order-2 flex flex-col items-center gap-3 w-full xl:w-auto">
           {/* Top clock */}
           {hasClock && (
             <div className="flex items-center gap-3 self-center sm:self-end">
@@ -1066,7 +1066,7 @@ function ChessGame({
 
           {/* Status bar */}
           <div
-            className={`text-lg uppercase tracking-widest h-5 text-center transition-colors ${gameOver ? "text-violet-500 dark:text-yellow-400 font-semibold" : status.includes("check") ? "text-violet-500 dark:text-yellow-400" : "text-gray-800 dark:text-zinc-400"}`}
+            className={`text-sm sm:text-lg uppercase tracking-wider sm:tracking-widest min-h-6 px-2 text-center transition-colors ${gameOver ? "text-violet-500 dark:text-yellow-400 font-semibold" : status.includes("check") ? "text-violet-500 dark:text-yellow-400" : "text-gray-800 dark:text-zinc-400"}`}
           >
             {status ||
               `${player.charAt(0).toUpperCase() + player.slice(1)}'s turn`}
@@ -1084,7 +1084,7 @@ function ChessGame({
           <div className="p-2 sm:p-2.5 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg shadow-2xl max-w-full overflow-x-auto">
             <div className="flex items-start">
               <div
-                className="flex flex-col justify-around pr-1.5 text-xs text-gray-600 dark:text-zinc-400 select-none"
+                className="flex flex-col justify-around pr-1.5 text-[10px] sm:text-xs text-gray-600 dark:text-zinc-400 select-none"
                 style={{ height: boardSize }}
               >
                 {rankLabels.map((n) => (
@@ -1194,7 +1194,7 @@ function ChessGame({
                     }),
                   )}
                 </div>
-                <div className="flex justify-around pt-1 text-xs text-gray-600 dark:text-zinc-400 select-none">
+                <div className="flex justify-around pt-1 text-[10px] sm:text-xs text-gray-600 dark:text-zinc-400 select-none">
                   {fileLabels.map((l) => (
                     <span key={l}>{l}</span>
                   ))}
@@ -1618,7 +1618,7 @@ function Game() {
   }
 
   return (
-    <div className="border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 w-full min-w-0 transition-colors duration-300">
+    <div className="border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 w-full h-full min-w-0 transition-colors duration-300">
       <div className="text-black dark:text-zinc-100">
         <Header title="Démarrez une partie !" />
       </div>
@@ -1647,7 +1647,7 @@ function Game() {
               </button>
             </div>
             <div className="w-full bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-700 p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                 <div>
                   <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
                     Parties en attente
@@ -1678,7 +1678,7 @@ function Game() {
                   pendingGames.map((pendingGame) => (
                     <div
                       key={pendingGame.gameId}
-                      className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 dark:border-zinc-700 px-4 py-3"
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 rounded-lg border border-gray-200 dark:border-zinc-700 px-4 py-3"
                     >
                       <div>
                         <p className="font-medium text-gray-900 dark:text-zinc-100">
@@ -1696,7 +1696,7 @@ function Game() {
                         onClick={() =>
                           void handleJoinExistingGame(pendingGame.gameId)
                         }
-                        className={`px-4 py-2 rounded-md text-sm transition ${pendingGame.creatorId === user?.id ? "bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 cursor-not-allowed" : "bg-violet-500 dark:bg-yellow-600 text-white hover:bg-violet-400 dark:hover:bg-yellow-500"}`}
+                        className={`w-full sm:w-auto px-4 py-2 rounded-md text-sm transition ${pendingGame.creatorId === user?.id ? "bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 cursor-not-allowed" : "bg-violet-500 dark:bg-yellow-600 text-white hover:bg-violet-400 dark:hover:bg-yellow-500"}`}
                       >
                         {pendingGame.creatorId === user?.id
                           ? "Ta partie"
@@ -1753,7 +1753,7 @@ function Game() {
             </div>
             <button
               onClick={handleCreateGame}
-              className="mt-2 w-56 py-3 text-base font-semibold bg-violet-500 dark:bg-yellow-600 text-white rounded-md hover:bg-violet-400 dark:hover:bg-yellow-500 transition"
+              className="mt-2 w-full sm:w-56 py-3 text-base font-semibold bg-violet-500 dark:bg-yellow-600 text-white rounded-md hover:bg-violet-400 dark:hover:bg-yellow-500 transition"
             >
               Commencer
             </button>
