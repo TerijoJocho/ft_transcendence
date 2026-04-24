@@ -452,7 +452,7 @@ export function Puzzle() {
     <>
       <div className="h-full rounded-md border border-gray-200 dark:border-zinc-700 w-full bg-white dark:bg-zinc-800 transition-colors duration-300">
         <div className="text-black dark:text-zinc-100">
-          <Header title="Puzzle" />
+          <Header title="Morpion" />
         </div>
         <TicTacToe />
       </div>
