@@ -257,18 +257,15 @@ function ChessGame({
   const [onlineStatus, setOnlineStatus] = useState<string | null>(
     online.gameStatus === "PENDING" ? "En attente d'un deuxième joueur..." : null,
   );
-  const [resolvedGameStatus, setResolvedGameStatus] = useState<OnlineConfig["gameStatus"]>(
-    activeGameStatus ?? online.gameStatus ?? null,
-  );
+  const [socketGameStatus, setSocketGameStatus] = useState<OnlineConfig["gameStatus"]>(null);
+  const resolvedGameStatus: OnlineConfig["gameStatus"] = activeGameStatus ?? socketGameStatus ?? online.gameStatus ?? null;
+  const setResolvedGameStatus = setSocketGameStatus;
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [onlineError, setOnlineError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const isApplyingRemoteRef = useRef(false);
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    setResolvedGameStatus(activeGameStatus ?? online.gameStatus ?? null);
-  }, [activeGameStatus, online.gameStatus]);
 
   // Confirm modal: "restart" | "giveup" | "cancel" | null
   const [confirmAction, setConfirmAction] = useState<"restart" | "giveup" | "cancel" | null>(null);
