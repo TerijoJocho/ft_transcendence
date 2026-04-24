@@ -305,9 +305,9 @@ Primary keys IDs are auto-incrementing. Stats for each player are calculated by 
 
 ## Web: 
 - Use a frontend and backend framework (React, NestJs) | 2 points
-- Implement real-time features using WebSockets | 2 points - online games, realtime chat
+- Implement real-time features using WebSockets | 2 points
 - Allow users to interact with other users | 2 points
-- Use an ORM for the database | 1 point - replace SQL queries for TypeScript
+- Use an ORM for the database | 1 point
 
 ## User Management:
 - Standard user management and authentication | 2 points
@@ -319,27 +319,27 @@ Primary keys IDs are auto-incrementing. Stats for each player are calculated by 
 - Introduce an AI Opponent for games | 2 points
 
 ## Cybersecurity:
-- Implement WAF/ModSecurity (hardened) + HashiCorp Vault for secrets - 2 points - safety measures against SQL injections and other various attacks
+- Implement WAF/ModSecurity (hardened) + HashiCorp Vault for secrets | 2 points
 
 ## Gaming and user experience:
-- Implement a complete web-based game where users can play against each other | 2 points - chess
-- Remote players — Enable two players on separate computers to play the same game in real-time | 2 points ///////// !! a voir reconnexion parti!!**
+- Implement a complete web-based game where users can play against each other | 2 points
+- Remote players — Enable two players on separate computers to play the same game in real-time | 2 points
 - Game customization options -  Customizable game setting and Default options must be available  | 1 point
 - System de gamification - A gamification system to reward users for their actions. | 1 point
 
 ## Custom modules:
-- Global Day mode / Night mode theme switch across the full webapp, with light-to-dark color adaptation for every screen including the chessboard and UI components - 2 points
+- Global Day mode / Night mode theme switch across the full webapp, with light-to-dark color adaptation for every screen including the chessboard and UI components | 2 points
     ∗ Why you chose this module: Accessibility and comfort. Players use the app for long sessions, and a global theme toggle improves readability in both bright and low-light environments.
     ∗ What technical challenges it addresses: Centralized theme state management, consistent color tokens across all pages/components, board square and piece contrast adaptation, and avoiding visual regressions in realtime game/chat screens.
     ∗ How it adds value to your project: Better UX and personalization, stronger visual coherence of the product, and improved perceived quality beyond a basic mandatory implementation.
     ∗ Why it deserves Major module status: It impacts the entire frontend architecture (layout, pages, chess UI, components, and interaction states), requiring cross-cutting design and engineering work rather than a single isolated feature.
-- Dashboard for player stats, leaderboard, recent matches, and  weekly winrate graph - 1 point
+- Dashboard for player stats, leaderboard, recent matches, and  weekly winrate graph | 1 point
     ∗ Why you chose this module: Player engagement and retention through transparent performance metrics. A dashboard provides immediate visibility into achievements and progress, motivating continued play.
     ∗ What technical challenges it addresses: Multi-source stat aggregation (games, participations, rankings), weekly calculation logic with UTC timezone handling, efficient leaderboard query performance at scale, and real-time winrate computation.
     ∗ How it adds value to your project: Transforms raw game data into actionable insights for players, creates competitive context through leaderboard, and enables data-driven player retention strategies.
     ∗ Why it deserves Minor module status: While important for UX, it is primarily a UI/query aggregation feature without cross-cutting architectural impact or complex algorithmic challenges beyond standard ORM queries and data visualization.
 
-2x points total | 2x si remote player reconnexion gérée | 2x avec IA
+26 points total
 
 # Individual Contributions:
 
