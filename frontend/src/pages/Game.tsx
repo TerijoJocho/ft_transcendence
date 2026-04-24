@@ -16,19 +16,22 @@ import {
 } from "../api/api.ts";
 import type { PendingGameResponse } from "../api/api.ts";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChessBishop, faChessKing, faChessKnight, faChessPawn, faChessQueen, faChessRook } from "@fortawesome/free-solid-svg-icons";
+
 const PIECES = {
-  r: "♜",
-  n: "♞",
-  b: "♝",
-  q: "♛",
-  k: "♚",
-  p: "♟",
-  R: "♖",
-  N: "♘",
-  B: "♗",
-  Q: "♕",
-  K: "♔",
-  P: "♙",
+  r: <FontAwesomeIcon icon={faChessRook} className="text-black/90"/>,
+  n: <FontAwesomeIcon icon={faChessKnight} className="text-black/90"/>,
+  b: <FontAwesomeIcon icon={faChessBishop} className="text-black/90"/>,
+  q: <FontAwesomeIcon icon={faChessQueen} className="text-black/90"/>,
+  k: <FontAwesomeIcon icon={faChessKing} className="text-black/90"/>,
+  p: <FontAwesomeIcon icon={faChessPawn} className="text-black/90"/>,
+  R: <FontAwesomeIcon icon={faChessRook} className="text-white/90"/>,
+  N: <FontAwesomeIcon icon={faChessKnight} className="text-white/90"/>,
+  B: <FontAwesomeIcon icon={faChessBishop} className="text-white/90"/>,
+  Q: <FontAwesomeIcon icon={faChessQueen} className="text-white/90"/>,
+  K: <FontAwesomeIcon icon={faChessKing} className="text-white/90"/>,
+  P: <FontAwesomeIcon icon={faChessPawn} className="text-white/90"/>,
 };
 
 const INIT_BOARD = () => [
@@ -1053,7 +1056,7 @@ function ChessGame({
 
           {/* Status bar */}
           <div
-            className={`text-xs uppercase tracking-widest h-5 text-center transition-colors ${gameOver ? "text-violet-500 dark:text-yellow-400 font-semibold" : status.includes("check") ? "text-violet-500 dark:text-yellow-400" : "text-gray-500 dark:text-zinc-400"}`}
+            className={`text-lg uppercase tracking-widest h-5 text-center transition-colors ${gameOver ? "text-violet-500 dark:text-yellow-400 font-semibold" : status.includes("check") ? "text-violet-500 dark:text-yellow-400" : "text-gray-800 dark:text-zinc-400"}`}
           >
             {status ||
               `${player.charAt(0).toUpperCase() + player.slice(1)}'s turn`}
@@ -1110,10 +1113,10 @@ function ChessGame({
                         !gameOver &&
                         !pendingPromo;
                       const light = (r + c) % 2 === 0;
-                      let bgClass = light ? "bg-amber-100" : "bg-amber-900";
+                      let bgClass = light ? "bg-gray-300 dark:bg-zinc-400" : "bg-gray-600 dark:bg-zinc-700";
                       if (isLast && !isSel)
-                        bgClass = light ? "bg-yellow-300" : "bg-yellow-700";
-                      if (isSel) bgClass = "bg-violet-400 dark:bg-yellow-500";
+                        bgClass = light ? "bg-violet-300 dark:bg-yellow-300" : "bg-violet-600 dark:bg-yellow-600";
+                      if (isSel) bgClass = "bg-violet-400 dark:bg-yellow-400";
                       if (
                         isDragOver &&
                         (hintSet.has(key) || captureSet.has(key))
@@ -1149,7 +1152,7 @@ function ChessGame({
                         >
                           <span
                             style={{
-                              ...pieceStyle,
+                              ...pieceStyle,                              
                               opacity: isDragSrc ? 0.35 : 1,
                             }}
                           >
@@ -1597,27 +1600,27 @@ function Game() {
       <div className="flex flex-col items-center justify-center gap-6 py-16">
         {!showCreateOptions ? (
           <div className="flex flex-col gap-6 items-center w-full max-w-3xl px-6">
-            <div className="flex flex-row gap-4">
-              <button
-                onClick={() => setShowCreateOptions(true)}
-                className="w-64 py-3 text-base font-semibold bg-violet-500 dark:bg-yellow-600 text-white rounded-md hover:bg-violet-400 dark:hover:bg-yellow-500 transition"
-              >
-                Créer une partie
-              </button>
+            <button
+              onClick={() => setShowCreateOptions(true)}
+              className="button w-64 py-3"
+            >
+              Créer une partie
+            </button>
+            <div className="flex gap-4 items-center">
+              <input
+                type="text"
+                value={gameIdInput}
+                onChange={(e) => setGameIdInput(e.target.value)}
+                placeholder="ID de partie"
+                className="w-64 block rounded-md border border-gray-300 px-3 py-3 text-black bg-white dark:bg-zinc-800 dark:text-white"
+              />
               <button
                 onClick={() => handleJoinExistingGame()}
-                className="w-64 py-3 text-base font-semibold border border-gray-400 dark:border-zinc-700 rounded-md text-black dark:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-900 transition"
+                className="button w-64 py-3 !mt-0 !mb-0"
               >
                 Rejoindre une partie
               </button>
             </div>
-            <input
-              type="text"
-              value={gameIdInput}
-              onChange={(e) => setGameIdInput(e.target.value)}
-              placeholder="ID de partie"
-              className="w-64 rounded-md border border-gray-300 dark:border-zinc-700 px-3 py-2 text-black dark:text-zinc-100 bg-white dark:bg-zinc-900"
-            />
             <div className="w-full bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-700 p-5 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
