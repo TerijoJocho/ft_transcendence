@@ -28,7 +28,6 @@ function Friends() {
     // enleve du pending un utilisateur
     function addToFriendList(user: Friend) {
       changeFriendshipStatus(user.id);
-      // console.log(friendsList.filter(f => f.isBlocked === true));//test
     }
 
   return (

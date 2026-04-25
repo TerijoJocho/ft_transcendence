@@ -1,6 +1,5 @@
 import {
   ConnectedSocket,
-  OnGatewayDisconnect,
   MessageBody,
   OnGatewayConnection,
   SubscribeMessage,
@@ -52,8 +51,9 @@ export class ChatGateway implements OnGatewayConnection {
       return;
     }
 
-    (client.data as { user?: SocketUser; presenceTimer?: NodeJS.Timeout }).user =
-      user;
+    (
+      client.data as { user?: SocketUser; presenceTimer?: NodeJS.Timeout }
+    ).user = user;
 
     await this.markSocketOnline(client, user.playerId);
 
@@ -61,8 +61,9 @@ export class ChatGateway implements OnGatewayConnection {
       void this.refreshPresence(client, user.playerId);
     }, this.refreshIntervalMs);
 
-    (client.data as { user?: SocketUser; presenceTimer?: NodeJS.Timeout })
-      .presenceTimer = timer;
+    (
+      client.data as { user?: SocketUser; presenceTimer?: NodeJS.Timeout }
+    ).presenceTimer = timer;
   }
 
   async handleDisconnect(client: Socket) {
@@ -222,7 +223,10 @@ export class ChatGateway implements OnGatewayConnection {
 
     const socketCount = await redisClient.sCard(socketsKey);
     if (socketCount === 0) {
-      await Promise.all([redisClient.del(socketsKey), redisClient.del(onlineKey)]);
+      await Promise.all([
+        redisClient.del(socketsKey),
+        redisClient.del(onlineKey),
+      ]);
       return;
     }
 

@@ -38,8 +38,9 @@ export class PresenceGateway
       return;
     }
 
-    (client.data as { user?: SocketUser; presenceTimer?: NodeJS.Timeout }).user =
-      user;
+    (
+      client.data as { user?: SocketUser; presenceTimer?: NodeJS.Timeout }
+    ).user = user;
 
     await this.markSocketOnline(client, user.playerId);
 
@@ -47,8 +48,9 @@ export class PresenceGateway
       void this.refreshPresence(client, user.playerId);
     }, this.refreshIntervalMs);
 
-    (client.data as { user?: SocketUser; presenceTimer?: NodeJS.Timeout })
-      .presenceTimer = timer;
+    (
+      client.data as { user?: SocketUser; presenceTimer?: NodeJS.Timeout }
+    ).presenceTimer = timer;
   }
 
   async handleDisconnect(client: Socket) {
@@ -138,7 +140,10 @@ export class PresenceGateway
 
     const socketCount = await redisClient.sCard(socketsKey);
     if (socketCount === 0) {
-      await Promise.all([redisClient.del(socketsKey), redisClient.del(onlineKey)]);
+      await Promise.all([
+        redisClient.del(socketsKey),
+        redisClient.del(onlineKey),
+      ]);
       return;
     }
 
