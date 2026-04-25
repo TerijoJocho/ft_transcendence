@@ -1,0 +1,1 @@
+ALTER TABLE "friendship" DROP COLUMN "isFriend";

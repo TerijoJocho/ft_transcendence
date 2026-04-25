@@ -149,7 +149,7 @@ services:
       dockerfile: Dockerfile
     container_name: ft_transcendence_wap
     environment:
-      - PARANOIA=1
+      - PARANOIA=2
       - ANOMALY_INBOUND=10
       - DISABLE_DEFAULT_CONF=1
     ports:

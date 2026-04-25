@@ -8,7 +8,6 @@ export type Friends = {
     pseudo: string;
     status?: string | null; //a enlever
     avatarUrl: string | IconDefinition;
-    isFriend: boolean;
     friendshipStatus: string;
     level?: number;
     lose?: number;
