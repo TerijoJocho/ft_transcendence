@@ -13,6 +13,7 @@ import {
   giveupGame,
   cancelGame,
   connectGameSocket,
+  refreshSession,
 } from "../api/api.ts";
 import type { PendingGameResponse } from "../api/api.ts";
 
@@ -431,6 +432,7 @@ function ChessGame({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [onlineError, setOnlineError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
+  const isRefreshingSessionRef = useRef(false);
   const isApplyingRemoteRef = useRef(false);
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -566,6 +568,29 @@ function ChessGame({
     }
     const socket = connectGameSocket();
     socketRef.current = socket;
+
+    const isUnauthorizedMessage = (message: string | undefined) => {
+      if (!message) return false;
+      return /unauthorized|jwt|token|expired/i.test(message);
+    };
+
+    const tryRefreshAndReconnect = async () => {
+      if (isRefreshingSessionRef.current) return;
+      isRefreshingSessionRef.current = true;
+
+      try {
+        await refreshSession();
+        setOnlineError(null);
+        if (!socket.connected) {
+          socket.connect();
+        }
+      } catch {
+        setOnlineError("Session expirée. Reconnecte-toi.");
+      } finally {
+        isRefreshingSessionRef.current = false;
+      }
+    };
+
     socket.on("connect", () => {
       setOnlineError(null);
       socket.emit("join_game", { gameId: online.gameId });
@@ -598,18 +623,32 @@ function ChessGame({
       setOnlineStatus("Deuxième joueur connecté. La partie commence.");
     });
     socket.on("opponent_disconnected", () => {
-      // setOnlineError("L'adversaire s'est déconnecté.");
+      setOnlineError("L'adversaire s'est déconnecté.");
     });
     socket.on("game_error", (payload: { message?: string }) => {
-      void payload;
-      // setOnlineError(payload?.message ?? "Erreur temps réel.");
+      if (isUnauthorizedMessage(payload?.message)) {
+        void tryRefreshAndReconnect();
+        return;
+      }
+      setOnlineError(payload?.message ?? "Erreur temps réel.");
+    });
+    socket.on("connect_error", (error: Error) => {
+      if (isUnauthorizedMessage(error.message)) {
+        void tryRefreshAndReconnect();
+        return;
+      }
+      setOnlineError(error.message || "Erreur de connexion temps réel.");
+    });
+    socket.on("disconnect", (reason) => {
+      if (reason === "io server disconnect") {
+        void tryRefreshAndReconnect();
+      }
     });
     socket.on("game_over", (result) => {
       setResolvedGameStatus("COMPLETED");
       setOnlineStatus(null);
       setGameResult(result ?? { winner: "Draw", reason: "finished" });
       setGameOver(true);
-      // setOnlineStatus("Partie terminée.");
     });
     return () => {
       socket.disconnect();
@@ -1047,7 +1086,6 @@ function ChessGame({
               `${player.charAt(0).toUpperCase() + player.slice(1)}'s turn`}
           </div>
 
-          {/* Only show the waiting message, all other log messages are commented out */}
           {isOnline && onlineStatus && onlineStatus.includes("attente") && (
             <p
               style={{ color: "#7c3aed", fontWeight: 600 }}
@@ -1056,7 +1094,11 @@ function ChessGame({
               {onlineStatus}
             </p>
           )}
-          {/* {isOnline && onlineError && <p className="text-xs text-rose-400 tracking-wide text-center">{onlineError}</p>} */}
+          {isOnline && onlineError && (
+            <p className="text-xs text-rose-400 tracking-wide text-center">
+              {onlineError}
+            </p>
+          )}
 
           {/* Board */}
           <div className="p-2.5 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl">

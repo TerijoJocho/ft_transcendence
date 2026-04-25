@@ -38,8 +38,6 @@ export type UserStatsGameHistoryEntry = {
 export type UserStatsResponse = {
   id: number;
   pseudo: string;
-  status: string;
-  elo: number;
   winCount: number;
   lossCount: number;
   drawCount: number;
@@ -176,6 +174,17 @@ export function logout(): Promise<ApiMessageResponse> {
   return request<ApiMessageResponse>("/api/auth/logout", {
     method: "POST",
   });
+}
+
+export async function refreshSession(): Promise<void> {
+  const response = await fetch(`${API_URL}/api/auth/refresh`, {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Session expired");
+  }
 }
 
 // Users
