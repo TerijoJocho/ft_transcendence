@@ -6,12 +6,13 @@ import * as api from "../api/api.ts";
 export type Friends = {
     id: number;
     pseudo: string;
-    status?: string | null; //a enlever
+    status: string;
+    online: boolean;
     avatarUrl: string | IconDefinition;
     isFriend: boolean;
     friendshipStatus: string;
-    level?: number;
-    lose?: number;
+    level: number;
+    lose: number;
 };
 
 export function useFriends() {
