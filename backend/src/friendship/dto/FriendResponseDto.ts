@@ -13,10 +13,11 @@ export class FriendResponseDto {
   friendshipId!: number;
   id!: number;
   pseudo!: string;
-  status: string | null;
+  status: string;
+  online: boolean;
   avatarUrl!: string | null;
   isFriend!: boolean;
   friendshipStatus!: string;
-  level?: number;
-  lose?: number;
+  level: number;
+  lose: number;
 }

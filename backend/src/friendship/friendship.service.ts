@@ -8,12 +8,16 @@ import { UtilsService } from 'src/shared/services/utils.func.service';
 import { eq, or, ilike, ne, and } from 'drizzle-orm';
 import { friendshipTable, playerTable } from 'src/shared/db/schema';
 import { FriendResponseDto } from './dto/FriendResponseDto';
+import { RedisService } from 'src/shared/services/redis.service';
 // import { BlockList } from 'net';
 // import { FriendView } from './dto/FriendResponseDto';
 
 @Injectable()
 export class FriendshipService {
-  constructor(private readonly utilsService: UtilsService) {}
+  constructor(
+    private readonly utilsService: UtilsService,
+    private readonly redisService: RedisService,
+  ) {}
 
   // private toFriendResponseDto(friend: {
   //   id: number;
@@ -86,6 +90,7 @@ export class FriendshipService {
 
   ////////////////////////////////////// get ///////////////////////////////////////////////////////////////
   async list(CurrentUserId: number) {
+    const redisClient = this.redisService.getClient();
     const friendships = (await this.utilsService.findFriendshipsBy(
       'or',
       {
@@ -139,12 +144,15 @@ export class FriendshipService {
         const stats = await this.utilsService.getGamesResCounts(friendId);
         const levelVal = stats && stats[0] ? stats[0].totalWins : 0;
         const totalLosses = stats && stats[0] ? stats[0].totalLosses : 0;
+        const onlineValue = await redisClient.get(`user:${friendId}:online`);
+        const online = onlineValue === 'true';
 
         return {
           id: friend.id,
           friendshipId: f.friendshipId,
           pseudo: friend.pseudo,
-          status: 'ONLINE',
+          status: online ? 'ONLINE' : 'OFFLINE',
+          online,
           avatarUrl: friend.avatarUrl,
           isFriend: f.isFriend,
           friendshipStatus: f.isFriend ? 'ADDED' : 'PENDING',
