@@ -9,8 +9,6 @@ import { eq, or, ilike, ne, and } from 'drizzle-orm';
 import { friendshipTable, playerTable } from 'src/shared/db/schema';
 import { FriendResponseDto } from './dto/FriendResponseDto';
 import { RedisService } from 'src/shared/services/redis.service';
-// import { BlockList } from 'net';
-// import { FriendView } from './dto/FriendResponseDto';
 
 type FriendListItem = {
   id: number;
@@ -24,6 +22,12 @@ type FriendListItem = {
   level: number;
   lose: number;
 };
+
+@Injectable()
+export class FriendshipService {
+  constructor(private readonly utilsService: UtilsService, 
+    private readonly redisService: RedisService,
+  ) {}
 
 @Injectable()
 export class FriendshipService {
