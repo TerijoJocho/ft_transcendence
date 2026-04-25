@@ -14,7 +14,7 @@ type ChatFriend = {
   id: number;
   pseudo: string;
   avatarUrl: string | null;
-  status?: string | null;
+  status: string;
   level?: number;
   lose?: number;
 };
@@ -43,7 +43,7 @@ function Chat() {
             id: f.id,
             pseudo: f.pseudo,
             avatarUrl: typeof f.avatarUrl === "string" ? f.avatarUrl : null,
-            status: f.status ?? null,
+            status: f.status,
             level: f.level ?? 0,
           }));
         setFriends(mapped);
@@ -123,7 +123,7 @@ function Chat() {
                   ? msgs[msgs.length - 1].content
                   : "Démarrer une conversation";
               const friendStatus = statusData.find(
-                (st) => st.value === friend.status,
+                (st) => st.value === (friend.status),
               );
 
               return (
@@ -150,7 +150,7 @@ function Chat() {
                     )}
                     <FontAwesomeIcon
                       icon={faCircle}
-                      className={`absolute bottom-0 right-0 text-xs text-${friendStatus?.color ?? "gray-400"}`}
+                        className={`absolute bottom-0 right-0 text-xs text-${friendStatus?.color ?? "gray-400"}`}
                     />
                   </div>
 
@@ -199,7 +199,7 @@ function Chat() {
                     {selectedFriend.pseudo}
                   </p>
                   <p
-                    className={`text-xs text-${selectedFriendStatus?.color} flex items-center gap-1`}
+                    className={`text-xs text-${selectedFriendStatus?.color ?? "gray-400"} flex items-center gap-1`}
                   >
                     <FontAwesomeIcon icon={faCircle} className="text-[8px]" />
                     {selectedFriendStatus?.label ?? "Status inconnu"}

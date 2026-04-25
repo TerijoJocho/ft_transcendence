@@ -6,7 +6,7 @@ import React, {
   useState,
   type ReactNode,
 } from "react";
-import { connectChatSocket } from "../api/api";
+import { connectChatSocket, refreshSession } from "../api/api";
 import type { Socket } from "socket.io-client";
 
 export type ChatMessage = {
@@ -30,6 +30,7 @@ const ChatContext = createContext<ChatContextType | null>(null);
 export function ChatProvider({ children }: { children: ReactNode }) {
   const socketRef = useRef<Socket | null>(null);
   const activePeerRef = useRef<number | null>(null);
+  const isRefreshingSessionRef = useRef(false);
 
   const [messages, setMessages] = useState<Record<number, ChatMessage[]>>(
     () => {
@@ -56,6 +57,28 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     const chatSocket = connectChatSocket();
     socketRef.current = chatSocket;
 
+    const isUnauthorizedMessage = (message: string | undefined) => {
+      if (!message) return false;
+      return /unauthorized|jwt|token|expired/i.test(message);
+    };
+
+    const tryRefreshAndReconnect = async () => {
+      if (isRefreshingSessionRef.current) return;
+      isRefreshingSessionRef.current = true;
+
+      try {
+        await refreshSession();
+        setError(null);
+        if (!chatSocket.connected) {
+          chatSocket.connect();
+        }
+      } catch {
+        setError("Session expirée. Reconnecte-toi.");
+      } finally {
+        isRefreshingSessionRef.current = false;
+      }
+    };
+
     chatSocket.on("chat_history", (history: ChatMessage[]) => {
       const peerId = activePeerRef.current;
       if (peerId === null) return;
@@ -75,7 +98,26 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     });
 
     chatSocket.on("chat_error", (payload: { message?: string }) => {
+      if (isUnauthorizedMessage(payload?.message)) {
+        void tryRefreshAndReconnect();
+        return;
+      }
       setError(payload?.message ?? "Chat error");
+    });
+
+    chatSocket.on("connect_error", (error: Error) => {
+      if (isUnauthorizedMessage(error.message)) {
+        void tryRefreshAndReconnect();
+        return;
+      }
+      setError(error.message || "Erreur de connexion au chat");
+    });
+
+    chatSocket.on("disconnect", (reason) => {
+      // Server-side disconnect usually happens after auth failure.
+      if (reason === "io server disconnect") {
+        void tryRefreshAndReconnect();
+      }
     });
 
     return () => {

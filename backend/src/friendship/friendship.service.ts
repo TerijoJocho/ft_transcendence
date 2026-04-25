@@ -8,21 +8,28 @@ import { UtilsService } from 'src/shared/services/utils.func.service';
 import { eq, or, ilike, ne, and } from 'drizzle-orm';
 import { friendshipTable, playerTable } from 'src/shared/db/schema';
 import { FriendResponseDto } from './dto/FriendResponseDto';
+import { RedisService } from 'src/shared/services/redis.service';
 
 type FriendListItem = {
-  friendshipId: number;
   id: number;
+  friendshipId: number;
   pseudo: string;
-  status: string;
-  friendshipStatus: string;
+  status: 'ONLINE' | 'OFFLINE';
+  online: boolean;
   avatarUrl: string | null;
+  friendshipStatus: 'PENDING' | 'ADDED';
+  isFriend: boolean;
   level: number;
   lose: number;
 };
 
 @Injectable()
 export class FriendshipService {
-  constructor(private readonly utilsService: UtilsService) {}
+  constructor(
+    private readonly utilsService: UtilsService,
+    private readonly redisService: RedisService,
+  ) {}
+
   //ajout d'un ami//////////////////////////////////////////////////////////////////////////////////////
 
   async create(CurrentUserId: number, playerAdded: number) {
@@ -67,7 +74,8 @@ export class FriendshipService {
       friendshipId: id,
       id: playerAdded,
       pseudo: pseudoPlayer[0].pseudo,
-      status: 'ONLINE',
+      status: 'OFFLINE',
+      online: false,
       avatarUrl: null,
       friendshipStatus: 'PENDING',
     };
@@ -76,6 +84,7 @@ export class FriendshipService {
 
   ////////////////////////////////////// get ///////////////////////////////////////////////////////////////
   async list(CurrentUserId: number) {
+    const redisClient = this.redisService.getClient();
     const friendships = (await this.utilsService.findFriendshipsBy(
       'or',
       {
@@ -105,12 +114,13 @@ export class FriendshipService {
       player1Id: number;
       player2Id: number;
       requesterId: number;
-      friendshipStatus: string;
+      friendshipStatus: 'PENDING' | 'ADDED';
     }>;
 
     const results: Array<FriendListItem | null> = await Promise.all(
       friendships.map(async (f) => {
-        const friendId = f.player1Id === CurrentUserId ? f.player2Id : f.player1Id;
+        const friendId =
+          f.player1Id === CurrentUserId ? f.player2Id : f.player1Id;
         const rows = (await this.utilsService.findPlayersBy(
           'and',
           {
@@ -126,14 +136,18 @@ export class FriendshipService {
         const stats = await this.utilsService.getGamesResCounts(friendId);
         const levelVal = stats && stats[0] ? stats[0].totalWins : 0;
         const totalLosses = stats && stats[0] ? stats[0].totalLosses : 0;
+        const onlineValue = await redisClient.get(`user:${friendId}:online`);
+        const online = onlineValue === 'true';
 
         return {
           id: friend.id,
           friendshipId: f.friendshipId,
           pseudo: friend.pseudo,
-          status: 'ONLINE',
-          friendshipStatus: f.friendshipStatus,
+          status: online ? 'ONLINE' : 'OFFLINE',
+          online,
           avatarUrl: friend.avatarUrl,
+          friendshipStatus: f.friendshipStatus,
+          isFriend: f.friendshipStatus === 'ADDED',
           level: levelVal,
           lose: totalLosses,
         };
@@ -142,7 +156,7 @@ export class FriendshipService {
     return results.filter((r): r is FriendListItem => r !== null);
   }
 
-//////////////////////////////// delete /////////////////////////////////////////////////////////
+  //////////////////////////////// delete /////////////////////////////////////////////////////////
   async delete(CurrentUserId: number, playerAdded: number) {
     if (CurrentUserId === playerAdded)
       throw new BadRequestException('You cannot delete yourself');
@@ -193,7 +207,7 @@ export class FriendshipService {
     if (pending.length === 0)
       throw new NotFoundException('No pending friend request found');
     const updated = await this.utilsService.updateFriendshipsBy(
-      { friendshipStatus: 'ADDED'},
+      { friendshipStatus: 'ADDED' },
       'and',
       undefined,
       eq(friendshipTable.player1Id, player1Id),

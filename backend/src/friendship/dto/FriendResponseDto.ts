@@ -10,7 +10,8 @@ export class FriendResponseDto {
   friendshipId!: number;
   id!: number;
   pseudo!: string;
-  status: string | null;
+  status: string;
+  online: boolean;
   avatarUrl!: string | null;
   friendshipStatus!: string;
   level?: number;
