@@ -25,12 +25,6 @@ type FriendListItem = {
 
 @Injectable()
 export class FriendshipService {
-  constructor(private readonly utilsService: UtilsService, 
-    private readonly redisService: RedisService,
-  ) {}
-
-@Injectable()
-export class FriendshipService {
   constructor(
     private readonly utilsService: UtilsService,
     private readonly redisService: RedisService,
@@ -141,7 +135,8 @@ export class FriendshipService {
 
     const results: Array<FriendListItem | null> = await Promise.all(
       friendships.map(async (f) => {
-        const friendId = f.player1Id === CurrentUserId ? f.player2Id : f.player1Id;
+        const friendId =
+          f.player1Id === CurrentUserId ? f.player2Id : f.player1Id;
         const rows = (await this.utilsService.findPlayersBy(
           'and',
           {
@@ -177,7 +172,7 @@ export class FriendshipService {
     return results.filter((r): r is FriendListItem => r !== null);
   }
 
-//////////////////////////////// delete /////////////////////////////////////////////////////////
+  //////////////////////////////// delete /////////////////////////////////////////////////////////
   async delete(CurrentUserId: number, playerAdded: number) {
     if (CurrentUserId === playerAdded)
       throw new BadRequestException('You cannot delete yourself');
@@ -228,7 +223,7 @@ export class FriendshipService {
     if (pending.length === 0)
       throw new NotFoundException('No pending friend request found');
     const updated = await this.utilsService.updateFriendshipsBy(
-      { friendshipStatus: 'ADDED'},
+      { friendshipStatus: 'ADDED' },
       'and',
       undefined,
       eq(friendshipTable.player1Id, player1Id),
