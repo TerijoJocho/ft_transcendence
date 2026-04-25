@@ -116,13 +116,6 @@ function Login() {
           {hasTouched && password.length === 0 && (
             <span className="error-style">Champ requis</span>
           )}
-
-          <Link
-            to="/forgot-password"
-            className="ml-auto text-xs hover:underline text-violet-400 cursor-pointer"
-          >
-            Mot de passe oublié
-          </Link>
         </div>
 
         {errorMessage && <span className="error-style">{errorMessage}</span>}
