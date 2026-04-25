@@ -141,7 +141,7 @@ function Profil() {
           type: "error",
         }),
       )
-      .finally(() => (setWantToDelete(false), setDeleteInput("")));
+      .finally(() => (setWantToDelete(false), setDeleteInput(""), setTimeout(() => window.location.reload(), 1000)));
   }
 
   function handleChecked(e: React.ChangeEvent<HTMLInputElement>) {

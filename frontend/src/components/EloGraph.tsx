@@ -43,7 +43,6 @@ export default function EloGraph() {
         ? mockWeeklyWinrateData
         : await api.weeklyWinrate();
       setPoints(data?.points ?? []);
-      console.log(data);
     }
     load();
   }, []);

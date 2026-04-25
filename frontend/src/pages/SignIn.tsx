@@ -2,6 +2,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { isValidMail } from "../utils/isValidMail.ts";
+import {
+  extractAuthDebugMessage,
+  toAuthErrorMessage,
+} from "../utils/authErrorMessage";
 import * as api from "../api/api.ts";
 
 export default function SignIn() {
@@ -31,12 +35,12 @@ export default function SignIn() {
         mail,
         password,
       })
-      .then((data) => {
-        console.log("Utilisateur créé: ", data);
+      .then(() => {
         navigate("/login");
       })
       .catch((err) => {
-        setErrorMessage(err.message);
+        setErrorMessage(toAuthErrorMessage(err, "signup"));
+        console.error(extractAuthDebugMessage(err));
         setLoading(false);
       });
   }

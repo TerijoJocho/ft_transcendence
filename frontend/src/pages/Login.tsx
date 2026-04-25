@@ -2,6 +2,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useAuth } from "../auth/useAuth";
+import {
+  extractAuthDebugMessage,
+  toAuthErrorMessage,
+} from "../utils/authErrorMessage";
 
 import * as api from "../api/api.ts";
 
@@ -52,13 +56,10 @@ function Login() {
       loginAuth(fullUser);
       navigate("/dashboard");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur serveur";
       setErrorMessage(
-        requiresTwoFactor
-          ? "Code 2FA invalide ou expiré."
-          : "Problème lors de la connexion, voir log.",
+        toAuthErrorMessage(err, requiresTwoFactor ? "twoFactor" : "login"),
       );
-      console.error(message);
+      console.error(extractAuthDebugMessage(err));
     } finally {
       setLoading(false);
     }
@@ -116,13 +117,6 @@ function Login() {
           {hasTouched && password.length === 0 && (
             <span className="error-style">Champ requis</span>
           )}
-
-          <Link
-            to="/forgot-password"
-            className="ml-auto text-xs hover:underline text-violet-400 cursor-pointer"
-          >
-            Mot de passe oublié
-          </Link>
         </div>
 
         {errorMessage && <span className="error-style">{errorMessage}</span>}

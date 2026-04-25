@@ -6,7 +6,7 @@ import * as api from "../api/api.ts";
 export type Friends = {
     id: number;
     pseudo: string;
-    status?: string | null; //a enlever
+    status?: string | null;
     avatarUrl: string | IconDefinition;
     friendshipStatus: string;
     level?: number;
