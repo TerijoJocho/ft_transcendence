@@ -60,6 +60,69 @@ Key features include:
 docker compose down
 ```
 
+## Resources
+
+Classic references used for the project:
+
+- React documentation: react.dev
+- NestJS documentation: docs.nestjs.com
+- Drizzle ORM documentation: orm.drizzle.team
+- PostgreSQL documentation: postgresql.org/docs
+- Redis documentation: redis.io/docs
+- Socket.IO documentation: socket.io/docs
+- Passport.js documentation: passportjs.org
+- OWASP Core Rule Set and ModSecurity documentation
+- HashiCorp Vault documentation
+- Docker and Docker Compose documentation
+- Bcrypt package documentation on npm
+- Speakeasy package documentation on npm
+- Community support and tutorials from Stack Overflow, Reddit, OpenClassrooms, Scrimba, and YouTube
+
+AI usage:
+
+> [!WARNING]
+> The repository does not document a formal AI usage policy or a precise breakdown of which tasks were assisted by AI. For evaluation purposes, this README should be completed with the actual usage scope, for example: drafting documentation, refining wording, structuring sections, or helping review technical descriptions. If AI was not used, say so explicitly.
+
+## Additional sections may be required depending on the project (e.g., usage examples, feature list, technical choices, etc.)
+
+## Additional Notes
+
+- The application is exposed behind an HTTPS reverse proxy.
+- The root of the project includes Docker Compose files for both standard and production-oriented setups.
+- Player statistics are computed from the Participation and Game tables rather than stored as duplicated counters.
+
+> [!WARNING]
+> If the evaluation expects an explicit license, full API endpoint catalog, or per-feature screenshots, those items are not documented in this README and should be added if available.
+
+## Team Information
+
+### Daryl — Tech Lead / Frontend Lead / DevOps coordination
+
+Daryl led the frontend architecture and implemented most of the visible application surface: login, signup, dashboard, profile, friends, game, tournament, chat, form validation, route guards, auth context, token lifecycle handling, API integration, reusable UI components, sidebar navigation, friend search, profile editing, and account deletion UX. He also coordinated repository setup, CI checks, and frontend containerization.
+
+### Aïcha — Product Owner / Data Engineer / Backend Lead / Security contributor
+
+Aïcha owned the database design, Drizzle ORM integration, Redis usage, backend architecture, authentication flows, token lifecycle, Google OAuth, and game-related backend and WebSocket integration. She also contributed to data modeling, persistence rules, and server-side business logic.
+
+### Kalvin — Project Management / Security and Infra Lead / Backend contributor
+
+Kalvin focused on hardening the stack: Vault integration, WAF and ModSecurity setup, 2FA security logic, password hashing, and backend work around users and friendships. He contributed to the deployment and security posture of the project.
+
+### Ylan — Developer / Gameplay Developer / Frontend contributor
+
+Ylan implemented the chess gameplay layer, including board logic, rendering, legal move handling, and the lobby and matchmaking UI. He also worked on the Tic-Tac-Toe bot mode and gameplay-oriented frontend interactions.
+
+## Project Management
+
+The team organized the work through task distribution, regular meetings, testing sessions, and code review. Meetings were held on school premises at least once a week, sometimes up to three times, to review code, identify issues, test features, and adjust task allocation.
+
+Tools and channels used:
+
+- GitHub Issues for task tracking and coordination.
+- Discord for communication.
+- GitHub Actions for linting and build validation.
+- Husky pre-commit hooks for code quality enforcement.
+
 ## Technical Stack
 
 | Layer               | Technology                                      | Notes                                                                                            |
@@ -193,66 +256,7 @@ Points are counted with the required rule: Major = 2 points, Minor = 1 point.
 | Custom subtotal | 3      |
 | Grand total     | 26     |
 
-## Team Information
-
-### Daryl — Tech Lead / Frontend Lead / DevOps coordination
-
-Daryl led the frontend architecture and implemented most of the visible application surface: login, signup, dashboard, profile, friends, game, tournament, chat, form validation, route guards, auth context, token lifecycle handling, API integration, reusable UI components, sidebar navigation, friend search, profile editing, and account deletion UX. He also coordinated repository setup, CI checks, and frontend containerization.
-
-### Aïcha — Product Owner / Data Engineer / Backend Lead / Security contributor
-
-Aïcha owned the database design, Drizzle ORM integration, Redis usage, backend architecture, authentication flows, token lifecycle, Google OAuth, and game-related backend and WebSocket integration. She also contributed to data modeling, persistence rules, and server-side business logic.
-
-### Kalvin — Project Management / Security and Infra Lead / Backend contributor
-
-Kalvin focused on hardening the stack: Vault integration, WAF and ModSecurity setup, 2FA security logic, password hashing, and backend work around users and friendships. He contributed to the deployment and security posture of the project.
-
-### Ylan — Developer / Gameplay Developer / Frontend contributor
-
-Ylan implemented the chess gameplay layer, including board logic, rendering, legal move handling, and the lobby and matchmaking UI. He also worked on the Tic-Tac-Toe bot mode and gameplay-oriented frontend interactions.
+## Individual contributions
 
 > [!WARNING]
 > This section reflects the role descriptions already present in the repository, but it does not include a line-by-line contribution log. If the evaluation requires exact ownership per ticket or commit, that information should be added from the team’s issue tracker or Git history.
-
-## Project Management
-
-The team organized the work through task distribution, regular meetings, testing sessions, and code review. Meetings were held on school premises at least once a week, sometimes up to three times, to review code, identify issues, test features, and adjust task allocation.
-
-Tools and channels used:
-
-- GitHub Issues for task tracking and coordination.
-- Discord for communication.
-- GitHub Actions for linting and build validation.
-- Husky pre-commit hooks for code quality enforcement.
-
-## Resources
-
-Classic references used for the project:
-
-- React documentation: react.dev
-- NestJS documentation: docs.nestjs.com
-- Drizzle ORM documentation: orm.drizzle.team
-- PostgreSQL documentation: postgresql.org/docs
-- Redis documentation: redis.io/docs
-- Socket.IO documentation: socket.io/docs
-- Passport.js documentation: passportjs.org
-- OWASP Core Rule Set and ModSecurity documentation
-- HashiCorp Vault documentation
-- Docker and Docker Compose documentation
-- Bcrypt package documentation on npm
-- Speakeasy package documentation on npm
-- Community support and tutorials from Stack Overflow, Reddit, OpenClassrooms, Scrimba, and YouTube
-
-AI usage:
-
-> [!WARNING]
-> The repository does not document a formal AI usage policy or a precise breakdown of which tasks were assisted by AI. For evaluation purposes, this README should be completed with the actual usage scope, for example: drafting documentation, refining wording, structuring sections, or helping review technical descriptions. If AI was not used, say so explicitly.
-
-## Additional Notes
-
-- The application is exposed behind an HTTPS reverse proxy.
-- The root of the project includes Docker Compose files for both standard and production-oriented setups.
-- Player statistics are computed from the Participation and Game tables rather than stored as duplicated counters.
-
-> [!WARNING]
-> If the evaluation expects an explicit license, full API endpoint catalog, or per-feature screenshots, those items are not documented in this README and should be added if available.
