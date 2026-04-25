@@ -3,10 +3,7 @@ export type FriendView = {
   pseudo: string;
   status: string | null;
   avatarUrl: string | null;
-  isFriend: boolean;
   friendshipStatus: string;
-  isBlocked: boolean; //a enlever
-  isFavFriend: boolean; // a enlever
 };
 
 export class FriendResponseDto {
@@ -16,7 +13,6 @@ export class FriendResponseDto {
   status: string;
   online: boolean;
   avatarUrl!: string | null;
-  isFriend!: boolean;
   friendshipStatus!: string;
   level: number;
   lose: number;

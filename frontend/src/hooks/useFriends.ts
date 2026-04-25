@@ -9,7 +9,6 @@ export type Friends = {
     status: string;
     online: boolean;
     avatarUrl: string | IconDefinition;
-    isFriend: boolean;
     friendshipStatus: string;
     level: number;
     lose: number;

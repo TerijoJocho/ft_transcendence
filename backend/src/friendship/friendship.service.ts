@@ -63,7 +63,6 @@ export class FriendshipService {
         player2Id,
         requesterId: CurrentUserId,
         friendshipStatus: 'PENDING',
-        isFriend: false,
       },
     ]);
     const id = inserted[0].friendshipId as number;
@@ -82,7 +81,6 @@ export class FriendshipService {
       pseudo: pseudoPlayer[0].pseudo,
       status: 'ONLINE',
       avatarUrl: null,
-      isFriend: false,
       friendshipStatus: 'PENDING',
     };
     return friendResponse;
@@ -98,14 +96,14 @@ export class FriendshipService {
         player1Id: friendshipTable.player1Id,
         player2Id: friendshipTable.player2Id,
         requesterId: friendshipTable.requesterId,
-        isFriend: friendshipTable.isFriend,
+        friendshipStatus: friendshipTable.friendshipStatus,
       },
       and(
         or(
           eq(friendshipTable.player1Id, CurrentUserId),
           eq(friendshipTable.player2Id, CurrentUserId),
         ),
-        eq(friendshipTable.isFriend, true),
+        eq(friendshipTable.friendshipStatus, 'ADDED'),
       ),
       and(
         or(
@@ -120,15 +118,12 @@ export class FriendshipService {
       player1Id: number;
       player2Id: number;
       requesterId: number;
-      isFriend: boolean;
-      isBlocked: boolean;
-      isFavFriend: boolean;
+      friendshipStatus: string;
     }>;
 
-    const results: Array<FriendResponseDto | null> = await Promise.all(
+    const results: Array<FriendListItem | null> = await Promise.all(
       friendships.map(async (f) => {
-        const friendId =
-          f.player1Id === CurrentUserId ? f.player2Id : f.player1Id;
+        const friendId = f.player1Id === CurrentUserId ? f.player2Id : f.player1Id;
         const rows = (await this.utilsService.findPlayersBy(
           'and',
           {
@@ -154,17 +149,15 @@ export class FriendshipService {
           status: online ? 'ONLINE' : 'OFFLINE',
           online,
           avatarUrl: friend.avatarUrl,
-          isFriend: f.isFriend,
-          friendshipStatus: f.isFriend ? 'ADDED' : 'PENDING',
           level: levelVal,
           lose: totalLosses,
         };
       }),
     );
-    return results.filter((r): r is FriendResponseDto => r !== null);
+    return results.filter((r): r is FriendListItem => r !== null);
   }
 
-  //////////////////////////////// delete /////////////////////////////////////////////////////////
+//////////////////////////////// delete /////////////////////////////////////////////////////////
   async delete(CurrentUserId: number, playerAdded: number) {
     if (CurrentUserId === playerAdded)
       throw new BadRequestException('You cannot delete yourself');
@@ -198,7 +191,7 @@ export class FriendshipService {
     return `Friendship between player ${CurrentUserId} and player ${playerAdded} deleted successfully`;
   }
 
-  ////////////////////////// accepté un amis //////////////////////////////
+  ////////////////////////// accepté un ami //////////////////////////////
   async changeFriendshipStatus(CurrentUserId: number, target: number) {
     if (CurrentUserId === target)
       throw new BadRequestException('You cannot add yourself as a friend');
@@ -215,14 +208,13 @@ export class FriendshipService {
     if (pending.length === 0)
       throw new NotFoundException('No pending friend request found');
     const updated = await this.utilsService.updateFriendshipsBy(
-      { friendshipStatus: 'ADDED', isFriend: true },
+      { friendshipStatus: 'ADDED'},
       'and',
       undefined,
       eq(friendshipTable.player1Id, player1Id),
       eq(friendshipTable.player2Id, player2Id),
       ne(friendshipTable.requesterId, CurrentUserId),
       eq(friendshipTable.friendshipStatus, 'PENDING'),
-      eq(friendshipTable.isFriend, false),
     );
     if (updated.length === 0)
       throw new BadRequestException('Failed to update friend request');
@@ -256,34 +248,3 @@ export class FriendshipService {
     }));
   }
 }
-
-//acceptation de la demande d'ami
-// async update(CurrentUserId: number, playerAdded: number)
-// {
-//   if (CurrentUserId === playerAdded)
-//     throw new BadRequestException('You cannot add yourself as a friend');
-//   const player1Id = Math.min(CurrentUserId, playerAdded);
-//   const player2Id = Math.max(CurrentUserId, playerAdded);
-//   const pending = await this.utilsService.findFriendshipsBy(
-//     'and',
-//     undefined,
-//     eq(friendshipTable.player1Id, player1Id),
-//     eq(friendshipTable.player2Id, player2Id),
-//     eq(friendshipTable.friendshipStatus, 'PENDING'),
-//   );
-//   if (pending.length === 0)
-//     throw new NotFoundException('No pending friend request found');
-//   const updated = await this.utilsService.updateFriendshipsBy(
-//     {friendshipStatus: 'ADDED'},
-//     'and',
-//     undefined,
-//     eq(friendshipTable.player1Id, player1Id),
-//     eq(friendshipTable.player2Id, player2Id),
-//     eq(friendshipTable.friendshipStatus, 'PENDING'),
-
-//   );
-//   if (updated.length === 0)
-//     throw new BadRequestException('Failed to update friend request');
-
-//   return `Player ${CurrentUserId} accepted friend request from player ${playerAdded}`;
-// }
