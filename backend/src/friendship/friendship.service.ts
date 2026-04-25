@@ -12,6 +12,19 @@ import { RedisService } from 'src/shared/services/redis.service';
 // import { BlockList } from 'net';
 // import { FriendView } from './dto/FriendResponseDto';
 
+type FriendListItem = {
+  id: number;
+  friendshipId: number;
+  pseudo: string;
+  status: 'ONLINE' | 'OFFLINE';
+  online: boolean;
+  avatarUrl: string | null;
+  friendshipStatus: 'PENDING' | 'ADDED';
+  isFriend: boolean;
+  level: number;
+  lose: number;
+};
+
 @Injectable()
 export class FriendshipService {
   constructor(
@@ -118,7 +131,7 @@ export class FriendshipService {
       player1Id: number;
       player2Id: number;
       requesterId: number;
-      friendshipStatus: string;
+      friendshipStatus: 'PENDING' | 'ADDED';
     }>;
 
     const results: Array<FriendListItem | null> = await Promise.all(
@@ -149,6 +162,8 @@ export class FriendshipService {
           status: online ? 'ONLINE' : 'OFFLINE',
           online,
           avatarUrl: friend.avatarUrl,
+          friendshipStatus: f.friendshipStatus,
+          isFriend: f.friendshipStatus === 'ADDED',
           level: levelVal,
           lose: totalLosses,
         };
