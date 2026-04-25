@@ -83,35 +83,25 @@ AI usage:
 > [!WARNING]
 > The repository does not document a formal AI usage policy or a precise breakdown of which tasks were assisted by AI. For evaluation purposes, this README should be completed with the actual usage scope, for example: drafting documentation, refining wording, structuring sections, or helping review technical descriptions. If AI was not used, say so explicitly.
 
-## Additional sections may be required depending on the project (e.g., usage examples, feature list, technical choices, etc.)
+## Team Information
 
-## Additional Notes
-
-- The application is exposed behind an HTTPS reverse proxy.
-- The root of the project includes Docker Compose files for both standard and production-oriented setups.
-- Player statistics are computed from the Participation and Game tables rather than stored as duplicated counters.
-
-> [!WARNING]
-> If the evaluation expects an explicit license, full API endpoint catalog, or per-feature screenshots, those items are not documented in this README and should be added if available.
-
-# TEAM INFORMATION
-
-## Daryl:
-
-- Roles: Tech Lead (Frontend Lead, DevOps coordination)
-- Responsibilities: Stack decision-making, GitHub repository setup and coordination, full frontend development, UI/UX design, Docker containerization support.
-
-## Aïcha:
+### Aïcha:
 
 - Roles: Product Owner (Data engineer, Backend Lead, Security contributor)
 - Responsibilities: Product direction and backlog prioritization, database design and data quality ownership, backend architecture and API coordination, and security support for authentication/token lifecycle and secret management.
 
-## Kalvin:
+### Kalvin:
 
 - Roles: Project Management (Security/Infra Lead, Backend contributor)
 - Responsibilities: Project coordination and delivery follow-up, security and infrastructure hardening (WAF/ModSecurity, Vault integration), 2FA feature implementation, and backend ownership of users/friendship flows.
 
-## Ylan:
+### Daryl:
+
+- Roles: Tech Lead (Frontend Lead, DevOps coordination)
+- Responsibilities: Stack decision-making, GitHub repository setup and coordination, full frontend development, UI/UX design, Docker containerization support.
+
+
+### Ylan:
 
 - Roles: Developper (Gameplay Developer, Frontend contributor)
 - Responsibilities: Core chess gameplay implementation (rules, algorithm, board rendering), frontend development of room creation and matchmaking interfaces, and gameplay-focused UI integration.
@@ -120,7 +110,7 @@ AI usage:
 
 The team organized the work through task distribution, regular meetings, testing sessions, and code review. Meetings were held on school premises at least once a week, sometimes up to three times, to review code, identify issues, test features, and adjust task allocation.
 
-Tools and channels used:
+**Tools and channels used**:
 
 - GitHub Issues for task tracking and coordination.
 - Discord for communication.
