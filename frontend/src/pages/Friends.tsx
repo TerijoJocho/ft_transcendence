@@ -50,7 +50,11 @@ function Friends() {
 
           {/* Liste d'amis */}
           {filteredFriends.map((f) => {
-            const friendStatus = statusData.find((st) => st.value === f.status);
+            const isOnline =
+              typeof f.online === "boolean" ? f.online : f.status === "ONLINE";
+            const friendStatus = statusData.find(
+              (st) => st.value === (isOnline ? "ONLINE" : "OFFLINE"),
+            );
             const friendAvatar = typeof f.avatarUrl === 'string'
                           ? (<img src={f.avatarUrl} alt={`${f.pseudo} avatar`} className="w-10 h-10 rounded-full object-cover"/>)
                           : (<FontAwesomeIcon icon={faCircleUser}/>)
@@ -60,8 +64,8 @@ function Friends() {
                   <div>{friendAvatar}</div>
                   <div>
                     <p>{f.pseudo}</p>
-                    <p className={`${friendStatus.style} w-fit border-none mt-1`}>
-                      {friendStatus.label}
+                    <p className={`${friendStatus?.style ?? statusData[4].style} w-fit border-none mt-1`}>
+                      {friendStatus?.label ?? statusData[4].label}
                     </p>
                   </div>
                 </div>
@@ -89,6 +93,13 @@ function Friends() {
           <p className="p-2 ">Liste de demande d'amis</p>
           {
             filteredPendingList.map(f => {
+                const isOnline =
+                  typeof f.online === "boolean"
+                    ? f.online
+                    : f.status === "ONLINE";
+                const pendingStatus = statusData.find(
+                  (st) => st.value === (isOnline ? "ONLINE" : "OFFLINE"),
+                );
               const pendingAvatar = typeof f.avatarUrl === 'string'
                           ? (<img src={f.avatarUrl} alt={`${f.pseudo} avatar`} className="w-5 h-5 rounded-full object-cover"/>)
                           : (<FontAwesomeIcon icon={faCircleUser}/>)
@@ -97,6 +108,9 @@ function Friends() {
                     <div className="flex-1">
                       <div className="text-4xl text-gray-300">{pendingAvatar}</div>
                       <p>{f.pseudo}</p>
+                        <p className={`${pendingStatus?.style ?? statusData[4].style} w-fit border-none mt-1`}>
+                          {pendingStatus?.label ?? statusData[4].label}
+                        </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button  onClick={() => addToFriendList(f)} title="débloquer">
