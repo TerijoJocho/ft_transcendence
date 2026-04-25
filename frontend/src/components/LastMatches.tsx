@@ -2,12 +2,10 @@ import { mockDashboardUserStats } from "../data/mock_data";
 import USE_MOCK_DATA from "../config/dataConfig";
 
 function formatGameDuration(duration) {
-  if (typeof duration !== "string") 
-    return "-";
+  if (typeof duration !== "string") return "-";
 
   const durationParts = duration.split(":");
-  if (durationParts.length !== 3) 
-    return duration;
+  if (durationParts.length !== 3) return duration;
 
   const [hoursStr, minutesStr, secondStr] = durationParts;
   const hours = Number(hoursStr);
@@ -36,14 +34,38 @@ export default function LastMatches({ userStats }) {
     return (
       <li
         key={data.gameId}
-        className="grid grid-cols-5 gap-4 p-2 border border-transparent hover:border-violet-400 bg-violet-200 rounded-md m-1 items-center text-sm"
+        className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4 p-2 border border-transparent hover:border-violet-400 dark:hover:border-yellow-500 bg-violet-200 dark:bg-yellow-700/60 rounded-md m-1 items-center"
       >
-        <p className="truncate ">{data.opponentName}</p>
-        <p className="text-center ">{data.playerResult}</p>
-        <p className="text-center ">{data.gameMode}</p>
-        <p className="text-center ">{data.playerColor}</p>
-        <p className="text-sm text-center">
-          {formatGameDuration(data.gameDuration ?? "N/A")}
+        <p className="col-span-2 sm:col-span-1 truncate font-medium sm:font-normal">
+          {data.opponentName}
+        </p>
+
+        <p className="flex items-center justify-between sm:block sm:text-center">
+          <span className="sm:hidden text-xs text-gray-600 dark:text-zinc-400">
+            Résultat
+          </span>
+          <span className="truncate">{data.playerResult}</span>
+        </p>
+
+        <p className="flex items-center justify-between sm:block sm:text-center">
+          <span className="sm:hidden text-xs text-gray-600 dark:text-zinc-400">
+            Mode
+          </span>
+          <span className="truncate">{data.gameMode}</span>
+        </p>
+
+        <p className="flex items-center justify-between sm:block sm:text-center">
+          <span className="sm:hidden text-xs text-gray-600 dark:text-zinc-400">
+            Couleur
+          </span>
+          <span className="truncate">{data.playerColor}</span>
+        </p>
+
+        <p className="flex items-center justify-between sm:block text-sm sm:text-center whitespace-nowrap">
+          <span className="sm:hidden text-xs text-gray-600 dark:text-zinc-400">
+            Temps
+          </span>
+          <span>{formatGameDuration(data.gameDuration ?? "N/A")}</span>
         </p>
       </li>
     );
@@ -52,16 +74,16 @@ export default function LastMatches({ userStats }) {
   return (
     <section className="grid-style col-span-2">
       <h3>Historique des dix derniers matches</h3>
-      <div className="border rounded-md m-2 p-1 bg-violet-100">
-        <div className="grid grid-cols-5 gap-4 border-b-2 border-black m-1 p-2 font-semibold text-sm text-nowrap">
-          <p>Adversaire</p>
-          <p className="text-center">Résultat</p>
-          <p className="text-center">Mode de jeu</p>
-          <p className="text-center">Couleur jouée</p>
-          <p className="text-center">Temps de jeu</p>
+      <div className="border rounded-md m-2 p-1 bg-violet-100 dark:bg-yellow-900/60 dark:border-zinc-700">
+        <div className="hidden sm:grid sm:grid-cols-5 gap-2 md:gap-4 border-b-2 border-black dark:border-zinc-600 m-1 p-2 font-semibold text-xs md:text-sm">
+          <p className="min-w-0 truncate">Adversaire</p>
+          <p className="min-w-0 truncate text-center">Résultat</p>
+          <p className="min-w-0 truncate text-center">Mode de jeu</p>
+          <p className="min-w-0 truncate text-center">Couleur jouée</p>
+          <p className="min-w-0 truncate text-center">Temps de jeu</p>
         </div>
-        <ul className="max-h-40 overflow-scroll">
-          {displayData.length === 0 ? "Aucune donées" : displayData}
+        <ul className="max-h-56 overflow-y-auto">
+          {displayData.length === 0 ? "Aucune données" : displayData}
         </ul>
       </div>
     </section>

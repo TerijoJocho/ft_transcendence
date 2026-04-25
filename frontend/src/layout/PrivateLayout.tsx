@@ -7,7 +7,7 @@ export default function PrivateLayout() {
     <ChatProvider>
       <div className="flex min-h-screen">
         <SideBar />
-        <main className="flex-1 p-6 border">
+        <main className="flex-1 p-4 lg:p-6 border border-gray-200 dark:border-zinc-800 transition-colors duration-300">
           <Outlet />
         </main>
       </div>

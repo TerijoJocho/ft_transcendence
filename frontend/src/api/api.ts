@@ -127,7 +127,12 @@ async function request<TResponse>(
     ...options,
   });
 
-  if (response.status === 401 && !isRetry) {
+  const isAuthEndpoint =
+    endpoint === "/api/auth/login" ||
+    endpoint === "/api/auth/login2fa" ||
+    endpoint === "/api/users/register";
+
+  if (response.status === 401 && !isRetry && !isAuthEndpoint) {
     const refresh = await fetch(`${API_URL}/api/auth/refresh`, {
       method: "POST",
       credentials: "include",
@@ -369,10 +374,13 @@ export function endGame(
   });
 }
 
-export function giveupGame(gameId: number, data: {
+export function giveupGame(
+  gameId: number,
+  data: {
     totalNbMoves: number;
     winnerNbMoves: number;
-  },) {
+  },
+) {
   return request(`/api/game/${gameId}/giveup`, {
     method: "POST",
     body: JSON.stringify(data),

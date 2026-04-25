@@ -26,6 +26,7 @@ function Chat() {
 
   const [friends, setFriends] = useState<ChatFriend[]>([]);
   const [peerId, setPeerId] = useState<number | null>(null);
+  const [showProfileMobile, setShowProfileMobile] = useState(false);
   const [text, setText] = useState("");
   const [search, setSearch] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -73,11 +74,18 @@ function Chat() {
     (st) => st.value === selectedFriend?.status,
   );
 
-  const filteredFriends = useMemo(() => friends.filter((f) =>
-    f.pseudo.toLowerCase().includes(search.toLowerCase()),
-  ), [friends, search]);
+  const filteredFriends = useMemo(
+    () =>
+      friends.filter((f) =>
+        f.pseudo.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [friends, search],
+  );
 
-  const currentMessages = useMemo(() => peerId !== null ? (messages[peerId] ?? []) : [], [peerId, messages]);
+  const currentMessages = useMemo(
+    () => (peerId !== null ? (messages[peerId] ?? []) : []),
+    [peerId, messages],
+  );
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -96,14 +104,14 @@ function Chat() {
 
   // ── Rendu ──────────────────────────────────────────────────────────────────
   return (
-    <div className="border rounded-md bg-white text-black h-full flex flex-col">
+    <div className="border border-gray-200 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-800 text-black dark:text-white h-full w-full min-w-0 flex flex-col transition-colors duration-300">
       <Header title="Messages privés" />
 
-      <div className="flex border-t flex-1 overflow-hidden">
+      <div className="flex border-t border-gray-200 dark:border-zinc-700 flex-1 overflow-hidden">
         {/* ── Colonne gauche : liste des conversations ── */}
-        <section className="w-64 max-h-screen flex flex-col border-r shrink-0">
+        <section className="w-64 max-h-screen flex flex-col border-r border-zinc-200 dark:border-zinc-700 shrink-0">
           {/* Barre de recherche */}
-          <Search value={search} onChange={setSearch} />
+          <Search value={search} onChange={setSearch} className="dark:bg-zinc-900"/>
 
           {/* Liste des conversations */}
           <div className="overflow-y-auto flex-1">
@@ -123,10 +131,11 @@ function Chat() {
                   key={friend.id}
                   onClick={() => {
                     setPeerId(friend.id);
+                    setShowProfileMobile(false);
                     setError(null);
                   }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-violet-50 transition-colors text-left
-                                        ${isSelected ? "bg-violet-200" : ""}`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-zinc-600 hover:bg-violet-50 dark:hover:bg-yellow-900 transition-colors text-left
+                                        ${isSelected ? "bg-violet-200 dark:bg-yellow-900/40" : ""}`}
                 >
                   {/* Avatar */}
                   <div className="relative shrink-0">
@@ -134,10 +143,10 @@ function Chat() {
                       <img
                         src={friend.avatarUrl}
                         alt={friend.pseudo}
-                        className="w-8 h-8 rounded-full object-cover bg-gray-200"
+                        className="w-8 h-8 rounded-full object-cover bg-gray-200 dark:bg-zinc-700"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gray-300" />
+                      <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-zinc-700" />
                     )}
                     <FontAwesomeIcon
                       icon={faCircle}
@@ -148,18 +157,20 @@ function Chat() {
                   {/* Pseudo + aperçu */}
                   <div className="min-w-0">
                     <p
-                      className={`text-sm font-semibold truncate ${isSelected ? "text-violet-700" : "text-gray-800"}`}
+                      className={`text-sm font-semibold truncate ${isSelected ? "text-violet-700 dark:text-yellow-300" : "text-gray-800 dark:text-zinc-100"}`}
                     >
                       {friend.pseudo}
                     </p>
-                    <p className="text-xs text-gray-400 truncate">{preview}</p>
+                    <p className="text-xs text-gray-400 dark:text-zinc-400 truncate">
+                      {preview}
+                    </p>
                   </div>
                 </button>
               );
             })}
 
             {filteredFriends.length === 0 && (
-              <p className="text-center text-gray-400 text-sm mt-8">
+              <p className="text-center text-gray-400 dark:text-zinc-400 text-sm mt-8">
                 Aucun ami trouvé
               </p>
             )}
@@ -167,22 +178,24 @@ function Chat() {
         </section>
 
         {/* ── Colonne centrale : zone de messages ── */}
-        <section className="flex-1 flex flex-col border-r overflow-hidden h-screen">
+        <section
+          className={`flex-1 flex-col border-r border-gray-200 dark:border-zinc-700 overflow-hidden h-screen ${showProfileMobile ? "hidden" : "flex"} md:flex`}
+        >
           {selectedFriend ? (
             <>
               {/* Header de la conv */}
-              <div className="flex items-center gap-3 px-5 py-3 border-b bg-gray-50 shrink-0">
+              <div className="flex items-center gap-3 px-5 py-3 border-b border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 shrink-0">
                 {selectedFriend.avatarUrl ? (
                   <img
                     src={selectedFriend.avatarUrl}
                     alt={selectedFriend.pseudo}
-                    className="w-8 h-8 rounded-full object-cover bg-gray-200"
+                    className="w-8 h-8 rounded-full object-cover bg-gray-200 dark:bg-zinc-700"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gray-300" />
+                  <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-zinc-700" />
                 )}
                 <div>
-                  <p className="font-semibold text-gray-800">
+                  <p className="font-semibold text-gray-800 dark:text-zinc-100">
                     {selectedFriend.pseudo}
                   </p>
                   <p
@@ -192,6 +205,12 @@ function Chat() {
                     {selectedFriendStatus?.label ?? "Status inconnu"}
                   </p>
                 </div>
+                <button
+                  onClick={() => setShowProfileMobile(true)}
+                  className="ml-auto md:hidden border border-violet-300 dark:border-yellow-700 text-violet-600 dark:text-yellow-500 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors"
+                >
+                  Afficher le profil
+                </button>
               </div>
 
               {/* Bulles de messages */}
@@ -207,14 +226,14 @@ function Chat() {
                         className={`max-w-xs px-4 py-2 rounded-2xl text-sm break-all
                                     ${
                                       isMe
-                                        ? "bg-violet-600 text-white rounded-br-sm"
-                                        : "bg-gray-100 text-gray-800 rounded-bl-sm"
+                                        ? "bg-violet-600 dark:bg-yellow-700 text-white rounded-br-sm"
+                                        : "bg-gray-100 dark:bg-zinc-700 text-gray-800 dark:text-white rounded-bl-sm"
                                     }`}
                       >
                         <p>{msg.content}</p>
                         <p
                           className={`text-[10px] mt-1 text-right
-                                      ${isMe ? "text-violet-200" : "text-gray-400"}`}
+                                      ${isMe ? "text-violet-200" : "text-gray-400 dark:text-zinc-400"}`}
                         >
                           {new Date(msg.ts).toLocaleTimeString("fr-FR", {
                             hour: "2-digit",
@@ -227,7 +246,7 @@ function Chat() {
                 })}
 
                 {currentMessages.length === 0 && (
-                  <p className="text-center text-gray-400 text-sm mt-16">
+                  <p className="text-center text-gray-400 dark:text-zinc-400 text-sm mt-16">
                     Aucun message pour l'instant.
                     <br />
                     Dis bonjour à {selectedFriend.pseudo} !
@@ -243,46 +262,57 @@ function Chat() {
               )}
 
               {/* Zone de saisie */}
-              <div className="px-4 py-3 border-t bg-gray-50 flex items-center gap-3 shrink-0">
+              <div className="px-4 py-3 border-t border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 flex items-center gap-3 shrink-0">
                 <input
                   type="text"
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                   placeholder={`Message à ${selectedFriend.pseudo}...`}
-                  className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-violet-400 transition-colors"
+                  className="flex-1 bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-2 text-sm outline-none focus:border-violet-400 dark:focus:border-yellow-500 transition-colors"
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={!canSend}
-                  className="bg-violet-600 hover:bg-violet-500 disabled:bg-gray-200 disabled:cursor-not-allowed text-white px-4 py-2 rounded-xl transition-colors"
+                  className="bg-violet-600 dark:bg-yellow-600 hover:bg-violet-500 dark:hover:bg-yellow-500 disabled:bg-gray-200 dark:disabled:bg-zinc-700 disabled:cursor-not-allowed text-white px-4 py-2 rounded-xl transition-colors"
                 >
                   <FontAwesomeIcon icon={faPaperPlane} />
                 </button>
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+            <div className="flex-1 flex items-center justify-center text-gray-400 dark:text-zinc-400 text-sm">
               Sélectionne une conversation
             </div>
           )}
         </section>
 
         {/* ── Colonne droite : mini profil de l'ami ── */}
-        <section className="w-56 shrink-0 flex flex-col items-center p-6 gap-4 bg-gray-50">
+        <section
+          className={`${showProfileMobile ? "flex flex-1" : "hidden"} md:flex md:w-56 lg:max-w-64 md:shrink-0 flex-col items-center p-6 gap-4 bg-gray-50 dark:bg-zinc-900 overflow-y-auto`}
+        >
           {selectedFriend ? (
             <>
+              <div className="w-full flex justify-end md:hidden">
+                <button
+                  onClick={() => setShowProfileMobile(false)}
+                  className="border border-violet-300 dark:border-yellow-700 text-violet-700 dark:text-yellow-500 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-violet-50 dark:hover:bg-yellow-900/20 transition-colors"
+                >
+                  Retour au chat
+                </button>
+              </div>
+
               <div className="flex flex-col items-center gap-2 mt-4">
                 {selectedFriend.avatarUrl ? (
                   <img
                     src={selectedFriend.avatarUrl}
                     alt={selectedFriend.pseudo}
-                    className="w-20 h-20 rounded-full object-cover bg-gray-200"
+                    className="w-20 h-20 rounded-full object-cover bg-gray-200 dark:bg-zinc-700"
                   />
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-gray-300" />
+                  <div className="w-20 h-20 rounded-full bg-gray-300 dark:bg-zinc-700" />
                 )}
-                <p className="font-semibold text-gray-800 text-lg">
+                <p className="font-semibold text-gray-800 dark:text-white text-lg">
                   {selectedFriend.pseudo}
                 </p>
                 <span className={`${selectedFriendStatus?.style} border-none`}>
@@ -290,31 +320,35 @@ function Chat() {
                 </span>
               </div>
 
-              <hr className="w-full border-gray-200" />
+              <hr className="w-full border-gray-200 dark:border-zinc-700" />
 
-              <div className="w-full space-y-3 text-sm text-gray-600">
+              <div className="w-full space-y-3 text-sm text-gray-600 dark:text-zinc-300">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Victoires</span>
-                  <span className="font-semibold text-gray-800">
+                  <span className="text-gray-400 dark:text-zinc-400">
+                    Victoires
+                  </span>
+                  <span className="font-semibold text-gray-800 dark:text-white">
                     {selectedFriend.level ?? 0}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Défaites</span>
-                  <span className="font-semibold text-gray-800">
+                  <span className="text-gray-400 dark:text-zinc-400">
+                    Défaites
+                  </span>
+                  <span className="font-semibold text-gray-800 dark:text-white">
                     {selectedFriend.lose ?? 0}
                   </span>
                 </div>
               </div>
 
-              <hr className="w-full border-gray-200" />
+              <hr className="w-full border-gray-200 dark:border-zinc-700" />
 
               <div className="w-full flex flex-col gap-2">
                 <Level level={selectedFriend.level ?? 0} />
               </div>
             </>
           ) : (
-            <p className="text-gray-400 text-sm mt-8 text-center">
+            <p className="text-gray-400 dark:text-zinc-400 text-sm mt-8 text-center">
               Sélectionne un ami pour voir son profil
             </p>
           )}

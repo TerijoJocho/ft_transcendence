@@ -11,9 +11,10 @@ import {
 
 interface LevelProps {
   level: number;
+  compact?: boolean;
 }
 
-export default function Level({ level }: LevelProps) {
+export default function Level({ level, compact = false }: LevelProps) {
   const levelTitleData = [
     {
       id: 1,
@@ -53,18 +54,30 @@ export default function Level({ level }: LevelProps) {
   ];
 
   const currentLevel = level;
-  const nextLevelIndex = levelTitleData.findIndex((lvl) => currentLevel < lvl.reach);
+  const nextLevelIndex = levelTitleData.findIndex(
+    (lvl) => currentLevel < lvl.reach,
+  );
   const isMaxRank = nextLevelIndex === -1;
 
-  const currentRankIndex = isMaxRank ? levelTitleData.length - 1 : nextLevelIndex - 1;
-  const currentRank = currentRankIndex >= 0 ? levelTitleData[currentRankIndex] : undefined;
+  const currentRankIndex = isMaxRank
+    ? levelTitleData.length - 1
+    : nextLevelIndex - 1;
+  const currentRank =
+    currentRankIndex >= 0 ? levelTitleData[currentRankIndex] : undefined;
   const nextLevel = isMaxRank ? undefined : levelTitleData[nextLevelIndex];
 
   const lastIndex = levelTitleData.length - 1;
-  const progressStart = isMaxRank ? (levelTitleData[lastIndex - 1]?.reach ?? 0) : (currentRank?.reach ?? 0);
-  const progressEnd = isMaxRank ? levelTitleData[lastIndex].reach : (nextLevel?.reach ?? levelTitleData[lastIndex].reach);
+  const progressStart = isMaxRank
+    ? (levelTitleData[lastIndex - 1]?.reach ?? 0)
+    : (currentRank?.reach ?? 0);
+  const progressEnd = isMaxRank
+    ? levelTitleData[lastIndex].reach
+    : (nextLevel?.reach ?? levelTitleData[lastIndex].reach);
   const progressMax = Math.max(progressEnd - progressStart, 1);
-  const progressValue = Math.min(Math.max(currentLevel - progressStart, 0), progressMax);
+  const progressValue = Math.min(
+    Math.max(currentLevel - progressStart, 0),
+    progressMax,
+  );
 
   const findLevelImg = (): IconDefinition => {
     return currentRank?.img ?? fa0;
@@ -75,17 +88,21 @@ export default function Level({ level }: LevelProps) {
   };
 
   return (
-    <div className="relative flex items-baseline gap-2 group">
+    <div
+      className={`relative flex items-baseline gap-2 group ${compact ? "scale-75 sm:scale-100 origin-right" : ""}`}
+    >
       {nextLevel === undefined ? (
         <span></span>
       ) : (
         <FontAwesomeIcon
           icon={findLevelImg()}
-          className={`${currentRank?.color}`}
+          className={`${currentRank?.color} ${compact ? "text-sm sm:text-base" : "text-base"}`}
         />
       )}
 
-      <div className="h-3 w-40 rounded-lg overflow-hidden border border-violet-400">
+      <div
+        className={`h-3 ${compact ? "w-24 sm:w-40" : "w-40"} rounded-lg overflow-hidden border border-violet-400 dark:border-[oklch(55.4%_0.135_66.442)]`}
+      >
         <progress
           value={progressValue}
           max={progressMax}
@@ -93,13 +110,13 @@ export default function Level({ level }: LevelProps) {
         />
       </div>
 
-      <span className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 rounded bg-violet-500 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+      <span className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 rounded bg-violet-500 dark:bg-[oklch(55.4%_0.135_66.442)] px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
         {currentLevel} / {progressEnd}
       </span>
 
       <FontAwesomeIcon
         icon={findLevelImgToReach()}
-        className={isMaxRank ? `${currentRank?.color}` : "text-gray-300"}
+        className={`${isMaxRank ? `${currentRank?.color}` : "text-gray-300 dark:text-zinc-600"} ${compact ? "text-sm sm:text-base" : "text-base"}`}
       />
     </div>
   );
