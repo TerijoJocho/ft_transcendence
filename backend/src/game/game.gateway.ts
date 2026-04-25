@@ -106,15 +106,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     try {
-      const status = await this.gameService.getSession(payload.gameId, user.playerId);
-      if (status.gameStatus === "COMPLETED")
-      {  
+      const status = await this.gameService.getSession(
+        payload.gameId,
+        user.playerId,
+      );
+      if (status.gameStatus === 'COMPLETED') {
         client.emit('game_over', {
           winner: 'opponent',
           reason: 'giveup',
         });
         this.gameStates.delete(payload.gameId);
-        return ;
+        return;
       }
     } catch {
       client.emit('game_error', { message: 'Access denied for this game.' });
