@@ -21,17 +21,14 @@ import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import TermsOfService from "./pages/TermsOfService.tsx";
 
 function App() {
-  // on récupère les fonctions login/clearAuth du contexte
   const { login, clearAuth, isLoading } = useAuth();
 
   useEffect(() => {
-    // au démarrage de l'app, vérifie qui est connecté en appelant me()
     api
-      .me() //utiliser le get de /user
-      .then((user) => login(user)) //si connecté, on lance login() pour enregistrer le user
-      .catch(() => clearAuth()); // si erreur -> pas connecté, on lance clearAuth() pour avoir user === null
+      .me()
+      .then((user) => login(user))
+      .catch(() => clearAuth());
   }, [login, clearAuth]);
-  // Les dépendances assurent que cet effet s'exécute si login/clearAuth changent
 
   if (isLoading) return <div>Loading...</div>;
 
