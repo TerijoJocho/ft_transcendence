@@ -397,6 +397,7 @@ export class GameService {
           gameMode: gameTable.gameMode,
         },
         eq(gameTable.gameId, gameId),
+        // ne(gameTable.gameStatus, "COMPLETED"),
       );
 
     if (gameRows.length === 0) throw new NotFoundException('Game not found.');
