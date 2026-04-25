@@ -30,22 +30,6 @@ export class FriendshipService {
     private readonly redisService: RedisService,
   ) {}
 
-  // private toFriendResponseDto(friend: {
-  //   id: number;
-  //   pseudo: string;
-  //   avatarUrl: string | null;
-  // }) : FriendResponseDto {
-  //   return {
-  //     id: friend.id,
-  //     pseudo: friend.pseudo,
-  //     status: 'null',
-  //     avatarUrl: friend.avatarUrl,
-  //     isFriend: true,
-  //     isBlocked: false,
-  //     isFavFriend: false,
-  //   }
-  // }
-
   //ajout d'un ami//////////////////////////////////////////////////////////////////////////////////////
 
   async create(CurrentUserId: number, playerAdded: number) {
@@ -90,8 +74,8 @@ export class FriendshipService {
       friendshipId: id,
       id: playerAdded,
       pseudo: pseudoPlayer[0].pseudo,
-      status: 'ONLINE',
-      online: true,
+      status: 'OFFLINE',
+      online: false,
       avatarUrl: null,
       friendshipStatus: 'PENDING',
     };
