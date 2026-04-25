@@ -94,23 +94,27 @@ AI usage:
 > [!WARNING]
 > If the evaluation expects an explicit license, full API endpoint catalog, or per-feature screenshots, those items are not documented in this README and should be added if available.
 
-## Team Information
+# TEAM INFORMATION
 
-### Daryl — Tech Lead / Frontend Lead / DevOps coordination
+## Daryl:
 
-Daryl led the frontend architecture and implemented most of the visible application surface: login, signup, dashboard, profile, friends, game, tournament, chat, form validation, route guards, auth context, token lifecycle handling, API integration, reusable UI components, sidebar navigation, friend search, profile editing, and account deletion UX. He also coordinated repository setup, CI checks, and frontend containerization.
+- Roles: Tech Lead (Frontend Lead, DevOps coordination)
+- Responsibilities: Stack decision-making, GitHub repository setup and coordination, full frontend development, UI/UX design, Docker containerization support.
 
-### Aïcha — Product Owner / Data Engineer / Backend Lead / Security contributor
+## Aïcha:
 
-Aïcha owned the database design, Drizzle ORM integration, Redis usage, backend architecture, authentication flows, token lifecycle, Google OAuth, and game-related backend and WebSocket integration. She also contributed to data modeling, persistence rules, and server-side business logic.
+- Roles: Product Owner (Data engineer, Backend Lead, Security contributor)
+- Responsibilities: Product direction and backlog prioritization, database design and data quality ownership, backend architecture and API coordination, and security support for authentication/token lifecycle and secret management.
 
-### Kalvin — Project Management / Security and Infra Lead / Backend contributor
+## Kalvin:
 
-Kalvin focused on hardening the stack: Vault integration, WAF and ModSecurity setup, 2FA security logic, password hashing, and backend work around users and friendships. He contributed to the deployment and security posture of the project.
+- Roles: Project Management (Security/Infra Lead, Backend contributor)
+- Responsibilities: Project coordination and delivery follow-up, security and infrastructure hardening (WAF/ModSecurity, Vault integration), 2FA feature implementation, and backend ownership of users/friendship flows.
 
-### Ylan — Developer / Gameplay Developer / Frontend contributor
+## Ylan:
 
-Ylan implemented the chess gameplay layer, including board logic, rendering, legal move handling, and the lobby and matchmaking UI. He also worked on the Tic-Tac-Toe bot mode and gameplay-oriented frontend interactions.
+- Roles: Developper (Gameplay Developer, Frontend contributor)
+- Responsibilities: Core chess gameplay implementation (rules, algorithm, board rendering), frontend development of room creation and matchmaking interfaces, and gameplay-focused UI integration.
 
 ## Project Management
 
@@ -167,7 +171,7 @@ Key rules enforced by the model:
 > [!WARNING]
 > The README includes the database diagrams, but the exact column-by-column type inventory is not reproduced here. Refer to the Drizzle schema and migrations for the authoritative definition of fields and SQL types.
 
-## Features List
+## Feature List
 
 ### Core Application
 
@@ -256,7 +260,34 @@ Points are counted with the required rule: Major = 2 points, Minor = 1 point.
 | Custom subtotal | 3      |
 | Grand total     | 26     |
 
-## Individual contributions
+## Individual Contributions
 
-> [!WARNING]
-> This section reflects the role descriptions already present in the repository, but it does not include a line-by-line contribution log. If the evaluation requires exact ownership per ticket or commit, that information should be added from the team’s issue tracker or Git history.
+### Daryl — Tech Lead (Frontend Lead, DevOps coordination)
+
+Daryl led the entire frontend of Chess War, from architecture to pixel-level polish. He designed and built every page of the application — login, signup, dashboard, profile, friends, game, tournament, chat — along with all their associated logic: form validation, route guards (public/private routes), auth context and hook (`useAuth`), token lifecycle handling, and API integration against the NestJS backend.
+
+He implemented a clean separation of concerns across the frontend, with reusable components (`Header`, `SideBar`, `Search`, `StatsCards`, `EloGraph`, `LastMatches`, `LeaderBoard`, `Achievement`, `TournamentHistory`, `DailyPuzzle`), typed API calls, and custom hooks (`useFriends`). The sidebar navigation, profile editing flow (including 2FA QR activation and removal), friend search with debounce, and account deletion confirmation modal were all built and polished by him.
+
+On the infrastructure side, Daryl set up the GitHub repository and put in place a CI pipeline using GitHub Actions for linting and build validation, along with Husky pre-commit hooks to enforce code quality standards across the team. He also handled the Docker containerization of the frontend service and contributed to the overall `docker-compose` orchestration alongside the team.
+
+---
+
+### Aïcha — Product Owner (Data Engineer, Backend Lead, Security contributor)
+
+Aïcha was in charge of the database design and management, Drizzle ORM and Redis cache implementation, backend microservice-based architecture, authentication features (including token lifecycle and Google OAuth), and game-related backend and WebSocket integration.
+
+---
+
+### Kalvin — Project Management (Security/Infra Lead, Backend contributor)
+
+Kalvin was responsible for backend hardening: WAF, ModSecurity, Vault integration for secrets management, 2FA authentication feature, password hashing and salt. He also worked on users and friendship-related backend and WebSocket integration.
+
+---
+
+### Ylan — Developer (Gameplay Developer, Frontend contributor)
+
+Ylan took care of the chess gameplay implementation (frontend algorithm and rendering), and the frontend rendering of lobby creation and matchmaking interfaces.
+
+---
+
+> **Note:** Everyone took part in the testing phases and code reviews. Meetings were held on school premises at least once a week (up to three times) for code review, testing, issue identification, and task distribution. GitHub Issues and Discord were used for project management and communication.
