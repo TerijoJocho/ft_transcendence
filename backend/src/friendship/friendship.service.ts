@@ -97,6 +97,7 @@ export class FriendshipService {
       id: playerAdded,
       pseudo: pseudoPlayer[0].pseudo,
       status: 'ONLINE',
+      online: true,
       avatarUrl: null,
       friendshipStatus: 'PENDING',
     };

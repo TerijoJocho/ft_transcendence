@@ -14,6 +14,6 @@ export class FriendResponseDto {
   online: boolean;
   avatarUrl!: string | null;
   friendshipStatus!: string;
-  level: number;
-  lose: number;
+  level?: number;
+  lose?: number;
 }
