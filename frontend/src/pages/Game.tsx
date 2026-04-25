@@ -433,6 +433,7 @@ function ChessGame({
   const [onlineError, setOnlineError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const isRefreshingSessionRef = useRef(false);
+  const stopReconnectRef = useRef(false);
   const isApplyingRemoteRef = useRef(false);
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -575,16 +576,20 @@ function ChessGame({
     };
 
     const tryRefreshAndReconnect = async () => {
+      if (stopReconnectRef.current) return;
       if (isRefreshingSessionRef.current) return;
       isRefreshingSessionRef.current = true;
 
       try {
         await refreshSession();
         setOnlineError(null);
-        if (!socket.connected) {
+        if (!stopReconnectRef.current && !socket.connected) {
           socket.connect();
         }
       } catch {
+        stopReconnectRef.current = true;
+        socket.io.opts.reconnection = false;
+        socket.disconnect();
         setOnlineError("Session expirée. Reconnecte-toi.");
       } finally {
         isRefreshingSessionRef.current = false;
@@ -626,6 +631,7 @@ function ChessGame({
       setOnlineError("L'adversaire s'est déconnecté.");
     });
     socket.on("game_error", (payload: { message?: string }) => {
+      if (stopReconnectRef.current) return;
       if (isUnauthorizedMessage(payload?.message)) {
         void tryRefreshAndReconnect();
         return;
@@ -633,6 +639,7 @@ function ChessGame({
       setOnlineError(payload?.message ?? "Erreur temps réel.");
     });
     socket.on("connect_error", (error: Error) => {
+      if (stopReconnectRef.current) return;
       if (isUnauthorizedMessage(error.message)) {
         void tryRefreshAndReconnect();
         return;
@@ -640,6 +647,7 @@ function ChessGame({
       setOnlineError(error.message || "Erreur de connexion temps réel.");
     });
     socket.on("disconnect", (reason) => {
+      if (stopReconnectRef.current) return;
       if (reason === "io server disconnect") {
         void tryRefreshAndReconnect();
       }

@@ -31,6 +31,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const socketRef = useRef<Socket | null>(null);
   const activePeerRef = useRef<number | null>(null);
   const isRefreshingSessionRef = useRef(false);
+  const stopReconnectRef = useRef(false);
 
   const [messages, setMessages] = useState<Record<number, ChatMessage[]>>(
     () => {
@@ -63,16 +64,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     };
 
     const tryRefreshAndReconnect = async () => {
+      if (stopReconnectRef.current) return;
       if (isRefreshingSessionRef.current) return;
       isRefreshingSessionRef.current = true;
 
       try {
         await refreshSession();
         setError(null);
-        if (!chatSocket.connected) {
+        if (!stopReconnectRef.current && !chatSocket.connected) {
           chatSocket.connect();
         }
       } catch {
+        stopReconnectRef.current = true;
+        chatSocket.io.opts.reconnection = false;
+        chatSocket.disconnect();
         setError("Session expirée. Reconnecte-toi.");
       } finally {
         isRefreshingSessionRef.current = false;
@@ -98,6 +103,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     });
 
     chatSocket.on("chat_error", (payload: { message?: string }) => {
+      if (stopReconnectRef.current) return;
       if (isUnauthorizedMessage(payload?.message)) {
         void tryRefreshAndReconnect();
         return;
@@ -106,6 +112,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     });
 
     chatSocket.on("connect_error", (error: Error) => {
+      if (stopReconnectRef.current) return;
       if (isUnauthorizedMessage(error.message)) {
         void tryRefreshAndReconnect();
         return;
@@ -114,6 +121,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     });
 
     chatSocket.on("disconnect", (reason) => {
+      if (stopReconnectRef.current) return;
       // Server-side disconnect usually happens after auth failure.
       if (reason === "io server disconnect") {
         void tryRefreshAndReconnect();
