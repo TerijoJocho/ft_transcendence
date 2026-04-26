@@ -1,6 +1,3 @@
-import { mockDashboardUserStats } from "../data/mock_data";
-import USE_MOCK_DATA from "../config/dataConfig";
-
 function formatGameDuration(duration) {
   if (typeof duration !== "string") return "-";
 
@@ -26,10 +23,7 @@ function formatGameDuration(duration) {
 }
 
 export default function LastMatches({ userStats }) {
-  const gameHistory =
-    USE_MOCK_DATA && !userStats
-      ? mockDashboardUserStats.gameHistoryList
-      : userStats?.gameHistoryList;
+  const gameHistory = userStats?.gameHistoryList;
   const displayData = (gameHistory ?? []).slice(0, 10).map((data) => {
     return (
       <li

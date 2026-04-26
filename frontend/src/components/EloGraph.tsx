@@ -10,8 +10,7 @@ import {
 import { Bar } from "react-chartjs-2";
 import { useEffect, useState } from "react";
 import * as api from "../api/api";
-import { mockWeeklyWinrateData, type WeeklyPoint } from "../data/mock_data";
-import USE_MOCK_DATA from "../config/dataConfig";
+import type { WeeklyWinratePoint } from "../api/api";
 import { useTheme } from "../theme/ThemeContext.tsx";
 
 ChartJS.register(
@@ -34,16 +33,20 @@ const labels = [
 ];
 
 export default function EloGraph() {
-  const [points, setPoints] = useState<WeeklyPoint[]>([]);
+  const [points, setPoints] = useState<WeeklyWinratePoint[]>([]);
   const { isDark } = useTheme();
 
   useEffect(() => {
     async function load() {
-      const data = USE_MOCK_DATA
-        ? mockWeeklyWinrateData
-        : await api.weeklyWinrate();
-      setPoints(data?.points ?? []);
+      try {
+        const data = await api.weeklyWinrate();
+        setPoints(data?.points ?? []);
+      } catch (error) {
+        console.error(error);
+        setPoints([]);
+      }
     }
+
     load();
   }, []);
 
@@ -77,7 +80,9 @@ export default function EloGraph() {
       {
         label: "WinRate (%)",
         data: normalized,
-        backgroundColor: !isDark ? "oklch(70.2% 0.183 293.541)" : "oklch(55.4% 0.135 66.442)",
+        backgroundColor: !isDark
+          ? "oklch(70.2% 0.183 293.541)"
+          : "oklch(55.4% 0.135 66.442)",
       },
     ],
   };
