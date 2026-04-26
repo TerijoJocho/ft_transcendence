@@ -53,6 +53,7 @@ function Chat() {
   );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPeerId((prev) => {
       if (friends.length === 0) return null;
       if (prev !== null && friends.some((f) => f.id === prev)) return prev;

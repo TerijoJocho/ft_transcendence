@@ -21,6 +21,7 @@ export function RealtimeSocketProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const realtimeSocket = connectRealtimeSocket();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSocket(realtimeSocket);
 
     return () => {
