@@ -70,7 +70,7 @@ services:
       - redis
       - vault
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/ >/dev/null 2>&1 || exit 1"]
+      test: [ "CMD-SHELL", "wget -q -O - http://localhost:3000/ >/dev/null 2>&1 || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -88,12 +88,10 @@ services:
       context: ./backend/vault/init_service
       dockerfile: Dockerfile
     container_name: vault_fix_perms
-    environment:
-      LOCAL_UID: ${LOCAL_UID:-1000}
-      LOCAL_GID: ${LOCAL_GID:-1000}
     networks: [ internal ]
     volumes:
       - vault_data:/vault/data
+      - ./:/workspace:ro
       - .vault-secrets/core:/vault/local-secrets
       - .vault-secrets/approle:/vault/approle
       - .vault-secrets/vault_certs:/certs
@@ -103,7 +101,6 @@ services:
       context: ./backend/vault
       dockerfile: Dockerfile
     container_name: ft_transcendence_vault
-    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     networks: [ internal ]
     expose:
       - "8200"
@@ -126,6 +123,7 @@ services:
 
     volumes:
       - vault_data:/vault/data
+      - ./:/workspace:ro
       - .vault-secrets/core:/vault/local-secrets:rw
       - .vault-secrets/approle:/vault/approle:rw
       - .vault-secrets/vault_certs:/etc/vault/certs:ro
@@ -159,9 +157,9 @@ services:
       - ANOMALY_INBOUND=10
       - DISABLE_DEFAULT_CONF=1
     ports:
-      - "4443:443"
-      - "1081:80"
-    depends_on:  
+      - "4443:4443"
+      - "1081:1081"
+    depends_on:
       - postgres
       - redis
       - backend

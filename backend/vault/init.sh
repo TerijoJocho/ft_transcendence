@@ -1,6 +1,19 @@
 #!/bin/sh
 set -eu
 
+TARGET_UID="${LOCAL_UID:-}"
+TARGET_GID="${LOCAL_GID:-}"
+
+if [ -z "$TARGET_UID" ] || [ -z "$TARGET_GID" ]; then
+  if [ -d /workspace ]; then
+    TARGET_UID="$(stat -c '%u' /workspace 2>/dev/null || true)"
+    TARGET_GID="$(stat -c '%g' /workspace 2>/dev/null || true)"
+  fi
+fi
+
+TARGET_UID="${TARGET_UID:-1000}"
+TARGET_GID="${TARGET_GID:-1000}"
+
 if [ -f /run/secrets/POSTGRES_USER ]; then
   POSTGRES_USER=$(cat /run/secrets/POSTGRES_USER)
 fi
@@ -152,7 +165,8 @@ if [ "$initialized" != "true" ]; then
   | jq -r '.data.role_id' > /vault/approle/backend_role_id
   vault write -f -format=json auth/approle/role/backend/secret-id \
   | jq -r '.data.secret_id' > /vault/approle/backend_secret_id
-  chmod 777 /vault/approle/backend_role_id /vault/approle/backend_secret_id
+  chown "$TARGET_UID":"$TARGET_GID" /vault/local-secrets/root_token /vault/local-secrets/unseal_keys /vault/approle/backend_role_id /vault/approle/backend_secret_id 2>/dev/null || true
+  chmod 600 /vault/approle/backend_role_id /vault/approle/backend_secret_id
 else
 
   if [ "$sealed" = "true" ]; then
@@ -215,7 +229,8 @@ else
   fi
   vault write -f -format=json auth/approle/role/backend/secret-id \
   | jq -r '.data.secret_id' > /vault/approle/backend_secret_id
-  chmod 777 /vault/approle/backend_role_id /vault/approle/backend_secret_id
+  chown "$TARGET_UID":"$TARGET_GID" /vault/local-secrets/root_token /vault/local-secrets/unseal_keys /vault/approle/backend_role_id /vault/approle/backend_secret_id 2>/dev/null || true
+  chmod 600 /vault/approle/backend_role_id /vault/approle/backend_secret_id
 fi
 
 wait $VAULT_PID
