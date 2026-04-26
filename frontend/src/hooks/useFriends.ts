@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
-import { useEffect, useState, useCallback } from "react";
 import * as api from "../api/api.ts";
+import { usePresence } from "./usePresence.tsx";
 
 export type Friends = {
     id: number;
@@ -15,41 +15,35 @@ export type Friends = {
 };
 
 export function useFriends() {
-    const [friendsList, setFriendsList] = useState<Friends[]>([]);
-    const [isLoading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+    const {
+        friendsList,
+        isFriendsLoading,
+        friendsError,
+        refreshFriends,
+    } = usePresence();
 
-    // fetch initial au mount
-    useEffect(() => {
-        setLoading(true);
-        setError(null);
-        api.getFriendsList()
-            .then(data => setFriendsList(data))
-            .catch(() => setError(`Impossible de charger la liste d'amis`))
-            .finally(() => setLoading(false));
-    }, []);
-
-    // refetch après que l'user clique sur les buttons
-    const fetchFriends = useCallback(() => {
-        setLoading(true);
-        setError(null);
-        api.getFriendsList()
-            .then(data => setFriendsList(data))
-            .catch(() => setError(`Impossible de charger la liste d'amis`))
-            .finally(() => setLoading(false));
-    }, []);
+    const fetchFriends = async () => {
+        await refreshFriends(false);
+    };
 
     const removeFriend = async (userId: number) => {
         await api.removeFriend({ userId })
-            .catch(() => setError(`Impossible d'enlever cet ami`));
-        fetchFriends();
+            .catch(() => undefined);
+        await fetchFriends();
     };
 
     const changeFriendshipStatus = async (userId: number) => {
         await api.changeFriendshipStatus({ userId })
-            .catch(() => setError(`Impossible d'accepter la demande de cet utilisateur`));
-        fetchFriends();
+            .catch(() => undefined);
+        await fetchFriends();
     };
 
-    return { friendsList, isLoading, error, removeFriend, changeFriendshipStatus, fetchFriends };
+    return {
+        friendsList: friendsList as Friends[],
+        isLoading: isFriendsLoading,
+        error: friendsError,
+        removeFriend,
+        changeFriendshipStatus,
+        fetchFriends,
+    };
 }

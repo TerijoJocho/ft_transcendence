@@ -401,7 +401,7 @@ export function connectGameSocket(): Socket {
   });
 }
 
-export function connectChatSocket(): Socket {
+export function connectRealtimeSocket(): Socket {
   return io(`${API_URL}/chat`, {
     path: "/socket.io/",
     withCredentials: true,

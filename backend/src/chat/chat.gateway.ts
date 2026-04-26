@@ -57,6 +57,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     ).user = user;
 
     await this.markSocketOnline(client, user.playerId);
+    this.server.emit('presence_update', {
+      userId: user.playerId,
+      online: true,
+      status: 'ONLINE',
+    });
 
     const timer = setInterval(() => {
       void this.refreshPresence(client, user.playerId);
@@ -81,6 +86,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!user?.playerId) return;
 
     await this.markSocketOffline(client.id, user.playerId);
+    this.server.emit('presence_update', {
+      userId: user.playerId,
+      online: false,
+      status: 'OFFLINE',
+    });
   }
 
   @SubscribeMessage('join_dm')

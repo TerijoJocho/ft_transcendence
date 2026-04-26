@@ -1,0 +1,50 @@
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import type { Socket } from "socket.io-client";
+import { connectRealtimeSocket } from "../api/api";
+
+type RealtimeSocketContextType = {
+  socket: Socket | null;
+};
+
+const RealtimeSocketContext =
+  createContext<RealtimeSocketContextType | null>(null);
+
+export function RealtimeSocketProvider({ children }: { children: ReactNode }) {
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  useEffect(() => {
+    const realtimeSocket = connectRealtimeSocket();
+    setSocket(realtimeSocket);
+
+    return () => {
+      realtimeSocket.disconnect();
+      setSocket(null);
+    };
+  }, []);
+
+  const value = useMemo(() => ({ socket }), [socket]);
+
+  return (
+    <RealtimeSocketContext.Provider value={value}>
+      {children}
+    </RealtimeSocketContext.Provider>
+  );
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function useRealtimeSocket() {
+  const context = useContext(RealtimeSocketContext);
+  if (!context) {
+    throw new Error(
+      "useRealtimeSocket must be used within a RealtimeSocketProvider",
+    );
+  }
+  return context;
+}

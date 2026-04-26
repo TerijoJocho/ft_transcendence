@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Header from "../components/Header.tsx";
-import { getFriendsList } from "../api/api.ts";
 import statusData from "../data/statusData.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane, faCircle } from "@fortawesome/free-solid-svg-icons";
 import Level from "../components/Level.tsx";
 import Search from "../components/Search.tsx";
 import { useChat } from "../hooks/useChat.tsx";
+import { usePresence } from "../hooks/usePresence.tsx";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -15,6 +15,7 @@ type ChatFriend = {
   pseudo: string;
   avatarUrl: string | null;
   status: string;
+  online?: boolean;
   level?: number;
   lose?: number;
 };
@@ -24,10 +25,16 @@ type MobileView = "list" | "chat" | "profile";
 // ─── Composant ────────────────────────────────────────────────────────────────
 
 function Chat() {
-  const { messages, sendMessage, joinRoom, error, setError } = useChat();
+  const { friendsList, isFriendsLoading, friendsError } = usePresence();
+  const {
+    messages,
+    sendMessage,
+    joinRoom,
+    error,
+    setError,
+  } = useChat();
 
   // Etat principal de la page (sélection, affichage mobile, saisie et filtre)
-  const [friends, setFriends] = useState<ChatFriend[]>([]);
   const [peerId, setPeerId] = useState<number | null>(null);
   const [mobileView, setMobileView] = useState<MobileView>("list");
   const [text, setText] = useState("");
@@ -36,30 +43,22 @@ function Chat() {
 
   // Removed WebSocket setup since it is handled by ChatProvider
 
-  // ── Chargement de la liste d'amis ──────────────────────────────────────────
+  const friends = useMemo(
+    () =>
+      (friendsList as ChatFriend[]).map((f) => ({
+        ...f,
+        avatarUrl: typeof f.avatarUrl === "string" ? f.avatarUrl : null,
+      })),
+    [friendsList],
+  );
+
   useEffect(() => {
-    getFriendsList()
-      .then((list) => {
-        const mapped: ChatFriend[] = (list ?? [])
-          .filter((f) => f.friendshipStatus === "ADDED")
-          .map((f) => ({
-            id: f.id,
-            pseudo: f.pseudo,
-            avatarUrl: typeof f.avatarUrl === "string" ? f.avatarUrl : null,
-            status: f.status,
-            level: f.level ?? 0,
-          }));
-        setFriends(mapped);
-        if (mapped.length > 0) setPeerId((prev) => prev ?? mapped[0].id);
-      })
-      .catch((e) => {
-        const msg =
-          e instanceof Error
-            ? e.message
-            : "Impossible de charger la liste d'amis";
-        setError(msg);
-      });
-  }, [setError]);
+    setPeerId((prev) => {
+      if (friends.length === 0) return null;
+      if (prev !== null && friends.some((f) => f.id === prev)) return prev;
+      return friends[0].id;
+    });
+  }, [friends]);
 
   // ── Join room quand on change de conversation ──────────────────────────────
   useEffect(() => {
@@ -73,8 +72,15 @@ function Chat() {
     [friends, peerId],
   );
 
+  const selectedFriendPresence =
+    selectedFriend?.online === true
+      ? "ONLINE"
+      : selectedFriend?.online === false
+        ? "OFFLINE"
+        : selectedFriend?.status;
+
   const selectedFriendStatus = statusData.find(
-    (st) => st.value === selectedFriend?.status,
+    (st) => st.value === selectedFriendPresence,
   );
 
   const filteredFriends = useMemo(
@@ -140,6 +146,18 @@ function Chat() {
               />
 
               <div className="flex-1 min-h-0 overflow-y-auto">
+                {isFriendsLoading && (
+                  <p className="text-center text-gray-400 dark:text-zinc-400 text-sm mt-8">
+                    Chargement des amis...
+                  </p>
+                )}
+
+                {friendsError && (
+                  <p className="text-center text-red-500 text-sm mt-4 px-4">
+                    {friendsError}
+                  </p>
+                )}
+
                 {filteredFriends.map((friend) => {
                   const isSelected = selectedFriend?.id === friend.id;
                   const msgs = messages[friend.id];
@@ -147,8 +165,14 @@ function Chat() {
                     msgs && msgs.length > 0
                       ? msgs[msgs.length - 1].content
                       : "Démarrer une conversation";
+                  const presence =
+                    friend.online === true
+                      ? "ONLINE"
+                      : friend.online === false
+                        ? "OFFLINE"
+                        : friend.status;
                   const friendStatus = statusData.find(
-                    (st) => st.value === friend.status,
+                    (st) => st.value === presence,
                   );
 
                   return (
@@ -399,6 +423,18 @@ function Chat() {
             />
 
             <div className="flex-1 min-h-0 overflow-y-auto">
+              {isFriendsLoading && (
+                <p className="text-center text-gray-400 dark:text-zinc-400 text-sm mt-8">
+                  Chargement des amis...
+                </p>
+              )}
+
+              {friendsError && (
+                <p className="text-center text-red-500 text-sm mt-4 px-4">
+                  {friendsError}
+                </p>
+              )}
+
               {filteredFriends.map((friend) => {
                 const isSelected = selectedFriend?.id === friend.id;
                 const msgs = messages[friend.id];
@@ -406,8 +442,14 @@ function Chat() {
                   msgs && msgs.length > 0
                     ? msgs[msgs.length - 1].content
                     : "Démarrer une conversation";
+                const presence =
+                  friend.online === true
+                    ? "ONLINE"
+                    : friend.online === false
+                      ? "OFFLINE"
+                      : friend.status;
                 const friendStatus = statusData.find(
-                  (st) => st.value === friend.status,
+                  (st) => st.value === presence,
                 );
 
                 return (
