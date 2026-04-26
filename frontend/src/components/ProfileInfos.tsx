@@ -12,12 +12,14 @@ interface ProfileInfosProps {
   handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
   handleSubmit: () => void;
   user: User;
+  passwordRulesText: string;
 }
 export default function ProfileInfos({
   form,
   handleChange,
   handleSubmit,
   user,
+  passwordRulesText,
 }: ProfileInfosProps) {
   const [canNotWrite, setCanNotWrite] = useState<boolean>(true);
 
@@ -26,7 +28,7 @@ export default function ProfileInfos({
     if (!canNotWrite) handleSubmit();
   }
   return (
-    <section className="flex flex-col gap-6">
+    <section className="flex flex-col gap-6 mx-4">
       <div className="flex flex-col border dark:border-zinc-700 rounded-md p-2">
         <label
           htmlFor="username"
@@ -72,6 +74,9 @@ export default function ProfileInfos({
                 >
                   Nouveau mot de passe
                 </label>
+                <p className="text-xs text-gray-500 dark:text-zinc-400 mb-2">
+                  {passwordRulesText}
+                </p>
                 <input
                   type="password"
                   id="password"

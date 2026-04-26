@@ -26,10 +26,10 @@ type MobileView = "list" | "chat" | "profile";
 function Chat() {
   const { messages, sendMessage, joinRoom, error, setError } = useChat();
 
+  // Etat principal de la page (sélection, affichage mobile, saisie et filtre)
   const [friends, setFriends] = useState<ChatFriend[]>([]);
   const [peerId, setPeerId] = useState<number | null>(null);
   const [mobileView, setMobileView] = useState<MobileView>("list");
-  const [showProfileMobile, setShowProfileMobile] = useState(false);
   const [text, setText] = useState("");
   const [search, setSearch] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -90,10 +90,12 @@ function Chat() {
     [peerId, messages],
   );
 
+  // Scroll automatique en bas à chaque nouveau message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentMessages]);
 
+  // Envoi d'un message texte dans la conversation active
   function handleSendMessage() {
     if (peerId === null) return;
     const content = text.trim();
@@ -103,20 +105,20 @@ function Chat() {
     setText("");
   }
 
+  // Ouvre une conversation
   function openConversation(friendId: number) {
     setPeerId(friendId);
     setMobileView("chat");
-    setShowProfileMobile(false);
     setError(null);
   }
 
+  // Passe de la vue chat à la vue profil sur mobile
   function openMobileProfile() {
-    setShowProfileMobile(true);
     setMobileView("profile");
   }
 
+  // Revient de la vue profil à la vue chat sur mobile
   function closeMobileProfile() {
-    setShowProfileMobile(false);
     setMobileView("chat");
   }
 
@@ -127,6 +129,7 @@ function Chat() {
       <Header title="Messages privés" />
 
       <div className="flex-1 min-h-0 overflow-hidden border-t border-gray-200 dark:border-zinc-700">
+        {/* Layout mobile: une seule vue visible à la fois (liste, chat ou profil) */}
         <div className="flex h-full min-h-0 md:hidden">
           {mobileView === "list" && (
             <section className="flex flex-1 min-h-0 flex-col overflow-hidden">
@@ -149,6 +152,7 @@ function Chat() {
                   );
 
                   return (
+                    // Ligne de conversation: avatar, pseudo, statut et aperçu du dernier message
                     <button
                       key={friend.id}
                       onClick={() => openConversation(friend.id)}
@@ -197,6 +201,7 @@ function Chat() {
             <section className="flex flex-1 min-h-0 flex-col overflow-hidden">
               {selectedFriend ? (
                 <>
+                  {/* En-tête de conversation mobile (navigation + identité du contact) */}
                   <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 shrink-0">
                     <button
                       onClick={() => setMobileView("list")}
@@ -238,6 +243,7 @@ function Chat() {
                     </button>
                   </div>
 
+                  {/* Flux des messages de la conversation active */}
                   <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-3">
                     {currentMessages.map((msg, idx) => {
                       const isMe = msg.from === "me" || msg.from !== peerId;
@@ -283,6 +289,7 @@ function Chat() {
                     </p>
                   )}
 
+                  {/* Zone de saisie et bouton d'envoi */}
                   <div className="px-4 py-3 border-t border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 flex items-center gap-3 shrink-0">
                     <input
                       type="text"
@@ -312,6 +319,7 @@ function Chat() {
           )}
 
           {mobileView === "profile" && (
+            // Panneau profil mobile affiché en plein écran
             <section className="flex flex-1 min-h-0 flex-col items-center p-6 gap-4 bg-gray-50 dark:bg-zinc-900 overflow-y-auto">
               {selectedFriend ? (
                 <>
@@ -380,7 +388,9 @@ function Chat() {
           )}
         </div>
 
+        {/* Layout desktop: 3 colonnes fixes (liste, chat, profil) */}
         <div className="hidden md:flex h-full min-h-0">
+          {/* Colonne gauche: conversations */}
           <section className="w-64 min-w-0 flex flex-col border-r border-zinc-200 dark:border-zinc-700 shrink-0 overflow-hidden">
             <Search
               value={search}
@@ -444,6 +454,7 @@ function Chat() {
             </div>
           </section>
 
+          {/* Colonne centrale: conversation active */}
           <section className="flex-1 min-w-0 flex flex-col border-r border-gray-200 dark:border-zinc-700 overflow-hidden">
             {selectedFriend ? (
               <>
@@ -540,6 +551,7 @@ function Chat() {
             )}
           </section>
 
+          {/* Colonne de droite: profil de l'ami   */}
           <section className="flex w-56 lg:w-64 min-w-0 shrink-0 flex-col items-center p-6 gap-4 bg-gray-50 dark:bg-zinc-900 overflow-y-auto">
             {selectedFriend ? (
               <>

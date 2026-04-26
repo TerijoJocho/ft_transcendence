@@ -9,6 +9,29 @@ import { isValidMail } from "../utils/isValidMail.ts";
 import { QRCodeSVG } from "qrcode.react";
 import { Link } from "react-router-dom";
 
+const PASSWORD_RULES =
+  "Le mot de passe doit contenir au moins 8 caracteres, une majuscule, une minuscule, un chiffre et un symbole.";
+
+function getPasswordErrors(
+  newPassword: string,
+  confirmNewPassword: string,
+): string[] {
+  const errors: string[] = [];
+
+  if (newPassword.length < 8) {
+    errors.push("Au moins 8 caracteres");
+    return errors;
+  }
+  if (!/[a-z]/.test(newPassword)) errors.push("Au moins une lettre minuscule");
+  if (!/[A-Z]/.test(newPassword)) errors.push("Au moins une lettre majuscule");
+  if (!/\d/.test(newPassword)) errors.push("Au moins un chiffre");
+  if (!/[^A-Za-z0-9]/.test(newPassword)) errors.push("Au moins un symbole");
+  if (newPassword !== confirmNewPassword)
+    errors.push("La confirmation du mot de passe ne correspond pas");
+
+  return errors;
+}
+
 function Profil() {
   const { user, login: setAuthUser } = useAuth();
 
@@ -49,7 +72,7 @@ function Profil() {
 
   useEffect(() => {
     if (!feedback) return;
-    const timer = setTimeout(() => setFeedback(null), 3000);
+    const timer = setTimeout(() => setFeedback(null), 5000);
     return () => clearTimeout(timer);
   }, [feedback]);
 
@@ -73,12 +96,12 @@ function Profil() {
     }
 
     if (isPasswordChange && !isPasswordValid) {
-      setForm((prev) => ({
-        ...prev,
-        newPassword: "",
-        confirmNewPassword: "",
-      }));
-      setFeedback({ message: "Mot de passe invalide", type: "error" });
+      const details = passwordValidationErrors.join("; ");
+      setFeedback({
+        message: `Mot de passe invalide. ${PASSWORD_RULES} Détails: ${details}`,
+        type: "error",
+      });
+      setForm((prev) => ({ ...prev, email: user.email }));
       return;
     }
 
@@ -114,7 +137,7 @@ function Profil() {
         })),
       );
 
-    setTimeout(() => window.location.reload(), 1000);
+    setTimeout(() => window.location.reload(), 5000);
   }
 
   function handleDelete() {
@@ -141,7 +164,13 @@ function Profil() {
           type: "error",
         }),
       )
-      .finally(() => (setWantToDelete(false), setDeleteInput(""), setTimeout(() => window.location.reload(), 1000)));
+      .finally(
+        () => (
+          setWantToDelete(false),
+          setDeleteInput(""),
+          setTimeout(() => window.location.reload(), 1000)
+        ),
+      );
   }
 
   function handleChecked(e: React.ChangeEvent<HTMLInputElement>) {
@@ -238,9 +267,11 @@ function Profil() {
 
   const isPasswordChange =
     form.newPassword.length > 0 || form.confirmNewPassword.length > 0;
-  const isPasswordValid =
-    form.newPassword === form.confirmNewPassword ||
-    form.newPassword.length >= 8;
+  const passwordValidationErrors = getPasswordErrors(
+    form.newPassword,
+    form.confirmNewPassword,
+  );
+  const isPasswordValid = passwordValidationErrors.length === 0;
   const isUsernameValid = form.pseudo?.length >= 4;
   const resValidMail = isValidMail(form.email);
 
@@ -254,6 +285,7 @@ function Profil() {
           handleChange={handleChange}
           handleSubmit={handleSubmit}
           user={user}
+          passwordRulesText={PASSWORD_RULES}
         />
         <div className="w-full flex justify-between items-center">
           <div className="flex justify-content-center ml-2">
