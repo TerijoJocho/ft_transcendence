@@ -24,7 +24,8 @@ export function RealtimeSocketProvider({ children }: { children: ReactNode }) {
     setSocket(realtimeSocket);
 
     return () => {
-      realtimeSocket.disconnect();
+      if (realtimeSocket.connected)
+        realtimeSocket.disconnect();
       setSocket(null);
     };
   }, []);
