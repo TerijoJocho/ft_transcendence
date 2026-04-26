@@ -14,7 +14,7 @@ ENV VAULT_CACERT=/etc/vault/certs/vault-selfsigned.crt
 
 COPY init.sh /init.sh
 
-RUN chmod -R 755 /vault/local-secrets /run/approle && chmod -R 755 /etc/vault/certs
+RUN chmod -R 777 /vault/local-secrets /run/approle && chmod -R 777 /etc/vault/certs
 
 RUN chown -R 100:100 /run /vault/local-secrets /run/approle /etc/vault/certs /init.sh \
     && chmod +x /init.sh 

@@ -152,7 +152,7 @@ if [ "$initialized" != "true" ]; then
   | jq -r '.data.role_id' > /vault/approle/backend_role_id
   vault write -f -format=json auth/approle/role/backend/secret-id \
   | jq -r '.data.secret_id' > /vault/approle/backend_secret_id
-  chmod 400 /vault/approle/backend_role_id /vault/approle/backend_secret_id
+  chmod 777 /vault/approle/backend_role_id /vault/approle/backend_secret_id
 else
 
   if [ "$sealed" = "true" ]; then
@@ -215,7 +215,7 @@ else
   fi
   vault write -f -format=json auth/approle/role/backend/secret-id \
   | jq -r '.data.secret_id' > /vault/approle/backend_secret_id
-  chmod 400 /vault/approle/backend_role_id /vault/approle/backend_secret_id
+  chmod 777 /vault/approle/backend_role_id /vault/approle/backend_secret_id
 fi
 
 wait $VAULT_PID

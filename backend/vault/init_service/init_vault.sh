@@ -7,8 +7,8 @@ TARGET_GID="${LOCAL_GID:-1000}"
 # Prepare Vault volume directories and permissions.
 mkdir -p /vault/data /vault/local-secrets /vault/approle /certs
 chown -R "$TARGET_UID":"$TARGET_GID" /vault/data /vault/local-secrets /vault/approle
-chmod 700 /vault/local-secrets /vault/approle
-find /vault/approle -type f -exec chmod 600 {} + || true
+chmod 777 /vault/local-secrets /vault/approle
+find /vault/approle -type f -exec chmod 777 {} + || true
 chmod 600 /vault/local-secrets/root_token /vault/local-secrets/unseal_keys 2>/dev/null || true
 
 # Generate certs if missing, with proper permissions for user 100 to read
