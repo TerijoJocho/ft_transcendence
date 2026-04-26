@@ -12,6 +12,22 @@ import {
   loadDbCredentialsFromVault,
 } from './utilsVault/function';
 
+function isSelfSignedCertError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+
+  const err = error as Error & {
+    code?: string;
+    cause?: {
+      code?: string;
+    };
+  };
+
+  return (
+    err.code === 'DEPTH_ZERO_SELF_SIGNED_CERT' ||
+    err.cause?.code === 'DEPTH_ZERO_SELF_SIGNED_CERT'
+  );
+}
+
 function logBootstrapError(context: string, error: unknown): never {
   if (error instanceof HttpException) {
     console.error(context, `status=${error.getStatus()}`, error.message);
@@ -37,7 +53,22 @@ async function bootstrap() {
     process.exit(1);
   }
 
-  const backendToken = await backTokenByApprole(httpsAgent, vaultAddr);
+  let backendToken: string;
+  try {
+    backendToken = await backTokenByApprole(httpsAgent, vaultAddr);
+  } catch (err) {
+    if (!isSelfSignedCertError(err)) {
+      throw err;
+    }
+
+    console.warn(
+      'Vault TLS verification failed with self-signed certificate; retrying with VAULT_TLS_SKIP_VERIFY=true',
+    );
+    process.env.VAULT_TLS_SKIP_VERIFY = 'true';
+    httpsAgent = new https.Agent({ rejectUnauthorized: false });
+    backendToken = await backTokenByApprole(httpsAgent, vaultAddr);
+  }
+
   if (typeof backendToken !== 'string' || backendToken.length === 0)
     throw new Error('Invalid Vault token');
   process.env.BACKEND_VAULT_TOKEN = backendToken;

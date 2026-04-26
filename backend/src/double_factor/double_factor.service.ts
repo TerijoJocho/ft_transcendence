@@ -96,6 +96,10 @@ export class DoubleFactorService {
   }
 
   private getVaultHttpsAgent(): https.Agent {
+    if (process.env.VAULT_TLS_SKIP_VERIFY === 'true') {
+      return new https.Agent({ rejectUnauthorized: false });
+    }
+
     const caCertPath = process.env.VAULT_CACERT;
     if (!caCertPath)
       throw new InternalServerErrorException('VAULT_CACERT is not configured');

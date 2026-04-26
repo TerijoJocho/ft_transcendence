@@ -66,6 +66,9 @@ echo "Waiting for Vault process startup..."
 : "${VAULT_ADDR:=https://127.0.0.1:8200}"
 export VAULT_CACERT
 export VAULT_ADDR
+# Local bootstrap uses ephemeral self-signed certs; skip verification to avoid startup races.
+VAULT_SKIP_VERIFY="${VAULT_SKIP_VERIFY:-true}"
+export VAULT_SKIP_VERIFY
 
 if [ ! -s "$VAULT_CACERT" ]; then
   echo "Vault CA cert missing at $VAULT_CACERT"
@@ -74,11 +77,22 @@ fi
 
 wait_for_vault() {
   attempts=0
+  tls_fallback_enabled=0
   while true; do
     status_json=$(vault status -format=json 2>/tmp/vault_status_error.log || true)
     if [ -n "$status_json" ] && echo "$status_json" | jq -e '.initialized != null and .sealed != null' >/dev/null 2>&1; then
       echo "$status_json"
       return 0
+    fi
+
+    if [ "$tls_fallback_enabled" -eq 0 ] \
+      && [ "${VAULT_SKIP_VERIFY:-false}" != "true" ] \
+      && [ -s /tmp/vault_status_error.log ] \
+      && grep -Eq 'certificate signed by unknown authority|tls: bad certificate|x509:' /tmp/vault_status_error.log; then
+      echo "Vault TLS verification failed during bootstrap; enabling temporary VAULT_SKIP_VERIFY=true for readiness checks."
+      export VAULT_SKIP_VERIFY=true
+      tls_fallback_enabled=1
+      continue
     fi
 
     attempts=$((attempts + 1))
@@ -92,7 +106,17 @@ wait_for_vault() {
   done
 }
 
-status=$(wait_for_vault)
+if ! status=$(wait_for_vault); then
+  echo "Vault API did not become ready in time"
+  cat /tmp/vault_status_error.log || true
+  exit 1
+fi
+
+if ! echo "$status" | jq -e '.initialized != null and .sealed != null' >/dev/null 2>&1; then
+  echo "Vault readiness check returned non-JSON status payload"
+  cat /tmp/vault_status_error.log || true
+  exit 1
+fi
 initialized=$(echo "$status" | jq -r '.initialized // false')
 sealed=$(echo "$status" | jq -r '.sealed // true')
 
@@ -124,6 +148,8 @@ if [ "$initialized" != "true" ]; then
   exit 1
   fi
 
+  chmod 600 /vault/local-secrets/root_token /vault/local-secrets/unseal_keys
+
   vault operator unseal "$VAULT_UNSEAL_KEY_1"
   vault operator unseal "$VAULT_UNSEAL_KEY_2"
   vault operator unseal "$VAULT_UNSEAL_KEY_3"
@@ -131,10 +157,10 @@ if [ "$initialized" != "true" ]; then
   # VAULT_TOKEN is already exported; avoid `vault login` because it prints token details.
   vault policy write backend-policy /backend-policy.hcl
   
-  if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null; then
+  if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null 2>&1; then
     vault secrets enable -version=2 -path=secret kv
   fi
-  if ! vault secrets list -format=json | jq -e 'has("transit/")' >/dev/null; then
+  if ! vault secrets list -format=json | jq -e 'has("transit/")' >/dev/null 2>&1; then
     vault secrets enable transit
   fi
   vault write -f transit/keys/totp-secrets
@@ -151,7 +177,7 @@ if [ "$initialized" != "true" ]; then
     google_auth_client_secret="${GOOGLE_AUTH_CLIENT_SECRET}" \
     redis_url="${REDIS_URL}"
     
-  if ! vault auth list -format=json | jq -e 'has("approle/")' >/dev/null; then
+  if ! vault auth list -format=json | jq -e 'has("approle/")' >/dev/null 2>&1; then
     vault auth enable approle
   fi
   vault write auth/approle/role/backend \
@@ -166,7 +192,7 @@ if [ "$initialized" != "true" ]; then
   vault write -f -format=json auth/approle/role/backend/secret-id \
   | jq -r '.data.secret_id' > /vault/approle/backend_secret_id
   chown "$TARGET_UID":"$TARGET_GID" /vault/local-secrets/root_token /vault/local-secrets/unseal_keys /vault/approle/backend_role_id /vault/approle/backend_secret_id 2>/dev/null || true
-  chmod 600 /vault/approle/backend_role_id /vault/approle/backend_secret_id
+  chmod 600 /vault/local-secrets/root_token /vault/local-secrets/unseal_keys /vault/approle/backend_role_id /vault/approle/backend_secret_id
 else
 
   if [ "$sealed" = "true" ]; then
@@ -194,15 +220,15 @@ else
     echo "root token invalide"
     exit 1
   fi
-  if ! vault auth list -format=json | jq -e 'has("approle/")' >/dev/null; then
+  if ! vault auth list -format=json | jq -e 'has("approle/")' >/dev/null 2>&1; then
     vault auth enable approle
   fi
   vault policy write backend-policy /backend-policy.hcl
 
-  if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null; then
+  if ! vault secrets list -format=json | jq -e 'has("secret/")' >/dev/null 2>&1; then
     vault secrets enable -version=2 -path=secret kv
   fi
-  if ! vault secrets list -format=json | jq -e 'has("transit/")' >/dev/null; then
+  if ! vault secrets list -format=json | jq -e 'has("transit/")' >/dev/null 2>&1; then
     vault secrets enable transit
   fi
   if ! vault read transit/keys/totp-secrets >/dev/null 2>&1; then
@@ -230,7 +256,7 @@ else
   vault write -f -format=json auth/approle/role/backend/secret-id \
   | jq -r '.data.secret_id' > /vault/approle/backend_secret_id
   chown "$TARGET_UID":"$TARGET_GID" /vault/local-secrets/root_token /vault/local-secrets/unseal_keys /vault/approle/backend_role_id /vault/approle/backend_secret_id 2>/dev/null || true
-  chmod 600 /vault/approle/backend_role_id /vault/approle/backend_secret_id
+  chmod 600 /vault/local-secrets/root_token /vault/local-secrets/unseal_keys /vault/approle/backend_role_id /vault/approle/backend_secret_id
 fi
 
 wait $VAULT_PID
