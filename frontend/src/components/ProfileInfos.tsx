@@ -13,6 +13,7 @@ interface ProfileInfosProps {
   handleSubmit: () => void;
   user: User;
   passwordRulesText: string;
+  isLoading: boolean;
 }
 export default function ProfileInfos({
   form,
@@ -20,10 +21,12 @@ export default function ProfileInfos({
   handleSubmit,
   user,
   passwordRulesText,
+  isLoading,
 }: ProfileInfosProps) {
   const [canNotWrite, setCanNotWrite] = useState<boolean>(true);
 
   function activateForm() {
+    if (isLoading) return;
     setCanNotWrite((prev) => !prev);
     if (!canNotWrite) handleSubmit();
   }
@@ -39,7 +42,7 @@ export default function ProfileInfos({
         <input
           type="text"
           id="username"
-          disabled={canNotWrite}
+          disabled={canNotWrite || isLoading}
           className="input-style border-b border-b-violet-300"
           value={form.pseudo}
           name="pseudo"
@@ -56,7 +59,7 @@ export default function ProfileInfos({
         <input
           type="email"
           id="email"
-          disabled={user.isGoogleUser ? true : canNotWrite}
+          disabled={user.isGoogleUser ? true : canNotWrite || isLoading}
           className={`input-style border-b border-b-violet-300 ${user.isGoogleUser ? "cursor-not-allowed" : ""}`}
           value={form.email}
           name="email"
@@ -80,7 +83,7 @@ export default function ProfileInfos({
                 <input
                   type="password"
                   id="password"
-                  disabled={canNotWrite}
+                  disabled={canNotWrite || isLoading}
                   className="input-style border-b border-b-violet-300"
                   value={form.newPassword}
                   name="newPassword"
@@ -97,7 +100,7 @@ export default function ProfileInfos({
                 <input
                   type="password"
                   id="confirmPassword"
-                  disabled={canNotWrite}
+                  disabled={canNotWrite || isLoading}
                   className={`input-style border-b border-b-violet-300`}
                   value={form.confirmNewPassword}
                   name="confirmNewPassword"
@@ -116,7 +119,7 @@ export default function ProfileInfos({
             <input
               type="text"
               id="avatarUrl"
-              disabled={canNotWrite}
+              disabled={canNotWrite || isLoading}
               className="input-style border-b border-b-violet-300"
               value={form.avatar}
               name="avatar"
@@ -125,7 +128,11 @@ export default function ProfileInfos({
           </div>
         </>
       )}
-      <button onClick={activateForm} className="button text-white">
+      <button
+        onClick={activateForm}
+        className="button text-white"
+        disabled={isLoading}
+      >
         {canNotWrite ? "Modifier" : "Confirmer"}
       </button>
       {/* bouton annulé */}
