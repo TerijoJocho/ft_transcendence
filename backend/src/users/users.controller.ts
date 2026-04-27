@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/updateDto';
-import { PassportJwtGuard } from 'src/auth/guards/passport-jwt.guard';
-import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
+import { PassportJwtGuard } from '../auth/guards/passport-jwt.guard';
+import { CurrentUser } from '../auth/decorator/current-user.decorator';
 import type { Response } from 'express';
 import { registerDto } from './dto/user_dto';
 

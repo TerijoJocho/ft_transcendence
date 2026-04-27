@@ -7,10 +7,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { DoubleFactorService } from './double_factor.service';
-import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
-import { PassportJwtGuard } from 'src/auth/guards/passport-jwt.guard';
+import { CurrentUser } from '../auth/decorator/current-user.decorator';
+import { PassportJwtGuard } from '../auth/guards/passport-jwt.guard';
 import { deleteDoubleFactorDto } from './dto/deleteDoubleFactorDto';
-import { LogoutDto } from 'src/auth/dto/logout.dto';
+import { LogoutDto } from '../auth/dto/logout.dto';
 import { replyDoubleFactorDto } from './dto/replyDoubleFactorDto';
 
 @Controller('2FA')

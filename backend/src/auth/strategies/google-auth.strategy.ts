@@ -1,10 +1,10 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-google-oauth20';
-import { UtilsService } from 'src/shared/services/utils.func.service';
-import { playerSelect, playerTable } from 'src/shared/db/schema';
+import { UtilsService } from '../../shared/services/utils.func.service';
+import { playerSelect, playerTable } from '../../shared/db/schema';
 import { eq } from 'drizzle-orm';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../../users/users.service';
 import { LoginDto } from '../dto/login.dto';
 
 type CreatedUser = {

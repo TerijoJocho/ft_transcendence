@@ -9,7 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
-import { RedisService } from 'src/shared/services/redis.service';
+import { RedisService } from '../shared/services/redis.service';
 
 type SocketUser = { playerId: number };
 

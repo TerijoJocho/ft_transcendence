@@ -32,6 +32,16 @@ export class AuthService {
     private readonly twoFactor: DoubleFactorService,
   ) {}
 
+  accessExpirationMs = parseInt(
+      process.env.JWT_ACCESS_TOKEN_EXPIRATION_MS,
+    );
+  refreshExpirationMs = parseInt(
+    process.env.JWT_REFRESH_TOKEN_EXPIRATION_MS,
+  );
+
+  expiresAccessToken = new Date(Date.now() + this.accessExpirationMs);
+  expiresRefreshToken = new Date(Date.now() + this.refreshExpirationMs);
+
   async finalizeLogin(
     user: LoginDto,
     response: Response,
@@ -39,16 +49,8 @@ export class AuthService {
   ): Promise<Response> {
     try {
       const redisClient = this.redisService.getClient();
-      const accessExpirationMs = parseInt(
-        process.env.JWT_ACCESS_TOKEN_EXPIRATION_MS,
-      );
-      const refreshExpirationMs = parseInt(
-        process.env.JWT_REFRESH_TOKEN_EXPIRATION_MS,
-      );
-      const expiresAccessToken = new Date(Date.now() + accessExpirationMs);
-      const expiresRefreshToken = new Date(Date.now() + refreshExpirationMs);
-      const accessExpirationSec = Math.floor(accessExpirationMs / 1000);
-      const refreshExpirationSec = Math.floor(refreshExpirationMs / 1000);
+      const accessExpirationSec = Math.floor(this.accessExpirationMs / 1000);
+      const refreshExpirationSec = Math.floor(this.refreshExpirationMs / 1000);
 
       const tokenPayload: AuthTokenPayload = {
         sub: user.playerId,
@@ -66,7 +68,7 @@ export class AuthService {
       } as JwtSignOptions);
 
       await redisClient.set('refreshToken:' + user.playerId, refreshToken, {
-        EX: refreshExpirationMs / 1000,
+        EX: this.refreshExpirationMs / 1000,
       });
 
       const googleTokenToRevoke: string =
@@ -76,7 +78,7 @@ export class AuthService {
           'googleToken:' + user.playerId,
           googleTokenToRevoke,
           {
-            EX: refreshExpirationMs / 1000,
+            EX: this.refreshExpirationMs / 1000,
           },
         );
       }
@@ -84,13 +86,15 @@ export class AuthService {
       response.cookie('Access', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        expires: expiresAccessToken,
+        path: '/',
+        expires: this.expiresAccessToken,
       });
 
       response.cookie('Refresh', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        expires: expiresRefreshToken,
+        path: '/',
+        expires: this.expiresRefreshToken,
       });
 
       if (redirect) {
@@ -171,6 +175,7 @@ export class AuthService {
     response.cookie('Access', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      path: '/',
       expires: expiresAccessToken,
     });
     return response.json(user);
@@ -260,8 +265,15 @@ export class AuthService {
 
     await redisClient.del('refreshToken:' + user.playerId);
     await redisClient.del('googleToken:' + user.playerId);
-    response.clearCookie('Access');
-    response.clearCookie('Refresh');
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+    };
+    const cookieOptionsRefresh = { ...cookieOptions, expires: this.expiresRefreshToken};
+    const cookieOptionsAccess = { ...cookieOptions, expires: this.expiresAccessToken};
+    response.clearCookie('Access', { ...cookieOptionsAccess });
+    response.clearCookie('Refresh', { ...cookieOptionsRefresh });
     response.status(200).json({ message: 'successfully logged out' });
   }
 

@@ -8,14 +8,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { UpdateDoubleFactorDto } from './dto/UpdateDoubleFactorDto';
-import { UtilsService } from 'src/shared/services/utils.func.service';
-import { RedisService } from 'src/shared/services/redis.service';
+import { UtilsService } from '../shared/services/utils.func.service';
+import { RedisService } from '../shared/services/redis.service';
 import speakeasy from 'speakeasy';
 import { eq } from 'drizzle-orm';
 import axios from 'axios';
 import https from 'https';
 import fs from 'fs';
-import { playerTable } from 'src/shared/db/schema';
+import { playerTable } from '../shared/db/schema';
 import { deleteDoubleFactorDto } from './dto/deleteDoubleFactorDto';
 
 type VaultEncryptResponse = {

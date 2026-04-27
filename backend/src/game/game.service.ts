@@ -9,15 +9,15 @@ import {
 import { UtilsService } from '../shared/services/utils.func.service';
 import { NewGameDto } from './dto/new-game.dto';
 import { EndGameDto } from './dto/end-game.dto';
-import { gameTable, participationTable } from 'src/shared/db/schema';
+import { gameTable, participationTable } from '../shared/db/schema';
 import type {
   gameSelect,
   gameInsert,
   participationInsert,
   participationSelect,
-} from 'src/shared/db/schema';
+} from '../shared/db/schema';
 import { eq, ne, sql, and } from 'drizzle-orm';
-import { DatabaseService } from 'src/shared/services/db.service';
+import { DatabaseService } from '../shared/services/db.service';
 import { GiveupGameDto } from './dto/giveup-game.dto';
 
 @Injectable()

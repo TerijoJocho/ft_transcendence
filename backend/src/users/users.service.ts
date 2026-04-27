@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
   HttpException,
 } from '@nestjs/common';
-import { UtilsService } from 'src/shared/services/utils.func.service';
+import { UtilsService } from '../shared/services/utils.func.service';
 import { eq, ne } from 'drizzle-orm';
 import {
   playerTable,
@@ -14,9 +14,9 @@ import {
   friendshipTable,
   participationTable,
   playerSelect,
-} from 'src/shared/db/schema';
+} from '../shared/db/schema';
 import { UpdateUserDto } from './dto/updateDto';
-import { RedisService } from 'src/shared/services/redis.service';
+import { RedisService } from '../shared/services/redis.service';
 import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
 
