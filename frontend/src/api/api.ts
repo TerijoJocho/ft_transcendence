@@ -297,8 +297,7 @@ export function searchUser(data: {
 }): Promise<SearchUserResult[]> {
   const params = new URLSearchParams({ username: data.username });
   return request<SearchUserResult[]>(
-    `/api/friendship/search?${params.toString()}`,
-    {
+    `/api/friendship/search?${params.toString()}`, {
       method: "GET",
     },
   );
@@ -394,17 +393,21 @@ export function cancelGame(gameId: number) {
 }
 
 export function connectGameSocket(): Socket {
-  return io(`${API_URL}/game`, {
+  const socket = io(`${API_URL}/game`, {
     path: "/socket.io/",
     withCredentials: true,
     transports: ["websocket"],
   });
+  console.log("[SOCKET] Création socket GAME", socket.id);
+  return socket;
 }
 
 export function connectRealtimeSocket(): Socket {
-  return io(`${API_URL}/chat`, {
+  const socket = io(`${API_URL}/chat`, {
     path: "/socket.io/",
     withCredentials: true,
     transports: ["websocket"],
   });
+  console.log("[SOCKET] Création socket CHAT", socket.id);
+  return socket;
 }
