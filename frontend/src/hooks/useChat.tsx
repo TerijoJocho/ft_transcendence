@@ -6,8 +6,8 @@ import React, {
   useState,
   type ReactNode,
 } from "react";
-import { connectChatSocket, refreshSession } from "../api/api";
-import type { Socket } from "socket.io-client";
+import { refreshSession } from "../api/api";
+import { useRealtimeSocket } from "./useRealtimeSocket";
 
 export type ChatMessage = {
   id?: number;
@@ -27,8 +27,39 @@ type ChatContextType = {
 
 const ChatContext = createContext<ChatContextType | null>(null);
 
+function toEpochMs(value: string) {
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function messageKey(message: ChatMessage) {
+  return `${String(message.from)}|${String(message.to ?? "")}|${message.content}|${message.ts}`;
+}
+
+function mergeMessages(
+  existing: ChatMessage[],
+  incoming: ChatMessage[],
+) {
+  const combined = [...existing, ...incoming].sort(
+    (a, b) => toEpochMs(a.ts) - toEpochMs(b.ts),
+  );
+
+  // Keep only exact message copies once history and live events are combined.
+  const exactUnique: ChatMessage[] = [];
+  const seen = new Set<string>();
+
+  for (const message of combined) {
+    const key = messageKey(message);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    exactUnique.push(message);
+  }
+
+  return exactUnique;
+}
+
 export function ChatProvider({ children }: { children: ReactNode }) {
-  const socketRef = useRef<Socket | null>(null);
+  const { socket } = useRealtimeSocket();
   const activePeerRef = useRef<number | null>(null);
   const isRefreshingSessionRef = useRef(false);
 
@@ -54,8 +85,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, [messages]);
 
   useEffect(() => {
-    const chatSocket = connectChatSocket();
-    socketRef.current = chatSocket;
+    if (!socket) return;
 
     const isUnauthorizedMessage = (message: string | undefined) => {
       if (!message) return false;
@@ -69,8 +99,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       try {
         await refreshSession();
         setError(null);
-        if (!chatSocket.connected) {
-          chatSocket.connect();
+        if (!socket.connected) {
+          socket.connect();
         }
       } catch {
         setError("Session expirée. Reconnecte-toi.");
@@ -79,33 +109,48 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    chatSocket.on("chat_history", (history: ChatMessage[]) => {
+    socket.on("chat_history", (history: ChatMessage[]) => {
       const peerId = activePeerRef.current;
       if (peerId === null) return;
-      setMessages((prev) => ({ ...prev, [peerId]: history ?? [] }));
+      setMessages((prev) => ({
+        ...prev,
+        [peerId]: mergeMessages(prev[peerId] ?? [], history ?? []),
+      }));
     });
 
-    chatSocket.on("recv_dm", (message: ChatMessage) => {
-      // Pour les messages entrants, from n'est généralement jamais "me"
+    socket.on("recv_dm", (message: ChatMessage) => {
+      const activePeerId = activePeerRef.current;
       const peerId =
-        typeof message.from === "number" ? message.from : activePeerRef.current;
+        activePeerId !== null && message.to === activePeerId
+          ? activePeerId
+          : activePeerId !== null && message.from === activePeerId
+            ? activePeerId
+            : typeof message.from === "number"
+              ? message.from
+              : typeof message.to === "number"
+                ? message.to
+                : activePeerId;
       if (peerId === null) return;
 
       setMessages((prev) => ({
         ...prev,
-        [peerId]: [...(prev[peerId] ?? []), message],
+        [peerId]: mergeMessages(prev[peerId] ?? [], [message]),
       }));
     });
 
-    chatSocket.on("chat_error", (payload: { message?: string }) => {
+    socket.on("chat_error", (payload: { message?: string }) => {
       if (isUnauthorizedMessage(payload?.message)) {
         void tryRefreshAndReconnect();
+        return;
+      }
+      // masque l'erreur 'timeout' dans le chat
+      if (payload?.message && payload.message.toLowerCase().includes("timeout")) {
         return;
       }
       setError(payload?.message ?? "Chat error");
     });
 
-    chatSocket.on("connect_error", (error: Error) => {
+    socket.on("connect_error", (error: Error) => {
       if (isUnauthorizedMessage(error.message)) {
         void tryRefreshAndReconnect();
         return;
@@ -113,7 +158,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setError(error.message || "Erreur de connexion au chat");
     });
 
-    chatSocket.on("disconnect", (reason) => {
+    socket.on("disconnect", (reason) => {
       // Server-side disconnect usually happens after auth failure.
       if (reason === "io server disconnect") {
         void tryRefreshAndReconnect();
@@ -121,33 +166,25 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
-      chatSocket.disconnect();
-      socketRef.current = null;
+      socket.off("chat_history");
+      socket.off("recv_dm");
+      socket.off("chat_error");
+      socket.off("connect_error");
+      socket.off("disconnect");
     };
-  }, []);
+  }, [socket]);
 
   const sendMessage = React.useCallback((peerId: number, content: string) => {
-    if (!socketRef.current) return;
-    socketRef.current.emit("send_dm", { peerId, content });
-
-    const optimistic: ChatMessage = {
-      from: "me",
-      to: peerId,
-      content,
-      ts: new Date().toISOString(),
-    };
-    setMessages((prev) => ({
-      ...prev,
-      [peerId]: [...(prev[peerId] ?? []), optimistic],
-    }));
-  }, []);
+    if (!socket) return;
+    socket.emit("send_dm", { peerId, content });
+  }, [socket]);
 
   const joinRoom = React.useCallback((peerId: number) => {
     activePeerRef.current = peerId;
-    if (socketRef.current) {
-      socketRef.current.emit("join_dm", { peerId });
+    if (socket) {
+      socket.emit("join_dm", { peerId });
     }
-  }, []);
+  }, [socket]);
 
   return (
     <ChatContext.Provider

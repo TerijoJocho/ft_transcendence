@@ -936,8 +936,8 @@ function ChessGame({
     const [sr, sc] = dragSource;
     setDragSource(null);
     if (sr === dr && sc === dc) {
-      setSelected(null);
-      setHints([]);
+      setSelected([sr, sc]);
+      setHints(getLegalMoves(board, sr, sc, player, moved, ep));
       return;
     }
     executeMove(sr, sc, dr, dc);

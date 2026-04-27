@@ -9,7 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
-import { RedisService } from 'src/shared/services/redis.service';
+import { RedisService } from '../shared/services/redis.service';
 
 type SocketUser = { playerId: number };
 
@@ -36,7 +36,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   private readonly roomMessages = new Map<string, ChatMessage[]>();
-  private readonly presenceTtlSeconds = 60;
+  private readonly presenceTtlSeconds = 600;
   private readonly refreshIntervalMs = 20_000;
 
   constructor(
@@ -57,6 +57,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     ).user = user;
 
     await this.markSocketOnline(client, user.playerId);
+    this.server.emit('presence_update', {
+      userId: user.playerId,
+      online: true,
+      status: 'ONLINE',
+    });
 
     const timer = setInterval(() => {
       void this.refreshPresence(client, user.playerId);
@@ -80,7 +85,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (!user?.playerId) return;
 
-    await this.markSocketOffline(client.id, user.playerId);
+    const isNowOffline = await this.markSocketOffline(client.id, user.playerId);
+    if (isNowOffline) {
+      this.server.emit('presence_update', {
+        userId: user.playerId,
+        online: false,
+        status: 'OFFLINE',
+      });
+    }
   }
 
   @SubscribeMessage('join_dm')
@@ -225,7 +237,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         redisClient.del(socketsKey),
         redisClient.del(onlineKey),
       ]);
-      return;
+      return true;
     }
 
     await Promise.all([
@@ -234,5 +246,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         EX: this.presenceTtlSeconds,
       }),
     ]);
+    return false;
   }
 }

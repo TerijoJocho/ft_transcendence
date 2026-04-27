@@ -1,5 +1,5 @@
 import { IsNumber } from 'class-validator';
-import { IsLessThanOrEqualTo } from 'src/shared/validators/is-less-than-or-equal-to.validator';
+import { IsLessThanOrEqualTo } from '../../shared/validators/is-less-than-or-equal-to.validator';
 
 export class GiveupGameDto {
   @IsNumber()

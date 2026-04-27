@@ -9,6 +9,29 @@ import { isValidMail } from "../utils/isValidMail.ts";
 import { QRCodeSVG } from "qrcode.react";
 import { Link } from "react-router-dom";
 
+const PASSWORD_RULES =
+  "Le mot de passe doit contenir au moins 8 caracteres, une majuscule, une minuscule, un chiffre et un symbole.";
+
+function getPasswordErrors(
+  newPassword: string,
+  confirmNewPassword: string,
+): string[] {
+  const errors: string[] = [];
+
+  if (newPassword.length < 8) {
+    errors.push("Au moins 8 caracteres");
+    return errors;
+  }
+  if (!/[a-z]/.test(newPassword)) errors.push("Au moins une lettre minuscule");
+  if (!/[A-Z]/.test(newPassword)) errors.push("Au moins une lettre majuscule");
+  if (!/\d/.test(newPassword)) errors.push("Au moins un chiffre");
+  if (!/[^A-Za-z0-9]/.test(newPassword)) errors.push("Au moins un symbole");
+  if (newPassword !== confirmNewPassword)
+    errors.push("La confirmation du mot de passe ne correspond pas");
+
+  return errors;
+}
+
 function Profil() {
   const { user, login: setAuthUser } = useAuth();
 
@@ -49,7 +72,7 @@ function Profil() {
 
   useEffect(() => {
     if (!feedback) return;
-    const timer = setTimeout(() => setFeedback(null), 3000);
+    const timer = setTimeout(() => setFeedback(null), 5000);
     return () => clearTimeout(timer);
   }, [feedback]);
 
@@ -73,12 +96,12 @@ function Profil() {
     }
 
     if (isPasswordChange && !isPasswordValid) {
-      setForm((prev) => ({
-        ...prev,
-        newPassword: "",
-        confirmNewPassword: "",
-      }));
-      setFeedback({ message: "Mot de passe invalide", type: "error" });
+      const details = passwordValidationErrors.join("; ");
+      setFeedback({
+        message: `Mot de passe invalide. ${PASSWORD_RULES} Détails: ${details}`,
+        type: "error",
+      });
+      setForm((prev) => ({ ...prev, email: user.email }));
       return;
     }
 
@@ -94,6 +117,7 @@ function Profil() {
       return;
     }
 
+    setIsLoading(true);
     setFeedback({ message: "Chargement", type: "pending" });
     api
       .updateProfile(form)
@@ -106,15 +130,16 @@ function Profil() {
           type: "error",
         }),
       )
-      .finally(() =>
+      .finally(() => {
+        setIsLoading(false);
         setForm((prev) => ({
           ...prev,
           newPassword: "",
           confirmNewPassword: "",
-        })),
-      );
+        }));
+      });
 
-    setTimeout(() => window.location.reload(), 1000);
+    setTimeout(() => window.location.reload(), 5000);
   }
 
   function handleDelete() {
@@ -127,6 +152,7 @@ function Profil() {
       return;
     }
 
+    setIsLoading(true);
     api
       .deleteAccount()
       .then(() =>
@@ -141,7 +167,12 @@ function Profil() {
           type: "error",
         }),
       )
-      .finally(() => (setWantToDelete(false), setDeleteInput(""), setTimeout(() => window.location.reload(), 1000)));
+      .finally(() => {
+        setIsLoading(false);
+        setWantToDelete(false);
+        setDeleteInput("");
+        setTimeout(() => window.location.reload(), 1000);
+      });
   }
 
   function handleChecked(e: React.ChangeEvent<HTMLInputElement>) {
@@ -186,6 +217,7 @@ function Profil() {
       return;
     }
 
+    setIsLoading(true);
     api
       .delete2FA({ pwd: password, replyCode: code })
       .then(async () => {
@@ -217,6 +249,7 @@ function Profil() {
       setFeedback({ message: "Veuillez entrer le code", type: "error" });
       return;
     }
+    setIsLoading(true);
     api
       .activate2FA({ reply_code: code })
       .then(async () => {
@@ -233,14 +266,19 @@ function Profil() {
           message: e instanceof Error ? e.message : String(e),
           type: "error",
         }),
-      );
+      )
+      .finally(() => {
+        setIsLoading(false);
+      });
   }
 
   const isPasswordChange =
     form.newPassword.length > 0 || form.confirmNewPassword.length > 0;
-  const isPasswordValid =
-    form.newPassword === form.confirmNewPassword ||
-    form.newPassword.length >= 8;
+  const passwordValidationErrors = getPasswordErrors(
+    form.newPassword,
+    form.confirmNewPassword,
+  );
+  const isPasswordValid = passwordValidationErrors.length === 0;
   const isUsernameValid = form.pseudo?.length >= 4;
   const resValidMail = isValidMail(form.email);
 
@@ -254,6 +292,8 @@ function Profil() {
           handleChange={handleChange}
           handleSubmit={handleSubmit}
           user={user}
+          passwordRulesText={PASSWORD_RULES}
+          isLoading={isLoading}
         />
         <div className="w-full flex justify-between items-center">
           <div className="flex justify-content-center ml-2">
@@ -296,6 +336,7 @@ function Profil() {
           setDeleteInput={setDeleteInput}
           CONFIRM_PHRASE={CONFIRM_PHRASE}
           handleDelete={handleDelete}
+          isLoading={isLoading}
         />
       )}
       {otpauthUrl && (
@@ -333,20 +374,25 @@ function Profil() {
               </Link>
             </p>
 
-            <label className="text-sm text-gray-500 dark:text-zinc-400 text-center">
+            <label
+              htmlFor="activate2FACode"
+              className="text-sm text-gray-500 dark:text-zinc-400 text-center"
+            >
               Ensuite rentrez le code à 6 chiffres ici:
             </label>
             <div className="flex gap-3">
               <input
                 type="text"
                 name="2FAcode"
-                id="2FAcode"
+                id="activate2FACode"
                 className="border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-950"
                 onChange={(e) => setCode(e.currentTarget.value)}
+                disabled={isLoading}
               />
               <button
                 className="px-1 py-2 bg-black text-white rounded-lg global-hover"
                 onClick={handleActivate}
+                disabled={isLoading}
               >
                 Envoyer
               </button>
@@ -355,6 +401,7 @@ function Profil() {
             <button
               className="px-4 py-2 bg-black text-white rounded-lg global-hover"
               onClick={() => setOtpauthUrl(null)}
+              disabled={isLoading}
             >
               Fermer
             </button>
@@ -368,31 +415,40 @@ function Profil() {
               Pour désactiver la double authentification
             </h2>
 
-            <label className="text-sm text-gray-500 dark:text-zinc-400 text-center">
+            <label
+              htmlFor="password"
+              className="text-sm text-gray-500 dark:text-zinc-400 text-center"
+            >
               Entrez votre mot de passe:
             </label>
             <input
               type="password"
               name="password"
-              id="paswword"
+              id="password"
               className="border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-950"
               onChange={(e) => setPassword(e.currentTarget.value)}
+              disabled={isLoading}
             />
 
-            <label className="text-sm text-gray-500 dark:text-zinc-400 text-center">
+            <label
+              htmlFor="remove2FACode"
+              className="text-sm text-gray-500 dark:text-zinc-400 text-center"
+            >
               Entrez le code à 6 chiffres:
             </label>
             <input
               type="text"
               name="2FAcode"
-              id="2FAcode"
+              id="remove2FACode"
               className="border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-950"
               onChange={(e) => setCode(e.currentTarget.value)}
+              disabled={isLoading}
             />
 
             <button
               className="px-4 py-2 bg-black text-white rounded-lg global-hover"
               onClick={() => handleRemove2FA()}
+              disabled={isLoading}
             >
               Confirmer
             </button>
@@ -404,6 +460,7 @@ function Profil() {
                 setCode(null);
                 setRemove2FA(false);
               }}
+              disabled={isLoading}
             >
               Fermer
             </button>

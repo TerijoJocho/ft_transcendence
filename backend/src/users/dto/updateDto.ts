@@ -4,6 +4,7 @@ import {
   IsOptional,
   MaxLength,
   IsUrl,
+  IsStrongPassword,
 } from 'class-validator';
 
 export class UpdateUserDto {
@@ -17,6 +18,13 @@ export class UpdateUserDto {
 
   @IsString()
   @IsOptional()
+  @IsStrongPassword(
+    {},
+    {
+      message:
+        'newPassword must be at least 8 characters and include uppercase, lowercase, number and symbol',
+    },
+  )
   newPassword?: string;
 
   @IsString()

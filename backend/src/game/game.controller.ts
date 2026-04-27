@@ -8,13 +8,13 @@ import {
   Delete,
   Get,
 } from '@nestjs/common';
-import { PassportJwtGuard } from 'src/auth/guards/passport-jwt.guard';
+import { PassportJwtGuard } from '../auth/guards/passport-jwt.guard';
 import { NewGameDto } from './dto/new-game.dto';
 import { EndGameDto } from './dto/end-game.dto';
 import { GiveupGameDto } from './dto/giveup-game.dto';
 import { GameService } from './game.service';
-import { LogoutDto } from 'src/auth/dto/logout.dto';
-import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
+import { LogoutDto } from '../auth/dto/logout.dto';
+import { CurrentUser } from '../auth/decorator/current-user.decorator';
 
 @Controller('game')
 export class GameController {

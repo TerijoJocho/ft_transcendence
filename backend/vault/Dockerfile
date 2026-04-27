@@ -1,5 +1,5 @@
 FROM vault:1.13.3
- 
+
 RUN apk update && apk add --no-cache curl vim jq
 
 RUN mkdir -p /etc/vault/certs/ /vault/local-secrets /run/approle
@@ -18,7 +18,5 @@ RUN chmod -R 755 /vault/local-secrets /run/approle && chmod -R 755 /etc/vault/ce
 
 RUN chown -R 100:100 /run /vault/local-secrets /run/approle /etc/vault/certs /init.sh \
     && chmod +x /init.sh 
-
-USER 1000
 
 CMD [ "./init.sh" ]

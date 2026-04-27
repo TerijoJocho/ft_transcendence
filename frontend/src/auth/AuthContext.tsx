@@ -6,6 +6,7 @@
 import { useState, useCallback } from "react";
 import { AuthContext, type User } from "./core/authCore";
 import * as api from "../api/api.ts"
+import { useRealtimeSocket } from "../hooks/useRealtimeSocket.tsx";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -17,12 +18,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const clearAuth = useCallback(async () => {
+    console.log('[AUTH] clearAuth called');
     setUser(null);
     setIsLoading(false);
   }, []);
 
   const logout = useCallback(async () => {
     try {
+      const { socket } = useRealtimeSocket();
+      if (socket && socket.connected) 
+        socket.disconnect();
       await api.logout();
     } finally {
       clearAuth();
