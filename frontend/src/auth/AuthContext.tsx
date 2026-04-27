@@ -18,6 +18,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const clearAuth = useCallback(async () => {
+    console.log('[AUTH] clearAuth called');
     setUser(null);
     setIsLoading(false);
   }, []);

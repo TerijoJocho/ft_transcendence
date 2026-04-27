@@ -6,6 +6,7 @@ import React, {
   useState,
   type ReactNode,
 } from "react";
+import { useAuth } from "../auth/useAuth";
 import type { Socket } from "socket.io-client";
 import { connectRealtimeSocket } from "../api/api";
 
@@ -16,12 +17,17 @@ type RealtimeSocketContextType = {
 const RealtimeSocketContext =
   createContext<RealtimeSocketContextType | null>(null);
 
+
 export function RealtimeSocketProvider({ children }: { children: ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (!user) {
+      setSocket(null);
+      return;
+    }
     const realtimeSocket = connectRealtimeSocket();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSocket(realtimeSocket);
 
     return () => {
@@ -29,7 +35,7 @@ export function RealtimeSocketProvider({ children }: { children: ReactNode }) {
         realtimeSocket.disconnect();
       setSocket(null);
     };
-  }, []);
+  }, [user]);
 
   const value = useMemo(() => ({ socket }), [socket]);
 
