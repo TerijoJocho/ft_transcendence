@@ -85,12 +85,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (!user?.playerId) return;
 
-    await this.markSocketOffline(client.id, user.playerId);
-    this.server.emit('presence_update', {
-      userId: user.playerId,
-      online: false,
-      status: 'OFFLINE',
-    });
+    const isNowOffline = await this.markSocketOffline(client.id, user.playerId);
+    if (isNowOffline) {
+      this.server.emit('presence_update', {
+        userId: user.playerId,
+        online: false,
+        status: 'OFFLINE',
+      });
+    }
   }
 
   @SubscribeMessage('join_dm')
@@ -235,7 +237,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         redisClient.del(socketsKey),
         redisClient.del(onlineKey),
       ]);
-      return;
+      return true;
     }
 
     await Promise.all([
@@ -244,5 +246,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         EX: this.presenceTtlSeconds,
       }),
     ]);
+    return false;
   }
 }
