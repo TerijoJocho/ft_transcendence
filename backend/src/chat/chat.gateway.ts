@@ -36,7 +36,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   private readonly roomMessages = new Map<string, ChatMessage[]>();
-  private readonly presenceTtlSeconds = 60;
+  private readonly presenceTtlSeconds = 600;
   private readonly refreshIntervalMs = 20_000;
 
   constructor(

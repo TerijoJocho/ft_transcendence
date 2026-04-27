@@ -143,6 +143,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         void tryRefreshAndReconnect();
         return;
       }
+      // masque l'erreur 'timeout' dans le chat
+      if (payload?.message && payload.message.toLowerCase().includes("timeout")) {
+        return;
+      }
       setError(payload?.message ?? "Chat error");
     });
 
