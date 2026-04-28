@@ -14,9 +14,9 @@ type RealtimeSocketContextType = {
   socket: Socket | null;
 };
 
-const RealtimeSocketContext =
-  createContext<RealtimeSocketContextType | null>(null);
-
+const RealtimeSocketContext = createContext<RealtimeSocketContextType | null>(
+  null,
+);
 
 export function RealtimeSocketProvider({ children }: { children: ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -32,8 +32,7 @@ export function RealtimeSocketProvider({ children }: { children: ReactNode }) {
     setSocket(realtimeSocket);
 
     return () => {
-      if (realtimeSocket.connected)
-        realtimeSocket.disconnect();
+      if (realtimeSocket.connected) realtimeSocket.disconnect();
       setSocket(null);
     };
   }, [user]);

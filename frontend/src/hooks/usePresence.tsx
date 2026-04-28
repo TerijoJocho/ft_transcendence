@@ -43,19 +43,19 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
 
     try {
       const data = await getFriendsList();
-      const normalized: FriendPresence[] = (data ?? [])
-        .map((f) => ({
-          id: f.id,
-          pseudo: f.pseudo,
-          status: f.status,
-          online: f.online,
-          avatarUrl: typeof f.avatarUrl === "string" ? f.avatarUrl : null,
-          friendshipStatus: f.friendshipStatus,
-          level: f.level ?? 0,
-          lose: f.lose ?? 0,
-        }));
+      const normalized: FriendPresence[] = (data ?? []).map((f) => ({
+        id: f.id,
+        pseudo: f.pseudo,
+        status: f.status,
+        online: f.online,
+        avatarUrl: typeof f.avatarUrl === "string" ? f.avatarUrl : null,
+        friendshipStatus: f.friendshipStatus,
+        level: f.level ?? 0,
+        lose: f.lose ?? 0,
+      }));
 
       setFriendsList(normalized);
+
       if (!silent) setFriendsError(null);
     } catch {
       if (!silent) {
@@ -92,10 +92,22 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
       },
     );
 
+    // fallback: resync friends list on socket connect/disconnect
+    const handleSocketConnect = () => {
+      void refreshFriends(true);
+    };
+    const handleSocketDisconnect = () => {
+      void refreshFriends(true);
+    };
+    socket.on("connect", handleSocketConnect);
+    socket.on("disconnect", handleSocketDisconnect);
+
     return () => {
       socket.off("presence_update");
+      socket.off("connect", handleSocketConnect);
+      socket.off("disconnect", handleSocketDisconnect);
     };
-  }, [socket]);
+  }, [socket, refreshFriends]);
 
   return (
     <PresenceContext.Provider

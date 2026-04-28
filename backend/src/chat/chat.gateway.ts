@@ -248,4 +248,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     ]);
     return false;
   }
+
+  async notifyUserLogout(userId: number): Promise<void> {
+    const redisClient = this.redisService.getClient();
+    const socketsKey = this.getSocketsKey(userId);
+    const onlineKey = this.getOnlineKey(userId);
+
+    await Promise.all([
+      redisClient.del(socketsKey),
+      redisClient.del(onlineKey),
+    ]);
+
+    this.server.emit('presence_update', {
+      userId,
+      online: false,
+      status: 'OFFLINE',
+    });
+  }
 }

@@ -17,6 +17,7 @@ import { LogoutDto } from './dto/logout.dto';
 import * as bcrypt from 'bcrypt';
 import { DoubleFactorService } from '../double_factor/double_factor.service';
 import { TwoFactorDto } from './dto/twoFactorDto';
+import { ChatGateway } from '../chat/chat.gateway';
 
 type AuthTokenPayload = {
   sub: number;
@@ -30,14 +31,11 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
     private readonly twoFactor: DoubleFactorService,
+    private readonly chatGateway: ChatGateway,
   ) {}
 
-  accessExpirationMs = parseInt(
-      process.env.JWT_ACCESS_TOKEN_EXPIRATION_MS,
-    );
-  refreshExpirationMs = parseInt(
-    process.env.JWT_REFRESH_TOKEN_EXPIRATION_MS,
-  );
+  accessExpirationMs = parseInt(process.env.JWT_ACCESS_TOKEN_EXPIRATION_MS);
+  refreshExpirationMs = parseInt(process.env.JWT_REFRESH_TOKEN_EXPIRATION_MS);
 
   expiresAccessToken = new Date(Date.now() + this.accessExpirationMs);
   expiresRefreshToken = new Date(Date.now() + this.refreshExpirationMs);
@@ -265,13 +263,23 @@ export class AuthService {
 
     await redisClient.del('refreshToken:' + user.playerId);
     await redisClient.del('googleToken:' + user.playerId);
+
+    // Notify chat gateway to mark user as offline
+    await this.chatGateway.notifyUserLogout(user.playerId);
+
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',
     };
-    const cookieOptionsRefresh = { ...cookieOptions, expires: this.expiresRefreshToken};
-    const cookieOptionsAccess = { ...cookieOptions, expires: this.expiresAccessToken};
+    const cookieOptionsRefresh = {
+      ...cookieOptions,
+      expires: this.expiresRefreshToken,
+    };
+    const cookieOptionsAccess = {
+      ...cookieOptions,
+      expires: this.expiresAccessToken,
+    };
     response.clearCookie('Access', { ...cookieOptionsAccess });
     response.clearCookie('Refresh', { ...cookieOptionsRefresh });
     response.status(200).json({ message: 'successfully logged out' });

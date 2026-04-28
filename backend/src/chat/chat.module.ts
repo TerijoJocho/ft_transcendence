@@ -6,5 +6,6 @@ import { SharedModule } from '../shared/shared.module';
 @Module({
   imports: [JwtModule, SharedModule],
   providers: [ChatGateway],
+  exports: [ChatGateway],
 })
 export class ChatModule {}
