@@ -92,20 +92,16 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
       },
     );
 
-    // fallback: resync friends list on socket connect/disconnect
+    // fallback: resync friends list on socket connect
     const handleSocketConnect = () => {
       void refreshFriends(true);
     };
-    const handleSocketDisconnect = () => {
-      void refreshFriends(true);
-    };
+    
     socket.on("connect", handleSocketConnect);
-    socket.on("disconnect", handleSocketDisconnect);
 
     return () => {
       socket.off("presence_update");
       socket.off("connect", handleSocketConnect);
-      socket.off("disconnect", handleSocketDisconnect);
     };
   }, [socket, refreshFriends]);
 
