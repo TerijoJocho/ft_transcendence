@@ -24,6 +24,7 @@ export function RealtimeSocketProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSocket(null);
       return;
     }

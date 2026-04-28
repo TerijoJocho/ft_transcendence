@@ -442,7 +442,6 @@ function ChessGame({
   const [resolvedGameStatus, setResolvedGameStatus] = useState<
     OnlineConfig["gameStatus"]
   >(activeGameStatus ?? online.gameStatus ?? null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [onlineError, setOnlineError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const isRefreshingSessionRef = useRef(false);
@@ -451,13 +450,11 @@ function ChessGame({
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setResolvedGameStatus(activeGameStatus ?? online.gameStatus ?? null);
   }, [activeGameStatus, online.gameStatus]);
 
   useEffect(() => {
     if (!isOnline) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOnlineStatus(null);
       return;
     }

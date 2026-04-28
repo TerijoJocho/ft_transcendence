@@ -41,7 +41,7 @@ export default function AddFriend() {
         .finally(() => setIsLoading(false));
     }, 300);
     return () => clearTimeout(timer);
-  }, [searchValue]);
+  }, [searchValue, friendsList]);
 
   async function handleAddFriend(userId: number) {
     await addFriend({ userId })

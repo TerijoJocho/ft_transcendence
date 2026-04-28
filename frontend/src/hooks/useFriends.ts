@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import * as api from "../api/api.ts";
 import { usePresence } from "./usePresence.tsx";
