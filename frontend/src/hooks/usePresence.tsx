@@ -44,7 +44,6 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
     try {
       const data = await getFriendsList();
       const normalized: FriendPresence[] = (data ?? [])
-        .filter((f) => f.friendshipStatus === "ADDED")
         .map((f) => ({
           id: f.id,
           pseudo: f.pseudo,

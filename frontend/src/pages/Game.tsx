@@ -1300,7 +1300,7 @@ function ChessGame({
               : confirmAction === "cancel"
                 ? "Annuler la partie ? Elle sera supprimée."
                 : isOnline && !gameOver
-                  ? "Retourner au giveup ? Cela comptera comme une résignation."
+                  ? "Abandonner la partie? Cela comptera comme une défaite."
                   : "Retourner au tableau de bord ?"
           }
           onConfirm={async () => {
@@ -1492,7 +1492,7 @@ function Game() {
   const btnInactive =
     "bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-200 border-gray-300 dark:border-zinc-700 hover:border-violet-500 hover:text-violet-500 dark:hover:border-yellow-500 dark:hover:text-yellow-400";
   const btnDisabled =
-    "bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 border-gray-200 dark:border-zinc-700 cursor-not-allowed opacity-70";
+    "bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 border-gray-200 dark:border-zinc-700 opacity-70";
 
   const colorDisabled = mode === "Local";
 
