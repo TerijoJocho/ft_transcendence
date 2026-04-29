@@ -713,18 +713,6 @@ function ChessGame({
     persistEndOfGame,
   ]);
 
-  // Auto-redirect 5 seconds after game ends
-  // useEffect(() => {
-  //   if (gameOver) {
-  //     redirectTimerRef.current = setTimeout(() => {
-  //       onBack();
-  //     }, 60000);
-  //   }
-  //   return () => {
-  //     if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
-  //   };
-  // }, [gameOver, onBack]);
-
   const reset = useCallback(() => {
     clearInterval(intervalRef.current!);
     setBoard(INIT_BOARD());

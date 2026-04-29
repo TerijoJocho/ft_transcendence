@@ -10,14 +10,13 @@ export default function HeaderPlayerInfos({ userStats, setUserStats }) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [avatar, setAvatar] = useState("");
 
-  //fetch le user au mount du composant
   useEffect(() => {
     async function fetchUser() {
       const userData = await api.me();
       setAvatar(userData.avatarUrl);
     }
     fetchUser();
-  });
+  }, []);
 
   //ferme le menu quand on clique en dehors
   useEffect(() => {
