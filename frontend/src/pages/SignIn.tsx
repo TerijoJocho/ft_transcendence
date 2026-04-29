@@ -19,9 +19,9 @@ export default function SignIn() {
   const navigate = useNavigate();
 
   //check si la form est valide
-  const isFilledInput: boolean =
-    mail.length > 0 && password.length > 0 && pseudo.length > 0;
-  const isValidForm = isFilledInput && isValidMail(mail);
+  const isFilledInput: boolean = mail.length > 0 && password.length > 0 && pseudo.length > 0;
+  const isNotToLong: boolean = mail.length < 31 && pseudo.length < 9;
+  const isValidForm: boolean = isFilledInput && isValidMail(mail) && isNotToLong;
 
   // requete post pour creer un user
   function submitForm(e: FormEvent<HTMLFormElement>) {
@@ -65,9 +65,24 @@ export default function SignIn() {
           onChange={(e) => setPseudo(e.target.value)}
           className="input-style "
         />
-        {hasTouched && pseudo.length === 0 && (
-          <span className="error-style">Pseudo requis</span>
-        )}
+
+        {
+          hasTouched && pseudo.length === 0 && (
+            <span className="error-style">Pseudo requis</span>
+          )
+        }
+
+        {
+          hasTouched && pseudo.length > 8 && (
+            <span className="error-style">Le pseudo ne doit pas dépasser 8 caractères</span> 
+          )
+        }
+
+        {
+          hasTouched && pseudo.length > 0 && pseudo.length < 4 && (
+            <span className="error-style">Le pseudo doit faire au moins 4 caractères</span> 
+          )
+        }
 
         <label htmlFor="email" className="tracking-wide text-sm font-medium">
           Votre email
@@ -81,9 +96,20 @@ export default function SignIn() {
           onChange={(e) => setMail(e.target.value)}
           className="input-style"
         />
-        {hasTouched && !isValidMail(mail) && (
+
+        {hasTouched && mail.length === 0 && (
+          <span className="error-style">Email requis</span>
+        )}
+
+        {hasTouched && mail.length > 0 && !isValidMail(mail) && (
           <span className="error-style">Email invalide</span>
         )}
+
+        {
+          hasTouched && mail.length > 30 && (
+            <span className="error-style">L'email ne doit pas dépasser 30 caractères</span> 
+          )
+        }
 
         <label htmlFor="password" className="tracking-wide text-sm font-medium">
           Votre Mot de passe

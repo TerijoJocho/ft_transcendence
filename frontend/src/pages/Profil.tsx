@@ -22,12 +22,12 @@ function getPasswordErrors(
     errors.push("Au moins 8 caracteres");
     return errors;
   }
-  if (!/[a-z]/.test(newPassword)) errors.push("Au moins une lettre minuscule");
-  if (!/[A-Z]/.test(newPassword)) errors.push("Au moins une lettre majuscule");
-  if (!/\d/.test(newPassword)) errors.push("Au moins un chiffre");
-  if (!/[^A-Za-z0-9]/.test(newPassword)) errors.push("Au moins un symbole");
+  if (!/[a-z]/.test(newPassword)) errors.push("\nAu moins une lettre minuscule");
+  if (!/[A-Z]/.test(newPassword)) errors.push("\nAu moins une lettre majuscule");
+  if (!/\d/.test(newPassword)) errors.push("\nAu moins un chiffre");
+  if (!/[^A-Za-z0-9]/.test(newPassword)) errors.push("\nAu moins un symbole");
   if (newPassword !== confirmNewPassword)
-    errors.push("La confirmation du mot de passe ne correspond pas");
+    errors.push("\nLes deux mots de passe ne correspondent pas");
 
   return errors;
 }
@@ -69,6 +69,7 @@ function Profil() {
   const [remove2FA, setRemove2FA] = useState<boolean>(false);
   const [password, setPassword] = useState<string | null>(null);
   const [code, setCode] = useState<string | null>(null);
+  const [hasTouched, setHasTouched] = useState<boolean>(false);
 
   useEffect(() => {
     if (!feedback) return;
@@ -79,6 +80,7 @@ function Profil() {
   const twoFactorEnabled = twoFactorOverride ?? user.twoFactorEnabled;
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setHasTouched(true);
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
@@ -98,7 +100,7 @@ function Profil() {
     if (isPasswordChange && !isPasswordValid) {
       const details = passwordValidationErrors.join("; ");
       setFeedback({
-        message: `Mot de passe invalide. ${PASSWORD_RULES} Détails: ${details}`,
+        message: `Mot de passe invalide.\n\n${PASSWORD_RULES}\n\nDétails: ${details}`,
         type: "error",
       });
       setForm((prev) => ({ ...prev, email: user.email }));
@@ -279,7 +281,7 @@ function Profil() {
     form.confirmNewPassword,
   );
   const isPasswordValid = passwordValidationErrors.length === 0;
-  const isUsernameValid = form.pseudo?.length >= 4;
+  const isUsernameValid = form.pseudo?.length >= 4 && form.pseudo?.length < 9;
   const resValidMail = isValidMail(form.email);
 
   return (
@@ -290,6 +292,7 @@ function Profil() {
         <ProfileInfos
           form={form}
           handleChange={handleChange}
+          hasTouched={hasTouched}
           handleSubmit={handleSubmit}
           user={user}
           passwordRulesText={PASSWORD_RULES}
@@ -323,7 +326,8 @@ function Profil() {
         </div>
         {feedback?.message && (
           <span
-            className={`z-50 fixed top-10 right-10 py-2 px-6 ${feedback.type === "success" ? "text-green-500" : feedback.type === "error" ? "text-red-500" : "text-white"} bg-black/50 backdrop-blur-md rounded-md`}
+            className={` z-50 fixed top-10 right-10 py-2 px-6 whitespace-pre-wrap ${feedback.type === "success" ? "text-green-500" : feedback.type === "error" ? "text-red-500" : "text-white"}
+             bg-black/50  backdrop-blur-lg rounded-md`}
           >
             {feedback.message}
           </span>

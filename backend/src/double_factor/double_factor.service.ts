@@ -11,6 +11,7 @@ import { UpdateDoubleFactorDto } from './dto/UpdateDoubleFactorDto';
 import { UtilsService } from '../shared/services/utils.func.service';
 import { RedisService } from '../shared/services/redis.service';
 import speakeasy from 'speakeasy';
+import * as bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
 import axios from 'axios';
 import https from 'https';
@@ -398,7 +399,10 @@ export class DoubleFactorService {
       if (!userRows?.length)
         throw new HttpException('Player not found', HttpStatus.NOT_FOUND);
       const user = userRows[0];
-      if (!user || user.pass !== data.pwd)
+      if (!user)
+        throw new HttpException('User not authorized', HttpStatus.UNAUTHORIZED);
+      const isPasswordValid = await bcrypt.compare(data.pwd, user.pass);
+      if (!isPasswordValid)
         throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
       if (!user.twoFactorEnabled)
         throw new HttpException('2FA not active', HttpStatus.CONFLICT);
