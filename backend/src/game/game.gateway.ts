@@ -198,6 +198,66 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('ReponseDraw')
+  async handleReponseDraw(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    payload: { gameId: number; accept: boolean; state: GameStateSnapshot },
+  ) {
+    if (!payload?.gameId || payload.gameId <= 0) {
+      client.emit('game_error', { message: 'Invalid game id.' });
+      return;
+    }
+
+    const user = (client.data as { user?: SocketUser }).user;
+    if (!user) {
+      client.emit('game_error', { message: 'Unauthorized player context.' });
+      return;
+    }
+
+    try {
+      await this.gameService.getSession(payload.gameId, user.playerId);
+    } catch {
+      client.emit('game_error', { message: 'Access denied for this game.' });
+      return;
+    }
+
+    const room = this.gameRoom(payload.gameId);
+    if (payload.accept) {
+      // Partie terminée par accord mutuel
+      this.server
+        .to(room)
+        .emit('game_over', { winner: 'Draw', reason: 'agreement' });
+      this.gameStates.delete(payload.gameId);
+      // TODO: appeler le service pour persister le résultat si besoin
+    } else {
+      // L'adversaire refuse le match nul
+      client.to(room).emit('draw_refused', { gameId: payload.gameId });
+    }
+  }
+
+  @SubscribeMessage('AskDraw')
+  async handleTie(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: MovePayload,
+  ) {
+    if (!payload?.gameId || payload.gameId <= 0) {
+      client.emit('game_error', { message: 'Invalid game id.' });
+      return payload;
+    }
+
+    const user = (client.data as { user?: SocketUser }).user;
+    if (!user) {
+      client.emit('game_error', { message: 'Unauthorized player context.' });
+      return payload;
+    }
+
+    const room = this.gameRoom(payload.gameId);
+    const sockets = await this.server.in(room).fetchSockets();
+    const opponent = sockets.find((s) => s.id !== client.id);
+    if (opponent) opponent.emit('AskDraw', payload.state);
+  }
+
   @SubscribeMessage('giveup')
   async handleGiveUp(
     @ConnectedSocket() client: Socket,

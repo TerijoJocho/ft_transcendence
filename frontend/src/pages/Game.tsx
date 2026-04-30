@@ -467,7 +467,7 @@ function ChessGame({
 
   // Confirm modal: "restart" | "giveup" | "cancel" | null
   const [confirmAction, setConfirmAction] = useState<
-    "restart" | "giveup" | "cancel" | null
+    "restart" | "giveup" | "cancel" | "draw" | null
   >(null);
 
   const [dragSource, setDragSource] = useState<[number, number] | null>(null);
@@ -666,6 +666,10 @@ function ChessGame({
       setGameResult(result ?? { winner: "Draw", reason: "finished" });
       setGameOver(true);
     });
+    socket.on("AskDraw", () => {
+      setConfirmAction("draw");
+    });
+
     return () => {
       socket.disconnect();
       socketRef.current = null;
@@ -969,6 +973,25 @@ function ChessGame({
     onBack();
   }
 
+  async function handleDraw(accept: boolean) {
+    setConfirmAction(null);
+    if (isOnline && online.gameId && !gameOver) {
+      if (socketRef.current?.connected) {
+        socketRef.current.emit("ReponseDraw", {
+          gameId: online.gameId,
+          accept,
+          state: exportSnapshot(),
+        });
+      }
+      if (accept) {
+        const r = { winner: "Draw", reason: "agreement" };
+        setGameOver(true);
+        setGameResult(r);
+        await persistEndOfGame(r, history.length);
+      }
+    }
+  }
+
   async function handleCancelConfirm() {
     setConfirmAction(null);
     if (isOnline && online.gameId && !gameOver) {
@@ -1169,16 +1192,16 @@ function ChessGame({
                         piece && piece === piece.toLowerCase();
                       const pieceStyle = isWhitePiece
                         ? {
-                            color: "#ffffff",
-                            textShadow:
-                              "-1px -1px 0 #333, 1px -1px 0 #333, -1px 1px 0 #333, 1px 1px 0 #333",
-                          }
+                          color: "#ffffff",
+                          textShadow:
+                            "-1px -1px 0 #333, 1px -1px 0 #333, -1px 1px 0 #333, 1px 1px 0 #333",
+                        }
                         : isBlackPiece
                           ? {
-                              color: "#1a1a1a",
-                              textShadow:
-                                "-1px -1px 0 #aaa, 1px -1px 0 #aaa, -1px 1px 0 #aaa, 1px 1px 0 #aaa",
-                            }
+                            color: "#1a1a1a",
+                            textShadow:
+                              "-1px -1px 0 #aaa, 1px -1px 0 #aaa, -1px 1px 0 #aaa, 1px 1px 0 #aaa",
+                          }
                           : {};
                       return (
                         <div
@@ -1270,6 +1293,17 @@ function ChessGame({
                 >
                   ← Quitter
                 </button>
+                <button
+                  onClick={() => {
+                    if (socketRef.current?.connected && online.gameId) {
+                      const snapshot = exportSnapshot();
+                      socketRef.current.emit("AskDraw", { gameId: online.gameId, state: snapshot });
+                    }
+                  }}
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 text-sm uppercase tracking-widest border border-emerald-600 dark:border-emerald-400 text-emerald-700 dark:text-emerald-300 rounded-md hover:bg-emerald-600/20 dark:hover:bg-emerald-400/20 hover:border-emerald-700 dark:hover:border-emerald-300 transition-all duration-200"
+                >
+                  Proposer match nul
+                </button>
               </>
             )}
           </div>
@@ -1284,9 +1318,11 @@ function ChessGame({
               ? "Relancer la partie ?"
               : confirmAction === "cancel"
                 ? "Annuler la partie ? Elle sera supprimée."
-                : isOnline && !gameOver
-                  ? "Abandonner la partie? Cela comptera comme une défaite."
-                  : "Retourner au tableau de bord ?"
+                : confirmAction === "draw"
+                  ? "Votre adversaire propose un match nul. Accepter ?"
+                  : isOnline && !gameOver
+                    ? "Abandonner la partie? Cela comptera comme une défaite."
+                    : "Retourner au tableau de bord ?"
           }
           onConfirm={async () => {
             if (confirmAction === "restart") {
@@ -1294,7 +1330,10 @@ function ChessGame({
               setConfirmAction(null);
             } else if (confirmAction === "cancel") {
               await handleCancelConfirm();
-            } else {
+            } else if (confirmAction === "draw") {
+              await handleDraw(true);
+            }
+            else {
               await handleGiveUpConfirm();
               console.log("Confirmed giveup/Leave");
             }
@@ -1320,7 +1359,7 @@ function ChessGame({
                 {gameResult.winner === "Draw"
                   ? `Draw — ${gameResult.reason}`
                   : gameResult.reason === "resign" ||
-                      gameResult.winner === "opponent"
+                    gameResult.winner === "opponent"
                     ? "Vous avez gagné, votre adversaire a abandonné"
                     : `${gameResult.winner} gagne par ${gameResult.reason}`}
               </span>
