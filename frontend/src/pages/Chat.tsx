@@ -41,8 +41,6 @@ function Chat() {
   const [search, setSearch] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Removed WebSocket setup since it is handled by ChatProvider
-
   const friends = useMemo(
     () =>
       (friendsList as ChatFriend[]).map((f) => ({
