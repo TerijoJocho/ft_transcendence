@@ -1,14 +1,20 @@
 import { createContext } from "react";
 
+export type OngoingGameInfo = {
+  gameId: number;
+  gameMode: string;
+  gameStatus: string;
+  playerColor: string;
+};
+
 export type User = {
   id: number;
   pseudo: string;
   email: string,
-  elo: number,//a supp
-  status: string;//a supp
   avatarUrl: string;
   isGoogleUser: boolean;
   twoFactorEnabled: boolean;
+  ongoingGames?: OngoingGameInfo[];
 };
 
 export type AuthContextType = {
