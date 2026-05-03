@@ -1016,4 +1016,32 @@ export class UtilsService {
       );
     }
   };
-}
+
+  getAllOngoingGamesData = async (playerId: number) => {
+    try {
+      const query = this.Database.getDb()
+        .select({
+          gameId: gameTable.gameId,
+          gameMode: gameTable.gameMode,
+          gameStatus: gameTable.gameStatus,
+          playerColor: participationTable.playerColor,
+        })
+        .from(participationTable)
+        .innerJoin(gameTable, eq(participationTable.gameId, gameTable.gameId))
+        .where(
+          and(
+            eq(participationTable.playerId, playerId),
+            eq(gameTable.gameStatus, 'ONGOING'),
+            eq(participationTable.playerResult, 'PENDING')
+          ),
+        )
+        .orderBy(desc(gameTable.gameCreatedAt));
+      return await query;
+    } catch (error) {
+      this.throwDbUnavailable(
+        error,
+        'Database error during ongoing games retrieval.',
+      );
+    }
+  }
+};
