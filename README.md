@@ -1,12 +1,14 @@
-*This project has been created as part of the 42 curriculum by daavril, aistierl, kcharbon, kito_6864, y42bro.*
+_This project has been created as part of the 42 curriculum by daavril, aistierl, kcharbon, kito_6864, y42bro._
 
 # ft_transcendence — ChessWar
 
 ## Description
+
 ChessWar is a web application built for the 42 ft_transcendence project.
 It provides secure user accounts, profile management, friends, private chat, and multiplayer chess with real-time synchronization.
 
 ### Key features
+
 - Secure authentication (email/password, JWT access/refresh cookies)
 - OAuth login (Google)
 - Two-Factor Authentication (TOTP)
@@ -22,22 +24,44 @@ It provides secure user accounts, profile management, friends, private chat, and
 ## Instructions
 
 ### Prerequisites
+
 - Docker + Docker Compose
 - Node.js 20+
 - npm
 
 ### Environment setup
+
 1. Copy and fill environment files:
    - Root: `.env` (based on `.env.example`)
    - Backend: `backend/.env` (based on `backend/.env.example`)
 2. Never commit real secrets. Keep secrets in local env/Vault only.
 
 ### Run with Docker (recommended)
+
 ```bash
 docker compose --profile dev up -d --build
 ```
 
+### Production (préparation)
+
+Ce dépôt contient une configuration de production minimale. Pour lancer la stack en production (images buildées, frontend servi statiquement, backend en `NODE_ENV=production`):
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+Notes importantes:
+
+- Assure-toi d'avoir défini toutes les variables d'environnement de production (`POSTGRES_URL`, `REDIS_URL`, `BASE_URL`, `AUTH_UI_REDIRECT`, `GOOGLE_AUTH_REDIRECT_URI`, etc.).
+- Par défaut, le bootstrap Vault est activé ; si tu préfères injecter les secrets via des variables/secret managers, définir `BACKEND_SKIP_VAULT=true` permet de passer outre (mais il faut alors fournir les secrets via l'environnement).
+- Le `frontend` en production sert le build statique via Nginx (`frontend/Dockerfile.prod`). Le backend utilise `backend/Dockerfile.prod`.
+
+Migrations:
+
+- En production il faut appliquer les migrations avant (ou pendant) le déploiement. Deux approches courantes sont décrites dans ce README (init container ou job de migration). Voir la section "Migrations" plus bas.
+
 ### Useful local commands
+
 ```bash
 # Frontend
 npm --prefix frontend run lint
@@ -50,6 +74,7 @@ npm --prefix backend run test -- --runInBand --passWithNoTests
 ```
 
 ### Access
+
 - App (nginx): `https://localhost`
 - Dev alternate port setup may use `https://localhost:9443`
 
@@ -58,28 +83,34 @@ npm --prefix backend run test -- --runInBand --passWithNoTests
 ## Team Information
 
 ### daavril (Daryl)
+
 - Roles: Product Owner, Frontend Lead, DevOps coordination
 - Responsibilities: Frontend architecture/integration, UX flows, deployment orchestration, team coordination
 
 ### aistierl (Aïcha)
+
 - Roles: Backend Lead, Security contributor
 - Responsibilities: Auth architecture, token lifecycle, user/game backend integration
 
 ### kcharbon (Kalvin)
+
 - Roles: Security/Infra Engineer, Backend contributor
 - Responsibilities: WAF/ModSecurity, Vault integration, backend hardening
 
 ### kito_6864 (Ylan)
+
 - Roles: Gameplay Developer
 - Responsibilities: Chess logic/gameplay foundation and game behavior integration
 
 ### y42bro (Yassine)
+
 - Roles: Realtime Systems Developer
 - Responsibilities: WebSocket game/chat integration, real-time synchronization, multiplayer runtime validation
 
 ---
 
 ## Project Management
+
 - Work organization: feature branches + pull requests + iterative integration
 - Task distribution: by module ownership (frontend/backend/security/realtime/gameplay)
 - Communication: Discord + in-school sync sessions
@@ -90,11 +121,13 @@ npm --prefix backend run test -- --runInBand --passWithNoTests
 ## Technical Stack
 
 ### Frontend
+
 - React + TypeScript + Vite
 - TailwindCSS
 - socket.io-client
 
 ### Backend
+
 - NestJS + TypeScript
 - Socket.IO gateways
 - JWT auth (access/refresh), Passport strategies
@@ -102,6 +135,7 @@ npm --prefix backend run test -- --runInBand --passWithNoTests
 - Speakeasy/qrcode for 2FA
 
 ### Data/Infra
+
 - PostgreSQL
 - Drizzle ORM
 - Redis
@@ -110,6 +144,7 @@ npm --prefix backend run test -- --runInBand --passWithNoTests
 - Docker Compose
 
 ### Major technical choices
+
 - NestJS for structured modular backend
 - React/Vite for fast frontend iteration
 - Socket.IO for robust bidirectional real-time events
@@ -121,22 +156,27 @@ npm --prefix backend run test -- --runInBand --passWithNoTests
 ## Database Schema (summary)
 
 ### players
+
 - `playerId` (PK), `mailAddress`, `playerName`, `pwd`, `avatarUrl`, `isGoogleUser`, timestamps
 
 ### games
+
 - `gameId` (PK), `gameMode`, `gameStatus`, `gameResult`, move counters, timestamps
 
 ### participation
+
 - Links players to games
 - Stores `playerColor`, `playerResult`
 - Constraints enforce one active pending game per player
 
 ### friendship
+
 - User relationship table (`PENDING`/`ADDED`) with requester tracking
 
 ---
 
 ## Features List
+
 - Authentication & session lifecycle (email/password, refresh, logout)
 - OAuth Google login
 - 2FA enable/verify/disable
@@ -152,6 +192,7 @@ npm --prefix backend run test -- --runInBand --passWithNoTests
 ## Modules
 
 ### Chosen modules and points
+
 - **Web (Major)**: Frontend + Backend frameworks → **2 pts**
 - **Web (Major)**: Real-time features (WebSockets) → **2 pts**
 - **Web (Major)**: User interaction (chat + profile + friends) → **2 pts**
@@ -169,6 +210,7 @@ npm --prefix backend run test -- --runInBand --passWithNoTests
 ---
 
 ## Individual Contributions (high-level)
+
 - Frontend integration and UX routing/layout
 - Backend module wiring and API evolution
 - Security infra setup (WAF + Vault)
@@ -176,6 +218,7 @@ npm --prefix backend run test -- --runInBand --passWithNoTests
 - Gameplay logic integration and online-state synchronization
 
 Challenges addressed:
+
 - Synchronizing frontend game state with backend/game room events
 - Runtime compatibility under nginx + HTTPS + socket upgrade paths
 - Keeping auth cookies and websocket handshake aligned
@@ -183,6 +226,7 @@ Challenges addressed:
 ---
 
 ## Resources
+
 - 42 subject PDF (`en.subject (1).pdf`)
 - NestJS docs: https://docs.nestjs.com/
 - React docs: https://react.dev/
@@ -192,7 +236,9 @@ Challenges addressed:
 - Vault docs: https://developer.hashicorp.com/vault/docs
 
 ### AI usage
+
 AI was used for:
+
 - Refactoring assistance and static analysis suggestions
 - Runtime debugging guidance
 - Test-flow scripting support

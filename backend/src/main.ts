@@ -36,59 +36,96 @@ function logBootstrapError(context: string, error: unknown): never {
 }
 
 async function bootstrap() {
+  // Vault / Secrets bootstrap
   const vaultCaCertPath = process.env.VAULT_CACERT;
   const vaultAddr = (process.env.VAULT_ADDR ?? 'https://vault:8200').replace(
     /\/$/,
     '',
   );
   let httpsAgent: https.Agent | undefined;
+  const skipVault = process.env.BACKEND_SKIP_VAULT === 'true';
 
   if (vaultCaCertPath && fs.existsSync(vaultCaCertPath)) {
     httpsAgent = new https.Agent({
       ca: fs.readFileSync(vaultCaCertPath),
       rejectUnauthorized: true,
     });
+  } else if (skipVault) {
+    console.warn(
+      'VAULT_CACERT not found — skipping Vault bootstrap (BACKEND_SKIP_VAULT=true)',
+    );
   } else {
-    console.warn('Vault CA cert not found. Set VAULT_CACERT in dev.');
+    console.warn(
+      'Vault CA cert not found. Set VAULT_CACERT or BACKEND_SKIP_VAULT=true.',
+    );
     process.exit(1);
   }
 
-  let backendToken: string;
-  try {
-    backendToken = await backTokenByApprole(httpsAgent, vaultAddr);
-  } catch (err) {
-    if (!isSelfSignedCertError(err)) {
-      throw err;
+  if (!skipVault) {
+    let backendToken: string;
+    try {
+      backendToken = await backTokenByApprole(httpsAgent, vaultAddr);
+    } catch (err) {
+      if (!isSelfSignedCertError(err)) {
+        throw err;
+      }
+
+      console.warn(
+        'Vault TLS verification failed with self-signed certificate; retrying with VAULT_TLS_SKIP_VERIFY=true',
+      );
+      process.env.VAULT_TLS_SKIP_VERIFY = 'true';
+      httpsAgent = new https.Agent({ rejectUnauthorized: false });
+      backendToken = await backTokenByApprole(httpsAgent, vaultAddr);
     }
 
-    console.warn(
-      'Vault TLS verification failed with self-signed certificate; retrying with VAULT_TLS_SKIP_VERIFY=true',
+    if (typeof backendToken !== 'string' || backendToken.length === 0)
+      throw new Error('Invalid Vault token');
+    process.env.BACKEND_VAULT_TOKEN = backendToken;
+    console.log('VAULT_TOKEN loaded from Vault by Approle');
+
+    try {
+      await loadAppSecretsFromVault(httpsAgent, vaultAddr, backendToken);
+    } catch (err) {
+      logBootstrapError('Error fetching app secrets from Vault:', err);
+    }
+
+    try {
+      await loadDbCredentialsFromVault(httpsAgent, vaultAddr, backendToken);
+    } catch (err) {
+      logBootstrapError('Error fetching DB secrets from Vault:', err);
+    }
+  } else {
+    console.log(
+      'Skipping Vault bootstrap — ensure required secrets are provided via environment variables.',
     );
-    process.env.VAULT_TLS_SKIP_VERIFY = 'true';
-    httpsAgent = new https.Agent({ rejectUnauthorized: false });
-    backendToken = await backTokenByApprole(httpsAgent, vaultAddr);
   }
 
-  if (typeof backendToken !== 'string' || backendToken.length === 0)
-    throw new Error('Invalid Vault token');
-  process.env.BACKEND_VAULT_TOKEN = backendToken;
-  console.log('VAULT_TOKEN loaded from Vault by Approle');
-
-  try {
-    await loadAppSecretsFromVault(httpsAgent, vaultAddr, backendToken);
-  } catch (err) {
-    logBootstrapError('Error fetching app secrets from Vault:', err);
+  // Validate required production envs
+  if (process.env.NODE_ENV === 'production') {
+    const missing: string[] = [];
+    if (!process.env.BASE_URL) missing.push('BASE_URL');
+    if (!process.env.AUTH_UI_REDIRECT) missing.push('AUTH_UI_REDIRECT');
+    if (!process.env.GOOGLE_AUTH_REDIRECT_URI)
+      missing.push('GOOGLE_AUTH_REDIRECT_URI');
+    if (missing.length > 0) {
+      console.error(
+        'Missing required environment variables for production:',
+        missing.join(', '),
+      );
+      process.exit(1);
+    }
   }
 
-  try {
-    await loadDbCredentialsFromVault(httpsAgent, vaultAddr, backendToken);
-  } catch (err) {
-    logBootstrapError('Error fetching DB secrets from Vault:', err);
-  }
+  const allowedOrigins = (
+    process.env.FRONTEND_ORIGINS ||
+    'http://localhost:5173,http://127.0.0.1:5173'
+  )
+    .split(',')
+    .map((s) => s.trim());
 
   const app = await NestFactory.create(AppModule, {
     cors: {
-      origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // frontend
+      origin: allowedOrigins,
       credentials: true, // IMPORTANT pour cookies
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type'],

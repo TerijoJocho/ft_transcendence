@@ -157,8 +157,8 @@ services:
       - ANOMALY_INBOUND=10
       - DISABLE_DEFAULT_CONF=1
     ports:
-      - "4443:4443"
-      - "1081:1081"
+      - "443:443"
+      - "81:80"
     depends_on:
       - postgres
       - redis

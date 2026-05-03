@@ -48,11 +48,12 @@ type CancelPayload = { gameId: number };
 @WebSocketGateway({
   namespace: '/game',
   cors: {
-    origin: [
-      'https://localhost',
-      'http://localhost:5173',
-      'http://127.0.0.1:5173',
-    ],
+    origin: (
+      process.env.FRONTEND_ORIGINS ||
+      'http://localhost:5173,http://127.0.0.1:5173'
+    )
+      .split(',')
+      .map((s) => s.trim()),
     credentials: true,
   },
 })
