@@ -1032,7 +1032,7 @@ export class UtilsService {
           and(
             eq(participationTable.playerId, playerId),
             eq(gameTable.gameStatus, 'ONGOING'),
-            eq(participationTable.playerResult, 'PENDING')
+            eq(participationTable.playerResult, 'PENDING'),
           ),
         )
         .orderBy(desc(gameTable.gameCreatedAt));
@@ -1043,5 +1043,5 @@ export class UtilsService {
         'Database error during ongoing games retrieval.',
       );
     }
-  }
-};
+  };
+}

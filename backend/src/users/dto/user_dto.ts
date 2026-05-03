@@ -19,11 +19,13 @@ export class registerDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsStrongPassword( {},
+  @IsStrongPassword(
+    {},
     {
       message:
         'newPassword must be at least 8 characters and include uppercase, lowercase, number and symbol',
-    })
+    },
+  )
   readonly password!: string;
 
   //rajouter l url de l image de profil

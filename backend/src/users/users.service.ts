@@ -52,13 +52,15 @@ type leaderboardEntry = {
 };
 
 export type OngoingGameInfo = {
-  gameId: number,
-  gameMode: string,
-  gameStatus: string,
-  playerColor: string,
+  gameId: number;
+  gameMode: string;
+  gameStatus: string;
+  playerColor: string;
 };
 
-export type UserDataResponse = playerSelect & { ongoingGames: OngoingGameInfo[] };
+export type UserDataResponse = playerSelect & {
+  ongoingGames: OngoingGameInfo[];
+};
 
 @Injectable()
 export class UsersService {
@@ -115,8 +117,10 @@ export class UsersService {
     )) as playerSelect[];
 
     if (!player.length) throw new NotFoundException('Player not found');
-    
-    const ongoingGames = (await this.utilsService.getAllOngoingGamesData(playerId)) as OngoingGameInfo[];
+
+    const ongoingGames = (await this.utilsService.getAllOngoingGamesData(
+      playerId,
+    )) as OngoingGameInfo[];
     console.log('Ongoing games for player', playerId, ':', ongoingGames);
     return { ...player[0], ongoingGames };
   }

@@ -16,7 +16,7 @@ import type {
   participationInsert,
   participationSelect,
 } from '../shared/db/schema';
-import { eq, ne, sql, and, or } from 'drizzle-orm';
+import { eq, ne, sql, and } from 'drizzle-orm';
 import { DatabaseService } from '../shared/services/db.service';
 import { GiveupGameDto } from './dto/giveup-game.dto';
 
@@ -376,7 +376,6 @@ export class GameService {
   }
 
   async getSession(gameId: number, playerId: number) {
-
     const participationRows: { [x: string]: unknown }[] =
       await this.utilsService.findParticipationsBy(
         'and',
