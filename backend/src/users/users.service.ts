@@ -51,6 +51,15 @@ type leaderboardEntry = {
   playerLevel: number;
 };
 
+export type OngoingGameInfo = {
+  gameId: number,
+  gameMode: string,
+  gameStatus: string,
+  playerColor: string,
+};
+
+export type UserDataResponse = playerSelect & { ongoingGames: OngoingGameInfo[] };
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -91,7 +100,7 @@ export class UsersService {
     })) as { [x: string]: unknown }[];
   }
 
-  async getDataUser(playerId: number): Promise<playerSelect> {
+  async getDataUser(playerId: number): Promise<UserDataResponse> {
     const player = (await this.utilsService.findPlayersBy(
       'and',
       {
@@ -106,7 +115,10 @@ export class UsersService {
     )) as playerSelect[];
 
     if (!player.length) throw new NotFoundException('Player not found');
-    return player[0];
+    
+    const ongoingGames = (await this.utilsService.getAllOngoingGamesData(playerId)) as OngoingGameInfo[];
+    console.log('Ongoing games for player', playerId, ':', ongoingGames);
+    return { ...player[0], ongoingGames };
   }
 
   async deleteUserbyId(playerId: number, response: Response): Promise<void> {
