@@ -295,18 +295,48 @@ function formatTime(seconds: number): string {
 function Clock({
   seconds,
   active,
-  low,
+  lowThreshold,
+  onTimeout,
 }: {
   seconds: number;
   active: boolean;
-  low: boolean;
+  lowThreshold: number;
+  onTimeout?: () => void;
 }) {
+  const [displaySeconds, setDisplaySeconds] = useState(seconds);
+
+  useEffect(() => {
+    setDisplaySeconds(seconds);
+  }, [seconds]);
+
+  useEffect(() => {
+    if (!active) return;
+    let cancelled = false;
+    const interval = setInterval(() => {
+      setDisplaySeconds((prev) => {
+        const next = prev - 1;
+        if (next <= 0) {
+          clearInterval(interval);
+          if (!cancelled && onTimeout) onTimeout();
+          return 0;
+        }
+        return next;
+      });
+    }, 1000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [active, onTimeout]);
+
+  const low = displaySeconds <= lowThreshold;
+
   return (
     <div
       className={`px-3 sm:px-5 py-2 rounded-lg border font-mono text-lg sm:text-2xl font-semibold tracking-widest transition-all duration-300
       ${low ? "border-violet-500 dark:border-yellow-500 text-violet-500 dark:text-yellow-400 bg-violet-500/10 dark:bg-yellow-500/10" : active ? "border-gray-400 dark:border-zinc-500 text-gray-900 dark:text-zinc-100 bg-gray-200 dark:bg-zinc-700" : "border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-900"}`}
     >
-      {formatTime(seconds)}
+      {formatTime(displaySeconds)}
     </div>
   );
 }
@@ -544,7 +574,7 @@ function ChessGame({
   ]);
 
   const applySnapshot = useCallback(
-    (snapshot: GameStateSnapshot | null) => {
+    (snapshot: GameStateSnapshot | null, opts?: { skipTimes?: boolean }) => {
       if (!snapshot) return;
       isApplyingRemoteRef.current = true;
       setBoard(snapshot.board);
@@ -556,9 +586,12 @@ function ChessGame({
       setGameOver(Boolean(snapshot.gameOver));
       setStatus(snapshot.status ?? "");
       setLastMove(snapshot.lastMove ?? null);
-      setWhiteTime(snapshot.whiteTime ?? initSeconds);
-      setBlackTime(snapshot.blackTime ?? initSeconds);
+      // Always apply clockStarted — both players must start synchronized
       setClockStarted(Boolean(snapshot.clockStarted));
+      if (!opts?.skipTimes) {
+        setWhiteTime(snapshot.whiteTime ?? initSeconds);
+        setBlackTime(snapshot.blackTime ?? initSeconds);
+      }
       setGameResult(snapshot.gameResult ?? null);
       setPendingPromo(null);
       setSelected(null);
@@ -573,6 +606,7 @@ function ChessGame({
   useEffect(() => {
     if (!isOnline || !online.gameId) {
       hasHydratedOnlineStateRef.current = false;
+    
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
@@ -580,6 +614,7 @@ function ChessGame({
       return;
     }
     hasHydratedOnlineStateRef.current = false;
+  
     const socket = connectGameSocket();
     socketRef.current = socket;
 
@@ -620,6 +655,7 @@ function ChessGame({
     });
     socket.on("sync_state", (snapshot) => {
       if (snapshot) {
+        // For initial sync, accept server times so client starts aligned.
         applySnapshot(snapshot);
         setResolvedGameStatus((current) =>
           current === "COMPLETED" ? current : "ONGOING",
@@ -629,7 +665,35 @@ function ChessGame({
     });
     socket.on("remote_move", (snapshot) => {
       hasHydratedOnlineStateRef.current = true;
-      applySnapshot(snapshot);
+      try {
+        const stateKey = JSON.stringify(snapshot);
+        if (stateKey === lastEmittedStateRef.current) {
+          // This is our own echoed state — ignore to preserve local UI (selection/hints).
+          return;
+        }
+      } catch {
+        // ignore JSON errors and apply snapshot as fallback
+      }
+
+      // If server provides clock values, only apply them when they differ
+      // from our local display by more than 1s (to avoid double-decrement).
+      const serverW = snapshot?.whiteTime ?? null;
+      const serverB = snapshot?.blackTime ?? null;
+      if (
+        typeof serverW === "number" &&
+        Math.abs(serverW - (whiteTime ?? initSeconds ?? 0)) > 1
+      ) {
+        setWhiteTime(serverW);
+      }
+      if (
+        typeof serverB === "number" &&
+        Math.abs(serverB - (blackTime ?? initSeconds ?? 0)) > 1
+      ) {
+        setBlackTime(serverB);
+      }
+
+      // Apply game state but don't overwrite times/clockStarted (we handled them above)
+      applySnapshot(snapshot, { skipTimes: true });
       setResolvedGameStatus((current) =>
         current === "COMPLETED" ? current : "ONGOING",
       );
@@ -673,49 +737,10 @@ function ChessGame({
     return () => {
       socket.disconnect();
       socketRef.current = null;
+      hasHydratedOnlineStateRef.current = false;
+    
     };
   }, [isOnline, online.gameId, online.gameStatus, applySnapshot]);
-
-  useEffect(() => {
-    if (!hasClock || !clockStarted || gameOver) return;
-    intervalRef.current = setInterval(() => {
-      if (player === "white") {
-        setWhiteTime((t) => {
-          if (t <= 1) {
-            clearInterval(intervalRef.current!);
-            const r = { winner: "Black", reason: "timeout" };
-            setGameOver(true);
-            setStatus("Time's up — Black wins!");
-            setGameResult(r);
-            void persistEndOfGame(r, history.length);
-            return 0;
-          }
-          return t - 1;
-        });
-      } else {
-        setBlackTime((t) => {
-          if (t <= 1) {
-            clearInterval(intervalRef.current!);
-            const r = { winner: "White", reason: "timeout" };
-            setGameOver(true);
-            setStatus("Time's up — White wins!");
-            setGameResult(r);
-            void persistEndOfGame(r, history.length);
-            return 0;
-          }
-          return t - 1;
-        });
-      }
-    }, 1000);
-    return () => clearInterval(intervalRef.current!);
-  }, [
-    player,
-    clockStarted,
-    gameOver,
-    hasClock,
-    history.length,
-    persistEndOfGame,
-  ]);
 
   const reset = useCallback(() => {
     clearInterval(intervalRef.current!);
@@ -1023,6 +1048,25 @@ function ChessGame({
   );
   const lowThreshold = initSeconds ? Math.min(30, initSeconds * 0.2) : 30;
 
+  // Timeout handlers for separate Clock components
+  const handleWhiteTimeout = useCallback(() => {
+    const r = { winner: "Black", reason: "timeout" };
+    setGameOver(true);
+    setStatus("Time's up — Black wins!");
+    setGameResult(r);
+    setWhiteTime(0);
+    void persistEndOfGame(r, history.length);
+  }, [history.length, persistEndOfGame]);
+
+  const handleBlackTimeout = useCallback(() => {
+    const r = { winner: "White", reason: "timeout" };
+    setGameOver(true);
+    setStatus("Time's up — White wins!");
+    setGameResult(r);
+    setBlackTime(0);
+    void persistEndOfGame(r, history.length);
+  }, [history.length, persistEndOfGame]);
+
   // Clock labels/values based on board flip
   const topClockPlayer = isFlipped ? "white" : "black";
   const botClockPlayer = isFlipped ? "black" : "white";
@@ -1089,7 +1133,12 @@ function ChessGame({
               <Clock
                 seconds={topClockSeconds}
                 active={player === topClockPlayer && clockStarted && !gameOver}
-                low={topClockSeconds <= lowThreshold}
+                lowThreshold={lowThreshold}
+                onTimeout={
+                  topClockPlayer === "white"
+                    ? handleWhiteTimeout
+                    : handleBlackTimeout
+                }
               />
             </div>
           )}
@@ -1113,7 +1162,7 @@ function ChessGame({
 
           {/* Status bar */}
           <div
-            className={`text-sm sm:text-lg uppercase tracking-wider sm:tracking-widest min-h-6 px-2 text-center transition-colors ${gameOver ? "text-violet-500 dark:text-yellow-400 font-semibold" : status.includes("check") ? "text-violet-500 dark:text-yellow-400" : "text-gray-800 dark:text-zinc-400"}`}
+            className={`text-sm underline sm:text-lg uppercase tracking-wider sm:tracking-widest min-h-6 px-2 text-center transition-colors ${gameOver ? "text-violet-500 dark:text-yellow-400 font-semibold" : status.includes("check") ? "text-violet-500 dark:text-yellow-400" : "text-gray-800 dark:text-zinc-400"}`}
           >
             {status ||
               `${player.charAt(0).toUpperCase() + player.slice(1)}'s turn`}
@@ -1192,16 +1241,16 @@ function ChessGame({
                         piece && piece === piece.toLowerCase();
                       const pieceStyle = isWhitePiece
                         ? {
-                          color: "#ffffff",
-                          textShadow:
-                            "-1px -1px 0 #333, 1px -1px 0 #333, -1px 1px 0 #333, 1px 1px 0 #333",
-                        }
+                            color: "#ffffff",
+                            textShadow:
+                              "-1px -1px 0 #333, 1px -1px 0 #333, -1px 1px 0 #333, 1px 1px 0 #333",
+                          }
                         : isBlackPiece
                           ? {
-                            color: "#1a1a1a",
-                            textShadow:
-                              "-1px -1px 0 #aaa, 1px -1px 0 #aaa, -1px 1px 0 #aaa, 1px 1px 0 #aaa",
-                          }
+                              color: "#1a1a1a",
+                              textShadow:
+                                "-1px -1px 0 #aaa, 1px -1px 0 #aaa, -1px 1px 0 #aaa, 1px 1px 0 #aaa",
+                            }
                           : {};
                       return (
                         <div
@@ -1262,7 +1311,12 @@ function ChessGame({
               <Clock
                 seconds={botClockSeconds}
                 active={player === botClockPlayer && clockStarted && !gameOver}
-                low={botClockSeconds <= lowThreshold}
+                lowThreshold={lowThreshold}
+                onTimeout={
+                  botClockPlayer === "white"
+                    ? handleWhiteTimeout
+                    : handleBlackTimeout
+                }
               />
             </div>
           )}
@@ -1293,17 +1347,23 @@ function ChessGame({
                 >
                   ← Quitter
                 </button>
-                <button
-                  onClick={() => {
-                    if (socketRef.current?.connected && online.gameId) {
-                      const snapshot = exportSnapshot();
-                      socketRef.current.emit("AskDraw", { gameId: online.gameId, state: snapshot });
-                    }
-                  }}
-                  className="w-full sm:w-auto px-6 sm:px-8 py-3 text-sm uppercase tracking-widest border border-emerald-600 dark:border-emerald-400 text-emerald-700 dark:text-emerald-300 rounded-md hover:bg-emerald-600/20 dark:hover:bg-emerald-400/20 hover:border-emerald-700 dark:hover:border-emerald-300 transition-all duration-200"
-                >
-                  Proposer match nul
-                </button>
+
+                {resolvedGameStatus === "ONGOING" && !gameOver && (
+                  <button
+                    onClick={() => {
+                      if (socketRef.current?.connected && online.gameId) {
+                        const snapshot = exportSnapshot();
+                        socketRef.current.emit("AskDraw", {
+                          gameId: online.gameId,
+                          state: snapshot,
+                        });
+                      }
+                    }}
+                    className="w-full sm:w-auto px-6 sm:px-8 py-3 text-sm uppercase tracking-widest border border-emerald-600 dark:border-emerald-400 text-emerald-700 dark:text-emerald-300 rounded-md hover:bg-emerald-600/20 dark:hover:bg-emerald-400/20 hover:border-emerald-700 dark:hover:border-emerald-300 transition-all duration-200"
+                  >
+                    Proposer match nul
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -1332,8 +1392,7 @@ function ChessGame({
               await handleCancelConfirm();
             } else if (confirmAction === "draw") {
               await handleDraw(true);
-            }
-            else {
+            } else {
               await handleGiveUpConfirm();
               console.log("Confirmed giveup/Leave");
             }
@@ -1359,7 +1418,7 @@ function ChessGame({
                 {gameResult.winner === "Draw"
                   ? `Draw — ${gameResult.reason}`
                   : gameResult.reason === "resign" ||
-                    gameResult.winner === "opponent"
+                      gameResult.winner === "opponent"
                     ? "Vous avez gagné, votre adversaire a abandonné"
                     : `${gameResult.winner} gagne par ${gameResult.reason}`}
               </span>
