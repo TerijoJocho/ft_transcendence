@@ -16,7 +16,7 @@ import type {
   participationInsert,
   participationSelect,
 } from '../shared/db/schema';
-import { eq, ne, sql, and } from 'drizzle-orm';
+import { eq, ne, sql, and, or } from 'drizzle-orm';
 import { DatabaseService } from '../shared/services/db.service';
 import { GiveupGameDto } from './dto/giveup-game.dto';
 
@@ -134,7 +134,7 @@ export class GameService {
     if (gameRows.length === 0)
       throw new NotFoundException('Game not found or already started.');
 
-    //check if player already joined this game
+    // check if player already joined this game
     const playerParticipationRows =
       (await this.utilsService.findParticipationsBy(
         'and',
@@ -376,6 +376,7 @@ export class GameService {
   }
 
   async getSession(gameId: number, playerId: number) {
+
     const participationRows: { [x: string]: unknown }[] =
       await this.utilsService.findParticipationsBy(
         'and',
@@ -397,7 +398,6 @@ export class GameService {
           gameMode: gameTable.gameMode,
         },
         eq(gameTable.gameId, gameId),
-        // ne(gameTable.gameStatus, "COMPLETED"),
       );
 
     if (gameRows.length === 0) throw new NotFoundException('Game not found.');
