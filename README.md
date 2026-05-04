@@ -1,201 +1,290 @@
-*This project has been created as part of the 42 curriculum by daavril, aistierl, kcharbon, kito_6864, y42bro.*
 
-# ft_transcendence — ChessWar
+# _This project has been created as part of the 42 curriculum by aistierl, daavril, kcharbon, ychattou._
+
+# Chess War
 
 ## Description
-ChessWar is a web application built for the 42 ft_transcendence project.
-It provides secure user accounts, profile management, friends, private chat, and multiplayer chess with real-time synchronization.
 
-### Key features
-- Secure authentication (email/password, JWT access/refresh cookies)
-- OAuth login (Google)
-- Two-Factor Authentication (TOTP)
-- User profile management (update data, avatar, account deletion)
-- Friends system (search/add/remove/update status)
-- Private real-time chat (WebSocket)
-- Chess game modes (local + online real-time)
-- Match/session persistence APIs
-- Legal pages: Privacy Policy and Terms of Service
+Chess War is a real-time multiplayer gaming platform built around online chess, private chat, and social features in a single web application. Its goal is to provide a seamless competitive experience with live synchronization, while also showcasing a secure and production-oriented architecture.
 
----
+Key features include:
+
+- Real-time chess matches with WebSocket synchronization.
+- Private direct messages between friends.
+- Account management with local auth, Google OAuth, refresh tokens, and 2FA.
+- Player statistics, leaderboard, and dashboard widgets.
+- Security-focused infrastructure with Vault, NGINX, and a WAF.
+- Dockerized local and production deployment.
 
 ## Instructions
 
 ### Prerequisites
-- Docker + Docker Compose
-- Node.js 20+
-- npm
 
-### Environment setup
-1. Copy and fill environment files:
-   - Root: `.env` (based on `.env.example`)
-   - Backend: `backend/.env` (based on `backend/.env.example`)
-2. Never commit real secrets. Keep secrets in local env/Vault only.
+- Docker and Docker Compose.
+- Node.js 20 or newer for local tooling and package management.
+- PostgreSQL 15 and Redis are used by the stack, but they are started through Docker Compose in the default workflow.
+- A filled `.env` file at the repository root.
+- The `secrets/` directory available for Docker Compose.
 
-### Run with Docker (recommended)
+### Environment Setup
+
+1. Copy or create the root `.env` file with all required variables based on `.env.example` model provided.
+2. Copy or create the root `secrets` file with all required files inside based on `secrets.example` model provided.
+**Secrets folder file descriptions:**
+   - `POSTGRES_USER`: PostgreSQL database username
+   - `POSTGRES_PASSWORD`: PostgreSQL database password
+   - `POSTGRES_URL`: Full PostgreSQL connection URL (eg.)
+   - `REDIS_PASSWORD`: Redis password (if set)
+   - `REDIS_URL`: Redis connection URL (eg. )
+   - `GOOGLE_AUTH_CLIENT_ID`: Google OAuth client ID (from Google Cloud Console)
+   - `GOOGLE_AUTH_CLIENT_SECRET`: Google OAuth client secret (from Google Cloud Console)
+   - `JWT_ACCESS_TOKEN_SECRET`: Secret key for signing JWT access tokens
+   - `JWT_REFRESH_TOKEN_SECRET`: Secret key for signing JWT refresh tokens
+3. If you need a local-only reset, stop the stack first and clear the database volume/data according to your local setup.
+
+### Run
+
+1. Start the stack:
+
+   ```bash
+   docker compose up
+   ```
+
+2. Open the application in your browser at:
+
+   ```text
+   https://localhost
+   ```
+
+3. Create an account with the registration flow, or use Google login if configured.
+4. After login, the side bar provides access to player's dashboard "home", friends, chat, and game features.
+
+### Stop
+
 ```bash
-docker compose --profile dev up -d --build
+docker compose down
 ```
 
-### Useful local commands
-```bash
-# Frontend
-npm --prefix frontend run lint
-npm --prefix frontend run build
+## Resources
 
-# Backend
-npm --prefix backend run lint
-npm --prefix backend run build
-npm --prefix backend run test -- --runInBand --passWithNoTests
-```
+Classic references used for the project:
 
-### Access
-- App (nginx): `https://localhost`
-- Dev alternate port setup may use `https://localhost:9443`
+- React documentation: react.dev
+- NestJS documentation: docs.nestjs.com
+- Drizzle ORM documentation: orm.drizzle.team
+- PostgreSQL documentation: postgresql.org/docs
+- Redis documentation: redis.io/docs
+- Socket.IO documentation: socket.io/docs
+- Passport.js documentation: passportjs.org
+- OWASP Core Rule Set and ModSecurity documentation
+- HashiCorp Vault documentation
+- Docker and Docker Compose documentation
+- Bcrypt package documentation on npm
+- Speakeasy package documentation on npm
+- Community support and tutorials from Stack Overflow, Reddit, OpenClassrooms, Scrimba, and YouTube
 
----
+AI usage:
+AI was used to refine wording, structure sections, and update technical descriptions.
 
 ## Team Information
 
-### daavril (Daryl)
-- Roles: Product Owner, Frontend Lead, DevOps coordination
-- Responsibilities: Frontend architecture/integration, UX flows, deployment orchestration, team coordination
+### Aïcha:
 
-### aistierl (Aïcha)
-- Roles: Backend Lead, Security contributor
-- Responsibilities: Auth architecture, token lifecycle, user/game backend integration
+- Roles: Product Owner (Data engineer, Backend Lead, Security contributor)
+- Responsibilities: Product direction and backlog prioritization, database design and data quality ownership, backend architecture and API coordination, and security support for authentication/token lifecycle and secret management.
 
-### kcharbon (Kalvin)
-- Roles: Security/Infra Engineer, Backend contributor
-- Responsibilities: WAF/ModSecurity, Vault integration, backend hardening
+### Kalvin:
 
-### kito_6864 (Ylan)
-- Roles: Gameplay Developer
-- Responsibilities: Chess logic/gameplay foundation and game behavior integration
+- Roles: Project Management (Security/Infra Lead, Backend contributor)
+- Responsibilities: Project coordination and delivery follow-up, security and infrastructure hardening (WAF/ModSecurity, Vault integration), 2FA feature implementation, and backend ownership of users/friendship flows.
 
-### y42bro (Yassine)
-- Roles: Realtime Systems Developer
-- Responsibilities: WebSocket game/chat integration, real-time synchronization, multiplayer runtime validation
+### Daryl:
 
----
+- Roles: Tech Lead (Frontend Lead, DevOps coordination)
+- Responsibilities: Stack decision-making, GitHub repository setup and coordination, full frontend development, UI/UX design, Docker containerization support.
+
+### Ylan:
+
+- Roles: Developper (Gameplay Developer, Frontend contributor)
+- Responsibilities: Core chess gameplay implementation (rules, algorithm, board rendering), frontend development of room creation and matchmaking interfaces, and gameplay-focused UI integration.
 
 ## Project Management
-- Work organization: feature branches + pull requests + iterative integration
-- Task distribution: by module ownership (frontend/backend/security/realtime/gameplay)
-- Communication: Discord + in-school sync sessions
-- Tracking: Git history, PR reviews, branch-based integration
 
----
+The team organized the work through task distribution, regular meetings, testing sessions, and code review. Meetings were held on school premises at least once a week, sometimes up to three times, to review code, identify issues, test features, and adjust task allocation.
+
+**Tools and channels used**:
+
+- GitHub Issues for task tracking and coordination.
+- Discord for communication.
+- GitHub Actions for linting and build validation.
+- Husky pre-commit hooks for code quality enforcement.
 
 ## Technical Stack
 
-### Frontend
-- React + TypeScript + Vite
-- TailwindCSS
-- socket.io-client
+| Layer               | Technology                                      | Notes                                                                                            |
+| ------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Language            | TypeScript                                      | Used across frontend and backend for type safety and shared developer experience.                |
+| Frontend            | React 19, Vite, TailwindCSS                     | React is used for the SPA; Vite provides fast builds; Tailwind supports consistent themeable UI. |
+| Backend             | NestJS 11                                       | Chosen for structured modules, dependency injection, and WebSocket support.                      |
+| ORM                 | Drizzle ORM                                     | Lightweight SQL-first ORM with migrations, well suited to explicit relational modeling.          |
+| Database            | PostgreSQL 15                                   | Chosen for strong relational guarantees, constraints, and game/statistics queries.               |
+| Cache / Sessions    | Redis                                           | Used for refresh tokens, rate limits, and temporary auth/security state.                         |
+| Auth                | Passport.js, JWT, Google OAuth 2.0              | Supports local auth, OAuth, access/refresh tokens, and protected routes.                         |
+| 2FA                 | speakeasy                                       | Implements TOTP flows for secure login challenges and disable flows.                             |
+| Realtime            | Socket.IO, @nestjs/websockets, socket.io-client | Supports live game and chat updates with authenticated namespaces.                               |
+| Password hashing    | bcrypt                                          | Standard password hashing for local accounts.                                                    |
+| Reverse proxy / TLS | NGINX                                           | Terminates HTTPS and routes `/api/*` traffic to the backend.                                     |
+| Security            | ModSecurity, OWASP CRS, HashiCorp Vault         | Adds WAF protection and centralized secret management.                                           |
+| Containerization    | Docker, Docker Compose                          | Used to orchestrate the full stack locally and in production-like setups.                        |
 
-### Backend
-- NestJS + TypeScript
-- Socket.IO gateways
-- JWT auth (access/refresh), Passport strategies
-- Google OAuth
-- Speakeasy/qrcode for 2FA
+## Database Schema
 
-### Data/Infra
-- PostgreSQL
-- Drizzle ORM
-- Redis
-- nginx + ModSecurity (WAF)
-- HashiCorp Vault
-- Docker Compose
+The data model is relational and centered on players, games, participations, and friendships.
 
-### Major technical choices
-- NestJS for structured modular backend
-- React/Vite for fast frontend iteration
-- Socket.IO for robust bidirectional real-time events
-- Drizzle + PostgreSQL for typed relational data access
-- WAF + Vault for security baseline and secret management
+![Entity Relationship Diagram](./documentation/erd.png)
 
----
+![Relational Schema](./documentation/rel_schema.png)
 
-## Database Schema (summary)
+Main entities and relationships:
 
-### players
-- `playerId` (PK), `mailAddress`, `playerName`, `pwd`, `avatarUrl`, `isGoogleUser`, timestamps
+- Players store authentication and profile data such as pseudo, email, avatar, and auth metadata.
+- Games store match metadata, status, result, timing, and mode information.
+- Participations link players to games and record the assigned color and outcome.
+- Friendships store symmetric social relations and pending requests.
 
-### games
-- `gameId` (PK), `gameMode`, `gameStatus`, `gameResult`, move counters, timestamps
+Key rules enforced by the model:
 
-### participation
-- Links players to games
-- Stores `playerColor`, `playerResult`
-- Constraints enforce one active pending game per player
+- A player can participate in only one active game at a time.
+- A game can involve one or two unique players depending on its state.
+- Friendship relations are symmetrical and non-reflexive.
+- Default avatars are assigned to new users.
+- Google accounts do not require a local password and cannot enable local 2FA.
 
-### friendship
-- User relationship table (`PENDING`/`ADDED`) with requester tracking
+Refer to the Drizzle schema and migrations for the authoritative definition of fields and SQL types in `./backend/src/shared/db/schema.ts` and `backend/src/drizzle/*.sql`
 
----
+## Feature List
 
-## Features List
-- Authentication & session lifecycle (email/password, refresh, logout)
-- OAuth Google login
-- 2FA enable/verify/disable
-- Profile read/update/delete
-- Friends search/add/remove/status update
-- Real-time private chat (`/chat` namespace)
-- Real-time multiplayer game sync (`/game` namespace)
-- Game create/join/session/end/resign APIs
-- Legal pages available and linked from application UI
+### Core Application
 
----
+| Feature               | Description                                                                  | Main contributors |
+| --------------------- | ---------------------------------------------------------------------------- | ----------------- |
+| SPA architecture      | Full-stack single-page application with a React frontend and NestJS backend. | Daryl, Aïcha      |
+| Dockerized deployment | Local and production-like orchestration through Docker Compose.              | Daryl, Kalvin     |
+| Route protection      | Private routes, public-only routes, and auth-aware navigation.               | Daryl             |
+
+### Authentication & Security
+
+| Feature                | Description                                                        | Main contributors |
+| ---------------------- | ------------------------------------------------------------------ | ----------------- |
+| Registration and login | Local signup/login with pseudo, email, and password.               | Aïcha, Daryl      |
+| Google OAuth           | OAuth login and signup flow with Google accounts.                  | Aïcha, Daryl      |
+| Token lifecycle        | Access token, refresh token, logout, and refresh validation.       | Aïcha             |
+| 2FA                    | TOTP activation, challenge flow, and secure disable flow.          | Kalvin, Aïcha     |
+| Account deletion       | Deletion flow with cleanup and token revocation.                   | Daryl, Aïcha      |
+| Secret management      | Vault-based secret bootstrap and sensitive configuration handling. | Kalvin            |
+| WAF / edge security    | NGINX, ModSecurity, and OWASP CRS protection layer.                | Kalvin            |
+
+### Social and Profile
+
+| Feature            | Description                                                     | Main contributors    |
+| ------------------ | --------------------------------------------------------------- | -------------------- |
+| Profile management | Edit pseudo, email, password, and avatar with validation rules. | Daryl, Aïcha         |
+| Friendship system  | Send, accept, remove, and list friend relations.                | Kalvin, Aïcha, Daryl |
+| User search        | Partial username search for social discovery.                   | Daryl                |
+
+### Chess and Realtime
+
+| Feature            | Description                                                     | Main contributors |
+| ------------------ | --------------------------------------------------------------- | ----------------- |
+| Lobby creation     | Create a game lobby with color and mode selection.              | Ylan, Aïcha       |
+| Matchmaking        | Join or cancel pending lobbies and auto-start games.            | Ylan, Aïcha       |
+| Online gameplay    | Full chessboard logic, legal moves, and turn enforcement.       | Ylan              |
+| Game persistence   | Persist match outcomes, move counts, and participation records. | Aïcha             |
+| Realtime game sync | WebSocket game state synchronization and move broadcasts.       | Aïcha, Ylan       |
+| Chat               | Friend-based private messaging with live updates.               | Aïcha, Daryl      |
+
+### Dashboard and Extra Game Mode
+
+| Feature          | Description                                                 | Main contributors |
+| ---------------- | ----------------------------------------------------------- | ----------------- |
+| Dashboard stats  | Wins, losses, draws, winrate, streaks, and match history.   | Daryl, Aïcha      |
+| Ranking widgets  | Leaderboard, recent matches, and graph-based stats display. | Daryl             |
+| Day / Night mode | Global theme system applied across the full app.            | Daryl             |
+| Tic-Tac-Toe bot  | Puzzle page with easy and hard AI difficulty levels.        | Ylan              |
 
 ## Modules
 
-### Chosen modules and points
-- **Web (Major)**: Frontend + Backend frameworks → **2 pts**
-- **Web (Major)**: Real-time features (WebSockets) → **2 pts**
-- **Web (Major)**: User interaction (chat + profile + friends) → **2 pts**
-- **Web (Minor)**: ORM usage (Drizzle) → **1 pt**
-- **User Management (Major)**: Standard user management/authentication → **2 pts**
-- **User Management (Minor)**: OAuth 2.0 (Google) → **1 pt**
-- **User Management (Minor)**: 2FA → **1 pt**
-- **Cybersecurity (Major)**: WAF/ModSecurity + Vault → **2 pts**
-- **Gaming UX (Major)**: Web-based game → **2 pts**
-- **Gaming UX (Major)**: Remote players in real-time → **2 pts**
-- **User Management (Minor)**: Game statistics/history integration surface → **1 pt**
+Points are counted with the required rule: Major = 2 points, Minor = 1 point.
 
-**Total claimed points: 18**
+### Mandatory Modules
+
+| Module                          | Points | Implementation                                                  | Contributors         |
+| ------------------------------- | ------ | --------------------------------------------------------------- | -------------------- |
+| Frontend + backend frameworks   | 2      | React SPA paired with a NestJS API.                             | Daryl, Aïcha         |
+| Real-time features              | 2      | Socket.IO namespaces for game and chat.                         | Aïcha, Ylan          |
+| User interactions               | 2      | Friendship, profile, dashboard, and social workflows.           | Daryl, Kalvin, Aïcha |
+| ORM                             | 1      | Drizzle schema, migrations, and relational queries.             | Aïcha                |
+| Standard user management & auth | 2      | Local auth, JWT, refresh, Google OAuth, and protected routes.   | Aïcha, Daryl         |
+| Game statistics & match history | 2      | Aggregated stats and recent match display.                      | Daryl, Aïcha         |
+| OAuth 2.0 (Google)              | 1      | Passport Google strategy and token handling.                    | Aïcha, Daryl         |
+| 2FA                             | 1      | TOTP challenge flow and secure enable/disable paths.            | Kalvin, Aïcha        |
+| AI opponent                     | 2      | Tic-Tac-Toe bot with two difficulty levels.                     | Ylan                 |
+| WAF / Vault                     | 2      | ModSecurity/OWASP CRS edge protection and Vault-backed secrets. | Kalvin               |
+| Complete web-based chess game   | 2      | Legal move handling, board rendering, and match flow.           | Ylan                 |
+| Remote multiplayer              | 2      | WebSocket game state synchronization and online play.           | Aïcha, Ylan          |
+| Game customization options      | 1      | Color choice, game mode, and time controls.                     | Ylan, Aïcha          |
+| Gamification system             | 1      | Stats, streaks, leaderboard, and progress feedback.             | Daryl, Aïcha         |
+
+| Total              | Points |
+| ------------------ | ------ |
+| Mandatory subtotal | 23     |
+
+### Custom Modules of Choice
+
+| Module                | Points | Why it was chosen                                                            | Implementation                                                                         | Contributors |
+| --------------------- | ------ | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------ |
+| Global Day/Night mode | 2      | Improves accessibility and long-session comfort while touching the whole UI. | Central theme state, theme tokens, and consistent styling across pages and components. | Daryl        |
+| Dashboard             | 1      | Gives the player an immediate summary of progress and competitiveness.       | Stats aggregation, leaderboard queries, and chart-based visualization.                 | Daryl, Aïcha |
+
+| Total           | Points |
+| --------------- | ------ |
+| Custom subtotal | 3      |
+| Grand total     | 26     |
+
+## Individual Contributions
+
+### Daryl — Tech Lead (Frontend Lead, DevOps coordination)
+
+Daryl led the entire frontend of Chess War, from architecture to pixel-level polish. He designed and built every page of the application — login, signup, dashboard, profile, friends, game, tournament, chat — along with all their associated logic: form validation, route guards (public/private routes), auth context and hook (`useAuth`), token lifecycle handling, and API integration against the NestJS backend.
+
+He implemented a clean separation of concerns across the frontend, with reusable components (`Header`, `SideBar`, `Search`, `StatsCards`, `EloGraph`, `LastMatches`, `LeaderBoard`, `Achievement`, `TournamentHistory`, `DailyPuzzle`), typed API calls, and custom hooks (`useFriends`). The sidebar navigation, profile editing flow (including 2FA QR activation and removal), friend search with debounce, and account deletion confirmation modal were all built and polished by him.
+
+On the infrastructure side, Daryl set up the GitHub repository and put in place a CI pipeline using GitHub Actions for linting and build validation, along with Husky pre-commit hooks to enforce code quality standards across the team. He also handled the Docker containerization of the frontend service and contributed to the overall `docker-compose` orchestration alongside the team.
 
 ---
 
-## Individual Contributions (high-level)
-- Frontend integration and UX routing/layout
-- Backend module wiring and API evolution
-- Security infra setup (WAF + Vault)
-- Realtime gateways and socket event flows
-- Gameplay logic integration and online-state synchronization
+### Aïcha — Product Owner (Data Engineer, Backend Lead, Security contributor)
 
-Challenges addressed:
-- Synchronizing frontend game state with backend/game room events
-- Runtime compatibility under nginx + HTTPS + socket upgrade paths
-- Keeping auth cookies and websocket handshake aligned
+Aïcha led the design and management of the relational database, creating the schema for players, games, participations, and friendships, and implemented Drizzle ORM migrations and queries. She set up and maintained the Redis cache for authentication, session management, and rate limiting, ensuring secure and efficient data handling. On the backend, she architected the microservice structure, coordinated API development, and implemented core authentication features, including local login, JWT token lifecycle, and Google OAuth integration. She supported security through authentication hardening and secret management.
+
+She developed and maintained game-related backend logic, including game state persistence, statistics aggregation, and leaderboard queries. Aïcha also handled real-time features by integrating WebSocket synchronization for gameplay and chat, enabling live updates across the platform. 
+Aïcha guided the project’s overall direction and priorities. She managed the backlog, coordinated feature planning, and ensured alignment between technical implementation and user needs.
 
 ---
 
-## Resources
-- 42 subject PDF (`en.subject (1).pdf`)
-- NestJS docs: https://docs.nestjs.com/
-- React docs: https://react.dev/
-- Socket.IO docs: https://socket.io/docs/
-- Drizzle docs: https://orm.drizzle.team/
-- OWASP CRS: https://coreruleset.org/
-- Vault docs: https://developer.hashicorp.com/vault/docs
+### Kalvin — Project Management (Security/Infra Lead, Backend contributor)
 
-### AI usage
-AI was used for:
-- Refactoring assistance and static analysis suggestions
-- Runtime debugging guidance
-- Test-flow scripting support
-- Compliance checklist consolidation
+Kalvin led backend security and infrastructure hardening, implementing the WAF with ModSecurity and integrating the OWASP Core Rule Set to protect the application from web threats. He set up and managed HashiCorp Vault for centralized secret management, ensuring sensitive credentials and configuration were securely handled. Kalvin developed and maintained the 2FA authentication feature using TOTP, and implemented robust password hashing and salting with bcrypt to safeguard user accounts.
 
-All AI-generated output was reviewed, adapted, and validated with project-specific checks.
+He contributed to backend logic for user and friendship management, building secure flows for registration, login, and social interactions.
+Kalvin coordinated delivery, tracked progress, and facilitated communication, helping the team stay aligned and deliver a secure, reliable platform.
+
+---
+
+### Ylan — Developer (Gameplay Developer, Frontend contributor)
+
+Ylan developed the core chess gameplay logic, implementing piece movement, rule enforcement, and advanced mechanics like castling, and pawn promotion. He ensured legal move generation, check/checkmate detection, and integrated these systems into an interactive frontend chessboard. Ylan also built UI features for move history, pawn promotion, time controls, and in-game status messaging. Additionally, he contributed to game session flows, including room creation and matchmaking interfaces. His work delivered a technically accurate, user-friendly, and responsive chess experience.
+
+---
+
+> **Note:** Everyone took part in the testing phases and code reviews.
