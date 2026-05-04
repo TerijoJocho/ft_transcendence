@@ -264,29 +264,25 @@ On the infrastructure side, Daryl set up the GitHub repository and put in place 
 
 ### Aïcha — Product Owner (Data Engineer, Backend Lead, Security contributor)
 
-Aïcha was in charge of the database design and management, Drizzle ORM and Redis cache implementation, backend microservice-based architecture, authentication features (including token lifecycle and Google OAuth), and game-related backend and WebSocket integration.
+Aïcha led the design and management of the relational database, creating the schema for players, games, participations, and friendships, and implemented Drizzle ORM migrations and queries. She set up and maintained the Redis cache for authentication, session management, and rate limiting, ensuring secure and efficient data handling. On the backend, she architected the microservice structure, coordinated API development, and implemented core authentication features, including local login, JWT token lifecycle, and Google OAuth integration. She supported security through authentication hardening and secret management.
+
+She developed and maintained game-related backend logic, including game state persistence, statistics aggregation, and leaderboard queries. Aïcha also handled real-time features by integrating WebSocket synchronization for gameplay and chat, enabling live updates across the platform. 
+Aïcha guided the project’s overall direction and priorities. She managed the backlog, coordinated feature planning, and ensured alignment between technical implementation and user needs.
 
 ---
 
 ### Kalvin — Project Management (Security/Infra Lead, Backend contributor)
 
-Kalvin was responsible for backend hardening: WAF, ModSecurity, Vault integration for secrets management, 2FA authentication feature, password hashing and salt. He also worked on users and friendship-related backend and WebSocket integration.
+Kalvin led backend security and infrastructure hardening, implementing the WAF with ModSecurity and integrating the OWASP Core Rule Set to protect the application from web threats. He set up and managed HashiCorp Vault for centralized secret management, ensuring sensitive credentials and configuration were securely handled. Kalvin developed and maintained the 2FA authentication feature using TOTP, and implemented robust password hashing and salting with bcrypt to safeguard user accounts.
+
+He contributed to backend logic for user and friendship management, building secure flows for registration, login, and social interactions.
+Kalvin coordinated delivery, tracked progress, and facilitated communication, helping the team stay aligned and deliver a secure, reliable platform.
 
 ---
 
 ### Ylan — Developer (Gameplay Developer, Frontend contributor)
 
-Ylan contributed as a Gameplay Developer and Frontend contributor on Chess War, focusing on the implementation of core chess mechanics and their integration into the user interface. His work centered on building a reliable and complete gameplay system, translating official chess rules into functional, maintainable logic within the application.
-
-He implemented key parts of the chess engine, including piece movement validation, path checking, and legal move generation. This involved handling the behavior of each piece type (pawn, rook, knight, bishop, queen, king) and enforcing constraints such as collision detection and turn-based play. He also contributed to advanced rule handling, including castling conditions, en passant captures, pawn promotion, and ensuring that no move leaves the king in check. In addition, Ylan worked on game state evaluation logic, enabling detection of check situations, filtering of legal moves accordingly, and supporting endgame conditions such as checkmate and stalemate.
-
-On the frontend side, Ylan helped integrate this gameplay logic into an interactive chessboard interface. He contributed to rendering the board and pieces dynamically, and implemented user interactions such as piece selection, move execution, and visual feedback. This included highlighting legal moves, indicating captures, and tracking the last move played, ensuring that the game state remains clear and intuitive for users.
-
-He also worked on gameplay-related UI features, including move history tracking using standard chess notation, pawn promotion selection interfaces, and in-game status messaging (turn indication, check alerts, and game results). Additionally, he contributed to integrating time control systems, displaying countdown clocks for different game modes and reflecting their state clearly within the interface.
-
-Beyond the board itself, Ylan contributed to the frontend flows related to game sessions, including room creation UI and matchmaking interfaces. He helped build UI components and logic that allow users to create games, configure parameters such as time controls and color, and join existing matches. His work ensured a smooth transition between pre-game setup and the gameplay experience.
-
-Overall, Ylan’s contributions focused on delivering a technically accurate and interactive chess experience, ensuring that complex game rules were correctly enforced while being seamlessly integrated into a responsive and user-friendly interface.
+Ylan developed the core chess gameplay logic, implementing piece movement, rule enforcement, and advanced mechanics like castling, and pawn promotion. He ensured legal move generation, check/checkmate detection, and integrated these systems into an interactive frontend chessboard. Ylan also built UI features for move history, pawn promotion, time controls, and in-game status messaging. Additionally, he contributed to game session flows, including room creation and matchmaking interfaces. His work delivered a technically accurate, user-friendly, and responsive chess experience.
 
 ---
 
