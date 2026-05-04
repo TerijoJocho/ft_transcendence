@@ -5,13 +5,16 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.tsx";
 import { AuthProvider } from "./auth/AuthContext.tsx";
+import { ThemeProvider } from "./theme/ThemeContext.tsx";
 
 createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
-    <AuthProvider>
-      <StrictMode>
-        <App />
-      </StrictMode>
-    </AuthProvider>
-  </BrowserRouter>,
+  <ThemeProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <StrictMode>
+          <App />
+        </StrictMode>
+      </AuthProvider>
+    </BrowserRouter>
+  </ThemeProvider>,
 );

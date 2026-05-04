@@ -13,22 +13,33 @@ import {
   giveupGame,
   cancelGame,
   connectGameSocket,
+  refreshSession,
 } from "../api/api.ts";
 import type { PendingGameResponse } from "../api/api.ts";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faChessBishop,
+  faChessKing,
+  faChessKnight,
+  faChessPawn,
+  faChessQueen,
+  faChessRook,
+} from "@fortawesome/free-solid-svg-icons";
+
 const PIECES = {
-  r: "♜",
-  n: "♞",
-  b: "♝",
-  q: "♛",
-  k: "♚",
-  p: "♟",
-  R: "♖",
-  N: "♘",
-  B: "♗",
-  Q: "♕",
-  K: "♔",
-  P: "♙",
+  r: <FontAwesomeIcon icon={faChessRook} className="text-black/90" />,
+  n: <FontAwesomeIcon icon={faChessKnight} className="text-black/90" />,
+  b: <FontAwesomeIcon icon={faChessBishop} className="text-black/90" />,
+  q: <FontAwesomeIcon icon={faChessQueen} className="text-black/90" />,
+  k: <FontAwesomeIcon icon={faChessKing} className="text-black/90" />,
+  p: <FontAwesomeIcon icon={faChessPawn} className="text-black/90" />,
+  R: <FontAwesomeIcon icon={faChessRook} className="text-white/90" />,
+  N: <FontAwesomeIcon icon={faChessKnight} className="text-white/90" />,
+  B: <FontAwesomeIcon icon={faChessBishop} className="text-white/90" />,
+  Q: <FontAwesomeIcon icon={faChessQueen} className="text-white/90" />,
+  K: <FontAwesomeIcon icon={faChessKing} className="text-white/90" />,
+  P: <FontAwesomeIcon icon={faChessPawn} className="text-white/90" />,
 };
 
 const INIT_BOARD = () => [
@@ -292,14 +303,8 @@ function Clock({
 }) {
   return (
     <div
-      className={`px-5 py-2 rounded-lg border font-mono text-2xl font-semibold tracking-widest transition-all duration-300
-      ${
-        low
-          ? "border-rose-500 text-rose-400 bg-rose-500/10"
-          : active
-            ? "border-gray-400 text-white bg-gray-700"
-            : "border-gray-700 text-gray-500 bg-gray-900"
-      }`}
+      className={`px-3 sm:px-5 py-2 rounded-lg border font-mono text-lg sm:text-2xl font-semibold tracking-widest transition-all duration-300
+      ${low ? "border-violet-500 dark:border-yellow-500 text-violet-500 dark:text-yellow-400 bg-violet-500/10 dark:bg-yellow-500/10" : active ? "border-gray-400 dark:border-zinc-500 text-gray-900 dark:text-zinc-100 bg-gray-200 dark:bg-zinc-700" : "border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-900"}`}
     >
       {formatTime(seconds)}
     </div>
@@ -317,20 +322,20 @@ function ConfirmModal({
 }) {
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl p-8 flex flex-col items-center gap-6 shadow-2xl max-w-sm w-full mx-4">
-        <p className="text-white text-center text-base font-medium">
+      <div className="bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-xl p-8 flex flex-col items-center gap-6 shadow-2xl max-w-sm w-full mx-4">
+        <p className="text-gray-900 dark:text-zinc-100 text-center text-base font-medium">
           {message}
         </p>
         <div className="flex gap-4 w-full">
           <button
             onClick={onConfirm}
-            className="flex-1 py-3 text-sm uppercase tracking-widest border border-rose-700 text-rose-400 rounded-md hover:bg-rose-700/20 hover:border-rose-500 transition-all"
+            className="flex-1 py-3 text-sm uppercase tracking-widest border border-violet-700 dark:border-yellow-700 text-violet-500 dark:text-yellow-400 rounded-md hover:bg-violet-700/20 dark:hover:bg-yellow-700/20 hover:border-violet-500 dark:hover:border-yellow-500 transition-all"
           >
             Confirmer
           </button>
           <button
             onClick={onCancel}
-            className="flex-1 py-3 text-sm uppercase tracking-widest border border-gray-700 text-gray-400 rounded-md hover:bg-gray-700/20 hover:border-gray-500 transition-all"
+            className="flex-1 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 rounded-md hover:bg-gray-300/30 dark:hover:bg-zinc-700/20 hover:border-gray-400 dark:hover:border-zinc-500 transition-all"
           >
             Annuler
           </button>
@@ -390,6 +395,24 @@ function ChessGame({
   const isOnline =
     online.enabled && online.gameId !== null && online.playerColor !== null;
 
+  // Board flip for black player online
+  const isFlipped = isOnline && online.playerColor === "BLACK";
+  const displayRows = isFlipped
+    ? [7, 6, 5, 4, 3, 2, 1, 0]
+    : [0, 1, 2, 3, 4, 5, 6, 7];
+  const displayCols = isFlipped
+    ? [7, 6, 5, 4, 3, 2, 1, 0]
+    : [0, 1, 2, 3, 4, 5, 6, 7];
+  const rankLabels = isFlipped
+    ? [1, 2, 3, 4, 5, 6, 7, 8]
+    : [8, 7, 6, 5, 4, 3, 2, 1];
+  const fileLabels = isFlipped
+    ? ["h", "g", "f", "e", "d", "c", "b", "a"]
+    : ["a", "b", "c", "d", "e", "f", "g", "h"];
+  const boardCellSize = "clamp(34px, 9vw, 60px)";
+  const boardSize = `calc(${boardCellSize} * 8)`;
+  const pieceSize = `calc(${boardCellSize} * 0.6)`;
+
   const [board, setBoard] = useState(INIT_BOARD);
   const [player, setPlayer] = useState("white");
   const [selected, setSelected] = useState(null);
@@ -416,58 +439,73 @@ function ChessGame({
       ? "En attente d'un deuxième joueur..."
       : null,
   );
-  const [resolvedGameStatus, setResolvedGameStatus] = useState<OnlineConfig["gameStatus"]>(
-    activeGameStatus ?? online.gameStatus ?? null,
-  );
+  const [resolvedGameStatus, setResolvedGameStatus] = useState<
+    OnlineConfig["gameStatus"]
+  >(activeGameStatus ?? online.gameStatus ?? null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [onlineError, setOnlineError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
+  const isRefreshingSessionRef = useRef(false);
   const isApplyingRemoteRef = useRef(false);
+  const hasHydratedOnlineStateRef = useRef(false);
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setResolvedGameStatus(activeGameStatus ?? online.gameStatus ?? null);
   }, [activeGameStatus, online.gameStatus]);
 
-  // Confirm modal: "restart" | "giveup" | "cancel" | null
-  const [confirmAction, setConfirmAction] = useState<"restart" | "giveup" | "cancel" | null>(null);
+  useEffect(() => {
+    if (!isOnline) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOnlineStatus(null);
+      return;
+    }
+    if (resolvedGameStatus === "PENDING") {
+      setOnlineStatus("En attente d'un deuxième joueur...");
+      return;
+    }
+    setOnlineStatus(null);
+  }, [isOnline, resolvedGameStatus]);
 
-  // Drag-and-drop
+  // Confirm modal: "restart" | "giveup" | "cancel" | null
+  const [confirmAction, setConfirmAction] = useState<
+    "restart" | "giveup" | "cancel" | null
+  >(null);
+
   const [dragSource, setDragSource] = useState<[number, number] | null>(null);
   const [dragOver, setDragOver] = useState<[number, number] | null>(null);
 
-  // Auto-scroll history to bottom
   const historyRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (historyRef.current) {
+    if (historyRef.current)
       historyRef.current.scrollTop = historyRef.current.scrollHeight;
-    }
   }, [history]);
 
   const persistEndOfGame = useCallback(
     async (result: { winner: string; reason: string }, moveCount: number) => {
       if (!isOnline || !online.gameId) return;
-
-      const winnerNbMoves = Math.ceil(moveCount / 2);
+      const safeMoveCount = Math.max(moveCount, 1);
+      const winnerNbMoves = Math.ceil(safeMoveCount / 2);
       const isDraw = result.winner === "Draw";
-
       try {
         if (isDraw) {
           await endGame(online.gameId, {
-            totalNbMoves: moveCount,
+            totalNbMoves: safeMoveCount,
             winnerNbMoves,
             gameResult: "DRAW",
           });
         } else {
           const winnerColor = result.winner === "White" ? "WHITE" : "BLACK";
           await endGame(online.gameId, {
-            totalNbMoves: moveCount,
+            totalNbMoves: safeMoveCount,
             winnerNbMoves,
             gameResult: "WIN",
             winnerColor,
           });
         }
-      } catch {
-        // Best effort only: realtime update still goes through websocket diffusion.
+      } catch (error) {
+        console.error("Failed to persist end of game:", error);
       }
     },
     [isOnline, online.gameId],
@@ -537,34 +575,104 @@ function ChessGame({
 
   useEffect(() => {
     if (!isOnline || !online.gameId) {
+      hasHydratedOnlineStateRef.current = false;
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
       }
       return;
     }
+    hasHydratedOnlineStateRef.current = false;
     const socket = connectGameSocket();
     socketRef.current = socket;
+
+    const isUnauthorizedMessage = (message: string | undefined) => {
+      if (!message) return false;
+      return /unauthorized|jwt|token|expired/i.test(message);
+    };
+
+    const tryRefreshAndReconnect = async () => {
+      if (isRefreshingSessionRef.current) return;
+      isRefreshingSessionRef.current = true;
+
+      try {
+        await refreshSession();
+        setOnlineError(null);
+        if (!socket.connected) {
+          socket.connect();
+        }
+      } catch {
+        setOnlineError("Session expirée. Reconnecte-toi.");
+      } finally {
+        isRefreshingSessionRef.current = false;
+      }
+    };
+
     socket.on("connect", () => {
       setOnlineError(null);
       socket.emit("join_game", { gameId: online.gameId });
       socket.emit("sync_request", { gameId: online.gameId });
+      void (async () => {
+        try {
+          const session = await getGameSession(online.gameId);
+          setResolvedGameStatus(session.gameStatus);
+        } catch {
+          /* best effort */
+        }
+      })();
     });
-    socket.on("sync_state", (snapshot) => { if (snapshot) { applySnapshot(snapshot); setOnlineStatus("Partie synchronisée."); } });
-    socket.on("remote_move", (snapshot) => { applySnapshot(snapshot); setOnlineStatus("Coup adverse reçu."); });
+    socket.on("sync_state", (snapshot) => {
+      if (snapshot) {
+        applySnapshot(snapshot);
+        setResolvedGameStatus((current) =>
+          current === "COMPLETED" ? current : "ONGOING",
+        );
+      }
+      hasHydratedOnlineStateRef.current = true;
+    });
+    socket.on("remote_move", (snapshot) => {
+      hasHydratedOnlineStateRef.current = true;
+      applySnapshot(snapshot);
+      setResolvedGameStatus((current) =>
+        current === "COMPLETED" ? current : "ONGOING",
+      );
+    });
     socket.on("player_joined", () => {
       setResolvedGameStatus("ONGOING");
       setOnlineStatus("Deuxième joueur connecté. La partie commence.");
     });
-    socket.on("opponent_disconnected", () => { setOnlineError("L'adversaire s'est déconnecté."); });
-    socket.on("game_error", (payload: { message?: string }) => { setOnlineError(payload?.message ?? "Erreur temps réel."); });
+    socket.on("opponent_disconnected", () => {
+      setOnlineError("L'adversaire s'est déconnecté.");
+    });
+    socket.on("game_error", (payload: { message?: string }) => {
+      if (isUnauthorizedMessage(payload?.message)) {
+        void tryRefreshAndReconnect();
+        return;
+      }
+      setOnlineError(payload?.message ?? "Erreur temps réel.");
+    });
+    socket.on("connect_error", (error: Error) => {
+      if (isUnauthorizedMessage(error.message)) {
+        void tryRefreshAndReconnect();
+        return;
+      }
+      setOnlineError(error.message || "Erreur de connexion temps réel.");
+    });
+    socket.on("disconnect", (reason) => {
+      if (reason === "io server disconnect") {
+        void tryRefreshAndReconnect();
+      }
+    });
     socket.on("game_over", (result) => {
       setResolvedGameStatus("COMPLETED");
+      setOnlineStatus(null);
       setGameResult(result ?? { winner: "Draw", reason: "finished" });
       setGameOver(true);
-      setOnlineStatus("Partie terminée.");
     });
-    return () => { socket.disconnect(); socketRef.current = null; };
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
   }, [isOnline, online.gameId, online.gameStatus, applySnapshot]);
 
   useEffect(() => {
@@ -608,6 +716,18 @@ function ChessGame({
     persistEndOfGame,
   ]);
 
+  // Auto-redirect 5 seconds after game ends
+  // useEffect(() => {
+  //   if (gameOver) {
+  //     redirectTimerRef.current = setTimeout(() => {
+  //       onBack();
+  //     }, 60000);
+  //   }
+  //   return () => {
+  //     if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+  //   };
+  // }, [gameOver, onBack]);
+
   const reset = useCallback(() => {
     clearInterval(intervalRef.current!);
     setBoard(INIT_BOARD());
@@ -630,16 +750,18 @@ function ChessGame({
     setDragOver(null);
   }, [initSeconds]);
 
-  const lastEmittedBoardRef = useRef<string>("");
+  const lastEmittedStateRef = useRef<string>("");
 
   useEffect(() => {
     if (!isOnline) return;
+    if (!hasHydratedOnlineStateRef.current) return;
+    if (isApplyingRemoteRef.current) return;
     const socket = socketRef.current;
     const snapshot = exportSnapshot();
     if (!socket || !snapshot) return;
-    const boardKey = JSON.stringify(board) + player;
-    if (boardKey === lastEmittedBoardRef.current) return;
-    lastEmittedBoardRef.current = boardKey;
+    const stateKey = JSON.stringify(snapshot);
+    if (stateKey === lastEmittedStateRef.current) return;
+    lastEmittedStateRef.current = stateKey;
     socket.emit("move", { gameId: snapshot.gameId, state: snapshot });
   }, [
     board,
@@ -660,13 +782,13 @@ function ChessGame({
     online.playerColor,
   ]);
 
-  function evalState(b, next, m, newEp, hm) {
+  function evalState(b, next, m, newEp, hm, moveCount) {
     if (hm >= 100) {
       const r = { winner: "Draw", reason: "50-move rule" };
       setStatus("Draw — 50-move rule");
       setGameOver(true);
       setGameResult(r);
-      void persistEndOfGame(r, hm);
+      void persistEndOfGame(r, moveCount);
       return;
     }
     const inChk = isInCheck(b, next, newEp),
@@ -677,25 +799,25 @@ function ChessGame({
       setStatus(`Checkmate — ${winner} wins!`);
       setGameOver(true);
       setGameResult(r);
-      void persistEndOfGame(r, hm);
+      void persistEndOfGame(r, moveCount);
     } else if (!inChk && !hasL) {
       const r = { winner: "Draw", reason: "stalemate" };
       setStatus("Stalemate — Draw");
       setGameOver(true);
       setGameResult(r);
-      void persistEndOfGame(r, hm);
+      void persistEndOfGame(r, moveCount);
     } else if (inChk)
       setStatus(`${next === "white" ? "White" : "Black"} is in check!`);
     else setStatus("");
   }
 
-  // Shared move execution used by both click and drag
   function executeMove(
     sr: number,
     sc: number,
     dr: number,
     dc: number,
   ): boolean {
+    if (isOnline && resolvedGameStatus !== "ONGOING") return false;
     if (!isLegalMove(board, sr, sc, dr, dc, player, moved, ep)) return false;
     if (hasClock && !clockStarted) setClockStarted(true);
     const {
@@ -730,6 +852,7 @@ function ChessGame({
       return true;
     }
     const next = player === "white" ? "black" : "white";
+    const nextMoveCount = history.length + 1;
     setHistory((h) => [
       ...h,
       toNotation(sr, sc, dr, dc, mp, target, nb, next, newEp),
@@ -739,12 +862,13 @@ function ChessGame({
     setEp(newEp);
     setHalfmove(newHalfmove);
     setPlayer(next);
-    evalState(nb, next, newMoved, newEp, newHalfmove);
+    evalState(nb, next, newMoved, newEp, newHalfmove, nextMoveCount);
     return true;
   }
 
   function handleClick(r, c) {
     if (gameOver || pendingPromo) return;
+    if (isOnline && resolvedGameStatus !== "ONGOING") return;
     if (isOnline) {
       const expectedTurn = online.playerColor === "WHITE" ? "white" : "black";
       if (player !== expectedTurn) return;
@@ -769,6 +893,10 @@ function ChessGame({
 
   function handleDragStart(e: React.DragEvent, r: number, c: number) {
     if (gameOver || pendingPromo) {
+      e.preventDefault();
+      return;
+    }
+    if (isOnline && resolvedGameStatus !== "ONGOING") {
       e.preventDefault();
       return;
     }
@@ -826,6 +954,7 @@ function ChessGame({
       toNotation(sr, sc, row, col, mp, target, fb, next, newEp) +
       "=" +
       p.toUpperCase();
+    const nextMoveCount = history.length + 1;
     setHistory((h) => [...h, n]);
     setBoard(fb);
     setMoved(newMoved);
@@ -833,26 +962,24 @@ function ChessGame({
     setHalfmove(newHalfmove);
     setPlayer(next);
     setPendingPromo(null);
-    evalState(fb, next, newMoved, newEp, newHalfmove);
+    evalState(fb, next, newMoved, newEp, newHalfmove, nextMoveCount);
   }
 
   async function handleGiveUpConfirm() {
     setConfirmAction(null);
     const totalNbMoves = history.length;
-    const winnerNbMoves = player === "white"
-      ? Math.floor(totalNbMoves / 2)
-      : Math.ceil(totalNbMoves / 2);
-
+    const winnerNbMoves =
+      player === "white"
+        ? Math.floor(totalNbMoves / 2)
+        : Math.ceil(totalNbMoves / 2);
     if (isOnline && online.gameId && !gameOver) {
       try {
-        await giveupGame(online.gameId, {
-          totalNbMoves: totalNbMoves,
-          winnerNbMoves: winnerNbMoves,
-        });
-        if (socketRef.current?.connected) {
+        await giveupGame(online.gameId, { totalNbMoves, winnerNbMoves });
+        if (socketRef.current?.connected)
           socketRef.current.emit("giveup", { gameId: online.gameId });
-        }
-      } catch (e) {console.log(e)}
+      } catch (e) {
+        console.log(e);
+      }
     }
     onBack();
   }
@@ -862,16 +989,16 @@ function ChessGame({
     if (isOnline && online.gameId && !gameOver) {
       try {
         await cancelGame(online.gameId);
-        if (socketRef.current?.connected) {
+        if (socketRef.current?.connected)
           socketRef.current.emit("cancel", { gameId: online.gameId });
-        }
-      } catch {console.error("Erreur produite lors de l'abandon du jeu") }
+      } catch {
+        console.error("Erreur produite lors de l'abandon du jeu");
+      }
     }
     onBack();
   }
 
-  function handleQuit()
-  {
+  function handleQuit() {
     console.log(resolvedGameStatus);
     if (resolvedGameStatus === "PENDING") {
       setConfirmAction("cancel");
@@ -882,46 +1009,61 @@ function ChessGame({
     }
   }
 
-  const hintSet    = new Set(hints.map(h => `${h.row},${h.col}`));
-  const captureSet = new Set(hints.filter(h => h.capture).map(h => `${h.row},${h.col}`));
+  const hintSet = new Set(hints.map((h) => `${h.row},${h.col}`));
+  const captureSet = new Set(
+    hints.filter((h) => h.capture).map((h) => `${h.row},${h.col}`),
+  );
   const lowThreshold = initSeconds ? Math.min(30, initSeconds * 0.2) : 30;
 
+  // Clock labels/values based on board flip
+  const topClockPlayer = isFlipped ? "white" : "black";
+  const botClockPlayer = isFlipped ? "black" : "white";
+  const topClockSeconds = isFlipped ? whiteTime! : blackTime!;
+  const botClockSeconds = isFlipped ? blackTime! : whiteTime!;
+  const topClockLabel = isFlipped ? "White" : "Black";
+  const botClockLabel = isFlipped ? "Black" : "White";
+
   return (
-    <div className="text-white">
+    <div className="text-gray-900 dark:text-zinc-100 w-full bg-gray-50 dark:bg-zinc-800 transition-colors duration-300">
       {isOnline && online.gameId && (
         <div className="flex justify-end px-6 pt-4">
-          <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2">
-            <span className="text-xs uppercase tracking-widest text-gray-500">
+          <div className="flex items-center gap-2 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg px-4 py-2">
+            <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
               Game ID
             </span>
-            <span className="font-mono text-violet-400 font-semibold text-sm select-all">
+            <span className="font-mono text-violet-400 dark:text-yellow-600 font-semibold text-sm select-all">
               {online.gameId}
             </span>
           </div>
         </div>
       )}
-      <div className="flex gap-6 p-6 justify-center items-start flex-wrap">
-        {/* Move history — 2 moves per row, scrollable */}
+      <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 p-3 sm:p-6 justify-center items-stretch xl:items-start">
+        {/* Move history */}
         <div
-          className="w-52 bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col"
-          style={{ height: "520px" }}
+          className="order-2 xl:order-1 w-full xl:w-52 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg p-4 flex flex-col"
+          style={{ height: "min(45vh, 520px)" }}
         >
-          <p className="text-xs uppercase tracking-widest text-gray-500 mb-3 pb-2 border-b border-gray-700 flex-shrink-0">
+          <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400 mb-2 pb-2 border-b border-gray-300 dark:border-zinc-700 flex-shrink-0">
             Moves
           </p>
+          <div className="flex gap-2 text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400 mb-1 flex-shrink-0">
+            <span className="w-6"></span>
+            <span className="w-16">White</span>
+            <span className="w-16">Black</span>
+          </div>
           <div
             ref={historyRef}
             className="overflow-y-auto flex-1 flex flex-col gap-1 pr-1"
           >
             {Array.from({ length: Math.ceil(history.length / 2) }, (_, i) => (
               <div key={i} className="flex gap-2 text-sm">
-                <span className="text-gray-600 w-6 flex-shrink-0">
+                <span className="text-gray-600 dark:text-zinc-500 w-6 flex-shrink-0">
                   {i + 1}.
                 </span>
-                <span className="text-gray-300 w-16">
+                <span className="text-gray-700 dark:text-zinc-300 w-16">
                   {history[i * 2] ?? ""}
                 </span>
-                <span className="text-gray-400 w-16">
+                <span className="text-gray-500 dark:text-zinc-400 w-16">
                   {history[i * 2 + 1] ?? ""}
                 </span>
               </div>
@@ -929,42 +1071,48 @@ function ChessGame({
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-3">
+        <div className="order-1 xl:order-2 flex flex-col items-center gap-3 w-full xl:w-auto">
+          {/* Top clock */}
           {hasClock && (
-            <div className="flex items-center gap-3 self-end">
-              <span className="text-xs uppercase tracking-widest text-gray-500">
-                Black
+            <div className="flex items-center gap-3 self-center sm:self-end">
+              <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
+                {topClockLabel}
               </span>
               <Clock
-                seconds={blackTime!}
-                active={player === "black" && clockStarted && !gameOver}
-                low={blackTime! <= lowThreshold}
+                seconds={topClockSeconds}
+                active={player === topClockPlayer && clockStarted && !gameOver}
+                low={topClockSeconds <= lowThreshold}
               />
             </div>
           )}
           {!hasClock && (
             <div className="flex items-center gap-4">
               <span
-                className={`text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border transition-all duration-200 ${player === "black" && !gameOver ? "border-rose-500 text-rose-400 bg-rose-500/10" : "border-gray-700 text-gray-500"}`}
+                className={`text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border transition-all duration-200 ${player === "black" && !gameOver ? "border-violet-500 dark:border-yellow-500 text-violet-500 dark:text-yellow-400 bg-violet-500/10 dark:bg-yellow-500/10" : "border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-zinc-400"}`}
               >
                 Black
               </span>
-              <span className="text-xs text-gray-600 tracking-widest">vs</span>
+              <span className="text-xs text-gray-600 dark:text-zinc-400 tracking-widest">
+                vs
+              </span>
               <span
-                className={`text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border transition-all duration-200 ${player === "white" && !gameOver ? "border-rose-500 text-rose-400 bg-rose-500/10" : "border-gray-700 text-gray-500"}`}
+                className={`text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border transition-all duration-200 ${player === "white" && !gameOver ? "border-violet-500 dark:border-yellow-500 text-violet-500 dark:text-yellow-400 bg-violet-500/10 dark:bg-yellow-500/10" : "border-gray-300 dark:border-zinc-700 text-gray-500 dark:text-zinc-400"}`}
               >
                 White
               </span>
             </div>
           )}
+
+          {/* Status bar */}
           <div
-            className={`text-xs uppercase tracking-widest h-5 text-center transition-colors ${gameOver ? "text-rose-400 font-semibold" : status.includes("check") ? "text-rose-400" : "text-gray-500"}`}
+            className={`text-sm sm:text-lg uppercase tracking-wider sm:tracking-widest min-h-6 px-2 text-center transition-colors ${gameOver ? "text-violet-500 dark:text-yellow-400 font-semibold" : status.includes("check") ? "text-violet-500 dark:text-yellow-400" : "text-gray-800 dark:text-zinc-400"}`}
           >
             {status ||
               `${player.charAt(0).toUpperCase() + player.slice(1)}'s turn`}
           </div>
-          {isOnline && onlineStatus && (
-            <p className="text-xs text-sky-300 tracking-wide text-center">
+
+          {isOnline && onlineStatus && onlineStatus.includes("attente") && (
+            <p className="text-xs tracking-wide text-center uppercase font-semibold text-violet-600 dark:text-yellow-400">
               {onlineStatus}
             </p>
           )}
@@ -975,26 +1123,27 @@ function ChessGame({
           )}
 
           {/* Board */}
-          <div className="p-2.5 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl">
+          <div className="p-2 sm:p-2.5 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg shadow-2xl max-w-full overflow-x-auto">
             <div className="flex items-start">
               <div
-                className="flex flex-col justify-around pr-1.5 text-xs text-gray-600 select-none"
-                style={{ height: "480px" }}
+                className="flex flex-col justify-around pr-1.5 text-[10px] sm:text-xs text-gray-600 dark:text-zinc-400 select-none"
+                style={{ height: boardSize }}
               >
-                {[8, 7, 6, 5, 4, 3, 2, 1].map((n) => (
+                {rankLabels.map((n) => (
                   <span key={n}>{n}</span>
                 ))}
               </div>
               <div>
                 <div
-                  className="grid border border-gray-600"
+                  className="grid border border-gray-400 dark:border-zinc-600"
                   style={{
-                    gridTemplateColumns: "repeat(8,60px)",
-                    gridTemplateRows: "repeat(8,60px)",
+                    gridTemplateColumns: `repeat(8, ${boardCellSize})`,
+                    gridTemplateRows: `repeat(8, ${boardCellSize})`,
                   }}
                 >
-                  {board.map((row, r) =>
-                    row.map((piece, c) => {
+                  {displayRows.map((r) =>
+                    displayCols.map((c) => {
+                      const piece = board[r][c];
                       const key = `${r},${c}`;
                       const isSel =
                         selected && selected[0] === r && selected[1] === c;
@@ -1016,10 +1165,14 @@ function ChessGame({
                         !gameOver &&
                         !pendingPromo;
                       const light = (r + c) % 2 === 0;
-                      let bgClass = light ? "bg-amber-100" : "bg-amber-900";
+                      let bgClass = light
+                        ? "bg-gray-300 dark:bg-zinc-400"
+                        : "bg-gray-600 dark:bg-zinc-700";
                       if (isLast && !isSel)
-                        bgClass = light ? "bg-yellow-300" : "bg-yellow-700";
-                      if (isSel) bgClass = "bg-rose-400";
+                        bgClass = light
+                          ? "bg-violet-300 dark:bg-yellow-300"
+                          : "bg-violet-600 dark:bg-yellow-600";
+                      if (isSel) bgClass = "bg-violet-400 dark:bg-yellow-400";
                       if (
                         isDragOver &&
                         (hintSet.has(key) || captureSet.has(key))
@@ -1045,7 +1198,12 @@ function ChessGame({
                       return (
                         <div
                           key={key}
-                          className={`w-[60px] h-[60px] flex items-center justify-center text-[36px] select-none relative ${bgClass} hover:brightness-110 transition-all ${isDraggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"}`}
+                          className={`flex items-center justify-center select-none relative ${bgClass} hover:brightness-110 transition-all ${isDraggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"}`}
+                          style={{
+                            width: boardCellSize,
+                            height: boardCellSize,
+                            fontSize: pieceSize,
+                          }}
                           onClick={() => handleClick(r, c)}
                           draggable={isDraggable}
                           onDragStart={(e) => handleDragStart(e, r, c)}
@@ -1062,18 +1220,24 @@ function ChessGame({
                             {PIECES[piece] || ""}
                           </span>
                           {isHint && !isDragOver && (
-                            <span className="absolute w-[18px] h-[18px] rounded-full bg-rose-500/50 pointer-events-none" />
+                            <span
+                              className="absolute rounded-full bg-violet-500/50 dark:bg-yellow-500/50 pointer-events-none"
+                              style={{
+                                width: `calc(${boardCellSize} * 0.3)`,
+                                height: `calc(${boardCellSize} * 0.3)`,
+                              }}
+                            />
                           )}
                           {isCap && !isDragOver && (
-                            <span className="absolute inset-0 border-[4px] border-rose-500/65 pointer-events-none" />
+                            <span className="absolute inset-0 border-[4px] border-violet-500/65 dark:border-yellow-500/65 pointer-events-none" />
                           )}
                         </div>
                       );
                     }),
                   )}
                 </div>
-                <div className="flex justify-around pt-1 text-xs text-gray-600 select-none">
-                  {["a", "b", "c", "d", "e", "f", "g", "h"].map((l) => (
+                <div className="flex justify-around pt-1 text-[10px] sm:text-xs text-gray-600 dark:text-zinc-400 select-none">
+                  {fileLabels.map((l) => (
                     <span key={l}>{l}</span>
                   ))}
                 </div>
@@ -1081,103 +1245,49 @@ function ChessGame({
             </div>
           </div>
 
+          {/* Bottom clock */}
           {hasClock && (
-            <div className="flex items-center gap-3 self-end">
-              <span className="text-xs uppercase tracking-widest text-gray-500">
-                White
+            <div className="flex items-center gap-3 self-center sm:self-end">
+              <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
+                {botClockLabel}
               </span>
               <Clock
-                seconds={whiteTime!}
-                active={player === "white" && clockStarted && !gameOver}
-                low={whiteTime! <= lowThreshold}
+                seconds={botClockSeconds}
+                active={player === botClockPlayer && clockStarted && !gameOver}
+                low={botClockSeconds <= lowThreshold}
               />
             </div>
           )}
 
-          {/* Restart / giveup / Cancel buttons */}
-          <div className="flex gap-4 mt-1">
-            {!isOnline &&(
+          {/* Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-1 w-full sm:w-auto">
+            {!isOnline && (
               <>
-              <button
-                onClick={() => setConfirmAction("restart")}
-                className="px-8 py-3 text-sm uppercase tracking-widest border border-rose-700 text-rose-400 rounded-md hover:bg-rose-700/20 hover:border-rose-500 transition-all duration-200"
-              >
-                Restart
-              </button>
-              <button
-                onClick={() => setConfirmAction("giveup")}
-                className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-600 text-gray-400 rounded-md hover:bg-gray-600/20 hover:border-gray-400 transition-all duration-200"
-              >
-                ← Quitter
-              </button>
+                <button
+                  onClick={() => setConfirmAction("restart")}
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 text-sm uppercase tracking-widest border border-violet-700 dark:border-yellow-700 text-violet-500 dark:text-yellow-400 rounded-md hover:bg-violet-700/20 dark:hover:bg-yellow-700/20 hover:border-violet-500 dark:hover:border-yellow-500 transition-all duration-200"
+                >
+                  Restart
+                </button>
+                <button
+                  onClick={() => setConfirmAction("giveup")}
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 rounded-md hover:bg-gray-300/30 dark:hover:bg-zinc-700/20 hover:border-gray-400 dark:hover:border-zinc-500 transition-all duration-200"
+                >
+                  ← Quitter
+                </button>
               </>
             )}
-
-          {isOnline && (
-            <>
-              <button
-                onClick={handleQuit}
-                className="px-8 py-3 text-sm uppercase tracking-widest border border-gray-700 text-gray-400 rounded-md hover:bg-gray-700/20 hover:border-gray-500 transition-all duration-200"
-              >
-                ← Quitter
-              </button>
-            </>
-          )}
+            {isOnline && (
+              <>
+                <button
+                  onClick={handleQuit}
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 rounded-md hover:bg-gray-300/30 dark:hover:bg-zinc-700/20 hover:border-gray-400 dark:hover:border-zinc-500 transition-all duration-200"
+                >
+                  ← Quitter
+                </button>
+              </>
+            )}
           </div>
-
-          {/* Game summary */}
-          {gameResult &&
-            (() => {
-              const totalMoves = history.length;
-              const whiteMoves = Math.ceil(totalMoves / 2);
-              const blackMoves = Math.floor(totalMoves / 2);
-              const isDraw = gameResult.winner === "Draw";
-              return (
-                <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-xl p-5 flex flex-col gap-4">
-                  <p className="text-xs uppercase tracking-widest text-gray-500 pb-2 border-b border-gray-700">
-                    Game summary
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs uppercase tracking-widest text-gray-500">
-                      Result
-                    </span>
-                    <span
-                      className={`text-sm font-semibold ${isDraw ? "text-gray-300" : "text-rose-400"}`}
-                    >
-                      {isDraw
-                        ? `Draw — ${gameResult.reason}`
-                        : `${gameResult.winner} wins by ${gameResult.reason}`}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="flex flex-col items-center bg-gray-800 rounded-lg py-3">
-                      <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">
-                        Total
-                      </span>
-                      <span className="text-2xl font-semibold text-white">
-                        {totalMoves}
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-center bg-gray-800 rounded-lg py-3">
-                      <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">
-                        White
-                      </span>
-                      <span className="text-2xl font-semibold text-white">
-                        {whiteMoves}
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-center bg-gray-800 rounded-lg py-3">
-                      <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">
-                        Black
-                      </span>
-                      <span className="text-2xl font-semibold text-white">
-                        {blackMoves}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
         </div>
       </div>
 
@@ -1188,25 +1298,96 @@ function ChessGame({
             confirmAction === "restart"
               ? "Relancer la partie ?"
               : confirmAction === "cancel"
-              ? "Annuler la partie ? Elle sera supprimée."
-              : isOnline && !gameOver
-              ? "Retourner au giveup ? Cela comptera comme une résignation."
-              : "Retourner au tableau de bord ?"
+                ? "Annuler la partie ? Elle sera supprimée."
+                : isOnline && !gameOver
+                  ? "Retourner au giveup ? Cela comptera comme une résignation."
+                  : "Retourner au tableau de bord ?"
           }
           onConfirm={async () => {
-            if (confirmAction === "restart") { reset(); setConfirmAction(null); }
-            else if (confirmAction === "cancel") { await handleCancelConfirm(); }
-            else { await handleGiveUpConfirm(); console.log("Confirmed giveup/Leave");}
+            if (confirmAction === "restart") {
+              reset();
+              setConfirmAction(null);
+            } else if (confirmAction === "cancel") {
+              await handleCancelConfirm();
+            } else {
+              await handleGiveUpConfirm();
+              console.log("Confirmed giveup/Leave");
+            }
           }}
           onCancel={() => setConfirmAction(null)}
         />
       )}
 
+      {/* Game summary popup — center overlay */}
+      {gameResult && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-40">
+          <div className="bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl p-6 flex flex-col gap-4 shadow-2xl w-full max-w-sm mx-4">
+            <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400 pb-2 border-b border-gray-300 dark:border-zinc-700">
+              Game summary
+            </p>
+            <div className="flex items-center justify-between">
+              <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
+                Result
+              </span>
+              <span
+                className={`text-xs font-semibold ${gameResult.winner === "Draw" ? "text-gray-600 dark:text-zinc-300" : "text-violet-500 dark:text-yellow-400"}`}
+              >
+                {gameResult.winner === "Draw"
+                  ? `Draw — ${gameResult.reason}`
+                  : gameResult.reason === "resign" ||
+                      gameResult.winner === "opponent"
+                    ? "Vous avez gagné, votre adversaire a abandonné"
+                    : `${gameResult.winner} gagne par ${gameResult.reason}`}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-col items-center bg-gray-200 dark:bg-zinc-800 rounded-lg py-3">
+                <span className="text-xs text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1">
+                  Total
+                </span>
+                <span className="text-2xl font-semibold text-gray-900 dark:text-zinc-100">
+                  {history.length}
+                </span>
+              </div>
+              <div className="flex flex-col items-center bg-gray-200 dark:bg-zinc-800 rounded-lg py-3">
+                <span className="text-xs text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1">
+                  White
+                </span>
+                <span className="text-2xl font-semibold text-gray-900 dark:text-zinc-100">
+                  {Math.ceil(history.length / 2)}
+                </span>
+              </div>
+              <div className="flex flex-col items-center bg-gray-200 dark:bg-zinc-800 rounded-lg py-3">
+                <span className="text-xs text-gray-500 dark:text-zinc-400 uppercase tracking-widest mb-1">
+                  Black
+                </span>
+                <span className="text-2xl font-semibold text-gray-900 dark:text-zinc-100">
+                  {Math.floor(history.length / 2)}
+                </span>
+              </div>
+            </div>
+            {/* <p className="text-xs text-gray-500 dark:text-zinc-400 text-center">
+              Retour automatique dans 60s
+            </p> */}
+            <button
+              onClick={() => {
+                if (redirectTimerRef.current)
+                  clearTimeout(redirectTimerRef.current);
+                onBack();
+              }}
+              className="w-full py-3 text-sm uppercase tracking-widest bg-violet-600 dark:bg-yellow-600 text-white rounded-md hover:bg-violet-500 dark:hover:bg-yellow-500 transition-all"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Promotion modal */}
       {pendingPromo && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 flex flex-col items-center gap-4 shadow-2xl">
-            <p className="text-xs uppercase tracking-widest text-gray-400">
+          <div className="bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl p-6 flex flex-col items-center gap-4 shadow-2xl">
+            <p className="text-xs uppercase tracking-widest text-gray-600 dark:text-zinc-400">
               Promote pawn
             </p>
             <div className="flex gap-3">
@@ -1217,7 +1398,7 @@ function ChessGame({
                 <div
                   key={p}
                   onClick={() => selectPromo(p)}
-                  className="w-16 h-16 flex items-center justify-center text-4xl bg-gray-800 border border-gray-700 rounded-lg cursor-pointer hover:border-rose-500 hover:bg-rose-500/10 transition-all"
+                  className="w-16 h-16 flex items-center justify-center text-4xl bg-gray-200 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-lg cursor-pointer hover:border-violet-500 dark:hover:border-yellow-500 hover:bg-violet-500/10 dark:hover:bg-yellow-500/10 transition-all"
                 >
                   {PIECES[p]}
                 </div>
@@ -1234,33 +1415,84 @@ type Mode = "Local" | "En ligne" | null;
 type TimeControl = "Bullet" | "Blitz" | "Normal" | null;
 type Color = "Blanc" | "Noir" | null;
 
+const GAME_VIEW_STORAGE_KEY = "ft_transcendence:game:view-state";
+
+type PersistedGameViewState = {
+  showChess: boolean;
+  mode: Mode;
+  timeControl: TimeControl;
+  color: Color;
+  activeGameId: number | null;
+  activeGameStatus: "PENDING" | "ONGOING" | "COMPLETED" | null;
+  onlinePlayerColor: "WHITE" | "BLACK" | null;
+};
+
+function getInitialGameViewState(): PersistedGameViewState {
+  const defaults: PersistedGameViewState = {
+    showChess: false,
+    mode: "Local",
+    timeControl: "Normal",
+    color: "Blanc",
+    activeGameId: null,
+    activeGameStatus: null,
+    onlinePlayerColor: null,
+  };
+
+  try {
+    const raw = localStorage.getItem(GAME_VIEW_STORAGE_KEY);
+    if (!raw) return defaults;
+    const parsed = JSON.parse(raw) as Partial<PersistedGameViewState>;
+    if (!parsed || parsed.showChess !== true) return defaults;
+    return {
+      ...defaults,
+      ...parsed,
+      showChess: true,
+    };
+  } catch {
+    return defaults;
+  }
+}
+
 function Game() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const initialGameViewStateRef = useRef<PersistedGameViewState>(
+    getInitialGameViewState(),
+  );
   const [showCreateOptions, setShowCreateOptions] = useState(false);
-  const [showChess, setShowChess] = useState(false);
-  const [mode, setMode] = useState<Mode>(null);
-  const [timeControl, setTimeControl] = useState<TimeControl>(null);
-  const [color, setColor] = useState<Color>(null);
+  const [showChess, setShowChess] = useState(
+    initialGameViewStateRef.current.showChess,
+  );
+  // Pre-selected defaults: Local, Normal (Classic), Blanc
+  const [mode, setMode] = useState<Mode>(initialGameViewStateRef.current.mode);
+  const [timeControl, setTimeControl] = useState<TimeControl>(
+    initialGameViewStateRef.current.timeControl,
+  );
+  const [color, setColor] = useState<Color>(
+    initialGameViewStateRef.current.color,
+  );
   const [gameIdInput, setGameIdInput] = useState("");
-  const [activeGameId, setActiveGameId] = useState<number | null>(null);
+  const [activeGameId, setActiveGameId] = useState<number | null>(
+    initialGameViewStateRef.current.activeGameId,
+  );
   const [activeGameStatus, setActiveGameStatus] = useState<
     "PENDING" | "ONGOING" | "COMPLETED" | null
-  >(null);
+  >(initialGameViewStateRef.current.activeGameStatus);
   const [onlinePlayerColor, setOnlinePlayerColor] = useState<
     "WHITE" | "BLACK" | null
-  >(null);
+  >(initialGameViewStateRef.current.onlinePlayerColor);
   const [pendingGames, setPendingGames] = useState<PendingGame[]>([]);
   const [isLoadingPendingGames, setIsLoadingPendingGames] = useState(false);
   const [menuError, setMenuError] = useState<string | null>(null);
 
   const btnBase =
-    "w-44 py-3 rounded-md text-base font-semibold border transition";
-  const btnActive = "bg-violet-500 text-white border-violet-500";
+    "w-full sm:w-44 py-3 rounded-md text-base font-semibold border transition";
+  const btnActive =
+    "bg-violet-500 dark:bg-yellow-600 text-white border-violet-500 dark:border-yellow-600 hover:bg-violet-400 dark:hover:bg-yellow-500";
   const btnInactive =
-    "bg-white text-gray-700 border-gray-300 hover:border-violet-500 hover:text-violet-500";
+    "bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-200 border-gray-300 dark:border-zinc-700 hover:border-violet-500 hover:text-violet-500 dark:hover:border-yellow-500 dark:hover:text-yellow-400";
   const btnDisabled =
-    "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-70";
+    "bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 border-gray-200 dark:border-zinc-700 cursor-not-allowed opacity-70";
 
   const colorDisabled = mode === "Local";
 
@@ -1286,12 +1518,39 @@ function Game() {
     }
   }, [showCreateOptions, showChess, loadPendingGames]);
 
+  useEffect(() => {
+    if (!showChess) {
+      localStorage.removeItem(GAME_VIEW_STORAGE_KEY);
+      return;
+    }
+
+    const stateToPersist: PersistedGameViewState = {
+      showChess,
+      mode,
+      timeControl,
+      color,
+      activeGameId,
+      activeGameStatus,
+      onlinePlayerColor,
+    };
+    localStorage.setItem(GAME_VIEW_STORAGE_KEY, JSON.stringify(stateToPersist));
+  }, [
+    showChess,
+    mode,
+    timeControl,
+    color,
+    activeGameId,
+    activeGameStatus,
+    onlinePlayerColor,
+  ]);
+
   function handleBack() {
     setShowChess(false);
     setShowCreateOptions(false);
-    setMode(null);
-    setTimeControl(null);
-    setColor(null);
+    // Reset to defaults
+    setMode("Local");
+    setTimeControl("Normal");
+    setColor("Blanc");
     setActiveGameId(null);
     setActiveGameStatus(null);
     setOnlinePlayerColor(null);
@@ -1380,10 +1639,9 @@ function Game() {
   }
 
   if (showChess) {
-    // console.log(activeGameStatus)
     return (
-      <div className="border min-w-max">
-        <div className="text-black">
+      <div className="border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 w-full min-w-0 transition-colors duration-300">
+        <div className="text-black dark:text-zinc-100">
           <Header title="Chess" />
         </div>
         <ChessGame
@@ -1402,59 +1660,59 @@ function Game() {
   }
 
   return (
-    <div className="border min-w-max">
-      <div className="text-black">
+    <div className="border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 w-full h-full min-w-0 transition-colors duration-300">
+      <div className="text-black dark:text-zinc-100">
         <Header title="Démarrez une partie !" />
       </div>
       <div className="flex flex-col items-center justify-center gap-6 py-16">
         {!showCreateOptions ? (
           <div className="flex flex-col gap-6 items-center w-full max-w-3xl px-6">
-            <div className="flex flex-row gap-4">
-              <button
-                onClick={() => setShowCreateOptions(true)}
-                className="w-64 py-3 text-base font-semibold bg-violet-500 text-white rounded-md hover:bg-violet-400 transition"
-              >
-                Créer une partie
-              </button>
+            <button
+              onClick={() => setShowCreateOptions(true)}
+              className="button w-full sm:w-64 py-3"
+            >
+              Créer une partie
+            </button>
+            <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center w-full max-w-xl">
+              <input
+                type="text"
+                value={gameIdInput}
+                onChange={(e) => setGameIdInput(e.target.value)}
+                placeholder="ID de partie"
+                className="w-full sm:w-64 block rounded-md border border-gray-300 px-3 py-3 text-black bg-white dark:bg-zinc-800 dark:text-white"
+              />
               <button
                 onClick={() => handleJoinExistingGame()}
-                className="w-64 py-3 text-base font-semibold border border-gray-400 rounded-md text-black hover:bg-gray-100 transition"
+                className="button w-full sm:w-64 py-3 !mt-0 !mb-0"
               >
                 Rejoindre une partie
               </button>
             </div>
-            <input
-              type="text"
-              value={gameIdInput}
-              onChange={(e) => setGameIdInput(e.target.value)}
-              placeholder="ID de partie"
-              className="w-64 rounded-md border border-gray-300 px-3 py-2 text-black bg-white"
-            />
-            <div className="w-full bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
+            <div className="w-full bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-700 p-5 shadow-sm">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                 <div>
-                  <p className="text-xs uppercase tracking-widest text-gray-500">
+                  <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
                     Parties en attente
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-zinc-300">
                     Rejoins directement une partie sans saisir d'identifiant.
                   </p>
                 </div>
                 <button
                   onClick={() => void loadPendingGames()}
-                  className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition"
+                  className="button"
                 >
                   Rafraîchir
                 </button>
               </div>
               <div className="flex flex-col gap-3">
                 {isLoadingPendingGames && (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-zinc-400">
                     Chargement des parties en attente...
                   </p>
                 )}
                 {!isLoadingPendingGames && pendingGames.length === 0 && (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-zinc-400">
                     Aucune partie en attente pour le moment.
                   </p>
                 )}
@@ -1462,13 +1720,13 @@ function Game() {
                   pendingGames.map((pendingGame) => (
                     <div
                       key={pendingGame.gameId}
-                      className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 px-4 py-3"
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 rounded-lg border border-gray-200 dark:border-zinc-700 px-4 py-3"
                     >
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-gray-900 dark:text-zinc-100">
                           Partie #{pendingGame.gameId}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-zinc-300">
                           {pendingGame.gameMode} · {pendingGame.creatorName} en{" "}
                           {pendingGame.creatorColor === "WHITE"
                             ? "blanc"
@@ -1480,7 +1738,7 @@ function Game() {
                         onClick={() =>
                           void handleJoinExistingGame(pendingGame.gameId)
                         }
-                        className={`px-4 py-2 rounded-md text-sm transition ${pendingGame.creatorId === user?.id ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-violet-500 text-white hover:bg-violet-400"}`}
+                        className={`w-full sm:w-auto px-4 py-2 rounded-md text-sm transition ${pendingGame.creatorId === user?.id ? "bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 cursor-not-allowed" : "bg-violet-500 dark:bg-yellow-600 text-white hover:bg-violet-400 dark:hover:bg-yellow-500"}`}
                       >
                         {pendingGame.creatorId === user?.id
                           ? "Ta partie"
@@ -1490,17 +1748,21 @@ function Game() {
                   ))}
               </div>
             </div>
-            {menuError && <p className="text-sm text-red-500">{menuError}</p>}
+            {menuError && (
+              <p className="text-sm text-violet-600 dark:text-yellow-400">
+                {menuError}
+              </p>
+            )}
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-6">
-            <div className="flex flex-row gap-4">
+          <div className="flex flex-col items-center gap-6 w-full max-w-xl px-6">
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               {(["Local", "En ligne"] as Mode[]).map((m) => (
                 <button
                   key={m}
                   onClick={() => {
                     setMode(m);
-                    if (m === "Local") setColor(null);
+                    if (m === "Local") setColor("Blanc");
                   }}
                   className={`${btnBase} ${mode === m ? btnActive : btnInactive}`}
                 >
@@ -1508,7 +1770,7 @@ function Game() {
                 </button>
               ))}
             </div>
-            <div className="flex flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               {(["Bullet", "Blitz", "Normal"] as TimeControl[]).map((t) => (
                 <button
                   key={t}
@@ -1519,7 +1781,7 @@ function Game() {
                 </button>
               ))}
             </div>
-            <div className="flex flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               {(["Blanc", "Noir"] as Color[]).map((c) => (
                 <button
                   key={c}
@@ -1533,20 +1795,24 @@ function Game() {
             </div>
             <button
               onClick={handleCreateGame}
-              className="mt-2 w-56 py-3 text-base font-semibold bg-violet-500 text-white rounded-md hover:bg-violet-400 transition"
+              className="mt-2 w-full sm:w-56 py-3 text-base font-semibold bg-violet-500 dark:bg-yellow-600 text-white rounded-md hover:bg-violet-400 dark:hover:bg-yellow-500 transition"
             >
               Commencer
             </button>
-            {menuError && <p className="text-sm text-red-500">{menuError}</p>}
+            {menuError && (
+              <p className="text-sm text-violet-600 dark:text-yellow-400">
+                {menuError}
+              </p>
+            )}
             <button
               onClick={() => {
                 setShowCreateOptions(false);
-                setMode(null);
-                setTimeControl(null);
-                setColor(null);
+                setMode("Local");
+                setTimeControl("Normal");
+                setColor("Blanc");
                 setMenuError(null);
               }}
-              className="text-sm text-gray-400 hover:text-white underline transition"
+              className="px-6 py-2 text-sm font-medium border border-violet-300 dark:border-yellow-700 text-violet-500 dark:text-yellow-400 rounded-md hover:bg-violet-50 dark:hover:bg-yellow-900/30 hover:border-violet-500 dark:hover:border-yellow-500 transition"
             >
               ← Retour
             </button>

@@ -5,9 +5,14 @@ type Cell = 0 | 1 | 2;
 type Mode = "easy" | "hard" | null;
 
 const WIN_COMBOS = [
-  [0,1,2],[3,4,5],[6,7,8],
-  [0,3,6],[1,4,7],[2,5,8],
-  [0,4,8],[2,4,6],
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6],
 ];
 
 function checkWinner(board: Cell[]): { winner: Cell; line: number[] | null } {
@@ -16,19 +21,24 @@ function checkWinner(board: Cell[]): { winner: Cell; line: number[] | null } {
       return { winner: board[a], line: [a, b, c] };
     }
   }
-  if (board.every(c => c !== 0)) return { winner: 0, line: null };
+  if (board.every((c) => c !== 0)) return { winner: 0, line: null };
   return { winner: 0, line: null };
 }
 
 function isDraw(board: Cell[]): boolean {
-  return board.every(c => c !== 0) && !WIN_COMBOS.some(([a,b,c]) => board[a] && board[a] === board[b] && board[a] === board[c]);
+  return (
+    board.every((c) => c !== 0) &&
+    !WIN_COMBOS.some(
+      ([a, b, c]) => board[a] && board[a] === board[b] && board[a] === board[c],
+    )
+  );
 }
 
 function findWinningMove(board: Cell[], player: Cell): number {
   for (const [a, b, c] of WIN_COMBOS) {
     const line = [a, b, c];
-    const mine = line.filter(i => board[i] === player).length;
-    const empty = line.filter(i => board[i] === 0);
+    const mine = line.filter((i) => board[i] === player).length;
+    const empty = line.filter((i) => board[i] === 0);
     if (mine === 2 && empty.length === 1) return empty[0];
   }
   return -1;
@@ -36,13 +46,18 @@ function findWinningMove(board: Cell[], player: Cell): number {
 
 function findWinningMoveFor(bd: Cell[], player: Cell): number {
   const combos = [
-    [0,1,2],[3,4,5],[6,7,8],
-    [0,3,6],[1,4,7],[2,5,8],
-    [0,4,8],[2,4,6]
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
   ];
   for (const c of combos) {
-    const ones = c.filter(idx => bd[idx] === player).length;
-    const empties = c.filter(idx => bd[idx] === 0);
+    const ones = c.filter((idx) => bd[idx] === player).length;
+    const empties = c.filter((idx) => bd[idx] === 0);
     if (ones === 2 && empties.length === 1) return empties[0];
   }
   return 42;
@@ -64,10 +79,15 @@ function defensiveMove(bd: Cell[]): number {
 }
 
 function lazyFill(bd: Cell[]): number {
-  const edges = [[0,1,2],[0,3,6],[2,5,8],[6,7,8]];
+  const edges = [
+    [0, 1, 2],
+    [0, 3, 6],
+    [2, 5, 8],
+    [6, 7, 8],
+  ];
   for (const line of edges) {
-    if (!line.some(i => bd[i] === 2)) {
-      const emptySpot = line.find(i => bd[i] === 0);
+    if (!line.some((i) => bd[i] === 2)) {
+      const emptySpot = line.find((i) => bd[i] === 0);
       if (emptySpot !== undefined) return emptySpot;
     }
   }
@@ -84,15 +104,17 @@ function firstEmpty(bd: Cell[]): number {
 function hardBotMove(bd: Cell[], moves: number, last: number): number {
   const newBd = [...bd] as Cell[];
   if (moves === 1) {
-    if ([1,5,6].includes(last))      newBd[2] = 1;
-    else if ([2,3,7].includes(last)) newBd[6] = 1;
-    else if (last === 0)             newBd[8] = 1;
-    else if (last === 8)             newBd[0] = 1;
+    if ([1, 5, 6].includes(last)) newBd[2] = 1;
+    else if ([2, 3, 7].includes(last)) newBd[6] = 1;
+    else if (last === 0) newBd[8] = 1;
+    else if (last === 8) newBd[0] = 1;
   } else if (moves === 2) {
     const winTry = findWinningMoveFor(newBd, 1);
     if (winTry === 42) {
-      const edgeTaken = [1,3,5,7].some(i => newBd[i] === 2);
-      const moveChoice = edgeTaken ? weirdForkThing(newBd) : defensiveMove(newBd);
+      const edgeTaken = [1, 3, 5, 7].some((i) => newBd[i] === 2);
+      const moveChoice = edgeTaken
+        ? weirdForkThing(newBd)
+        : defensiveMove(newBd);
       newBd[moveChoice] = 1;
     } else {
       newBd[winTry] = 1;
@@ -117,27 +139,27 @@ function easyBotMove(board: Cell[], moveCount: number): number {
     const win = findWinningMove(board, 1);
     if (win !== -1) return win;
   }
-  const empty = board.map((c, i) => c === 0 ? i : -1).filter(i => i !== -1);
+  const empty = board.map((c, i) => (c === 0 ? i : -1)).filter((i) => i !== -1);
   return empty[Math.floor(Math.random() * empty.length)];
 }
 
 function ModeModal({ onSelect }: { onSelect: (mode: Mode) => void }) {
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl p-8 flex flex-col items-center gap-6 shadow-2xl max-w-sm w-full mx-4">
-        <p className="text-xs uppercase tracking-widest text-gray-500 pb-2 border-b border-gray-700 w-full text-center">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+      <div className="bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-xl p-6 sm:p-8 flex flex-col items-center gap-6 shadow-2xl max-w-sm w-full mx-4">
+        <p className="text-gray-900 dark:text-zinc-100 text-center text-base font-medium">
           Choisir la difficulté
         </p>
-        <div className="flex gap-4 w-full">
+        <div className="flex flex-col sm:flex-row gap-4 w-full">
           <button
             onClick={() => onSelect("easy")}
-            className="flex-1 py-3 text-sm uppercase tracking-widest border border-gray-700 text-gray-300 rounded-md hover:bg-gray-700/30 hover:border-gray-500 transition-all"
+            className="flex-1 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-600 dark:text-zinc-300 rounded-md hover:bg-gray-300/30 dark:hover:bg-zinc-700/20 hover:border-gray-400 dark:hover:border-zinc-500 transition-all"
           >
             Facile
           </button>
           <button
             onClick={() => onSelect("hard")}
-            className="flex-1 py-3 text-sm uppercase tracking-widest border border-rose-700 text-rose-400 rounded-md hover:bg-rose-700/20 hover:border-rose-500 transition-all"
+            className="flex-1 py-3 text-sm uppercase tracking-widest border border-violet-700 dark:border-yellow-700 text-violet-500 dark:text-yellow-400 rounded-md hover:bg-violet-700/20 dark:hover:bg-yellow-700/20 hover:border-violet-500 dark:hover:border-yellow-500 transition-all"
           >
             Difficile
           </button>
@@ -158,6 +180,7 @@ function TicTacToe() {
   const [moveCount, setMoveCount] = useState(0);
   // const [lastPlayerMove, setLastPlayerMove] = useState(-1);
   const [botThinking, setBotThinking] = useState(false);
+  const cellSize = "clamp(84px, 22vw, 120px)";
 
   const initBoard = useCallback((selectedMode: Mode) => {
     const fresh: Cell[] = Array(9).fill(0);
@@ -201,13 +224,13 @@ function TicTacToe() {
       setStatus("Vous gagnez !");
       setWinLine(line);
       setGameOver(true);
-      setScores(s => ({ ...s, player: s.player + 1 }));
+      setScores((s) => ({ ...s, player: s.player + 1 }));
       return;
     }
     if (isDraw(newBoard)) {
       setStatus("Match nul.");
       setGameOver(true);
-      setScores(s => ({ ...s, draws: s.draws + 1 }));
+      setScores((s) => ({ ...s, draws: s.draws + 1 }));
       return;
     }
 
@@ -216,9 +239,10 @@ function TicTacToe() {
 
     setTimeout(() => {
       const botBoard = [...newBoard] as Cell[];
-      const botIdx = mode === "hard"
-        ? hardBotMove(botBoard, newMoveCount, idx)
-        : easyBotMove(botBoard, newMoveCount);
+      const botIdx =
+        mode === "hard"
+          ? hardBotMove(botBoard, newMoveCount, idx)
+          : easyBotMove(botBoard, newMoveCount);
 
       if (botIdx !== -1 && botIdx !== undefined) {
         botBoard[botIdx] = 1;
@@ -230,11 +254,11 @@ function TicTacToe() {
         setStatus("Le bot gagne.");
         setWinLine(bl);
         setGameOver(true);
-        setScores(s => ({ ...s, bot: s.bot + 1 }));
+        setScores((s) => ({ ...s, bot: s.bot + 1 }));
       } else if (isDraw(botBoard)) {
         setStatus("Match nul.");
         setGameOver(true);
-        setScores(s => ({ ...s, draws: s.draws + 1 }));
+        setScores((s) => ({ ...s, draws: s.draws + 1 }));
       } else {
         setStatus("À vous de jouer.");
       }
@@ -243,30 +267,55 @@ function TicTacToe() {
   }
 
   return (
-    <div className="text-white">
-      <div className="flex gap-6 p-6 justify-center items-start flex-wrap">
-
-        <div className="w-52 bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col" style={{ height: "320px" }}>
-          <p className="text-xs uppercase tracking-widest text-gray-500 mb-3 pb-2 border-b border-gray-700 flex-shrink-0">
+    <div className="text-gray-900 dark:text-zinc-100 w-full bg-gray-50 dark:bg-zinc-800 transition-colors duration-300">
+      <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 p-3 sm:p-6 justify-center items-stretch xl:items-start">
+        {/* SCORE PANEL */}
+        <div className="order-2 xl:order-1 w-full xl:w-52 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg p-3 sm:p-4 flex flex-col h-auto xl:h-[320px]">
+          <p className="text-[11px] sm:text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400 mb-2 sm:mb-3 pb-2 border-b border-gray-300 dark:border-zinc-700 flex-shrink-0">
             Scores
           </p>
-          <div className="flex flex-col gap-3 mt-2">
-            <div className="flex justify-between items-center">
-              <span className="text-xs uppercase tracking-widest text-gray-400">Vous</span>
-              <span className="text-2xl font-semibold text-white">{scores.player}</span>
+
+          <div className="flex flex-col gap-2 sm:gap-3 mt-1 sm:mt-2">
+            <div className="flex justify-between items-center gap-3">
+              <span className="text-[11px] sm:text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
+                Vous
+              </span>
+              <span className="text-xl sm:text-2xl leading-none font-semibold text-gray-900 dark:text-zinc-100 tabular-nums">
+                {scores.player}
+              </span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs uppercase tracking-widest text-gray-400">Bot</span>
-              <span className="text-2xl font-semibold text-white">{scores.bot}</span>
+
+            <div className="flex justify-between items-center gap-3">
+              <span className="text-[11px] sm:text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
+                Bot
+              </span>
+              <span className="text-xl sm:text-2xl leading-none font-semibold text-gray-900 dark:text-zinc-100 tabular-nums">
+                {scores.bot}
+              </span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs uppercase tracking-widest text-gray-400">Nuls</span>
-              <span className="text-2xl font-semibold text-white">{scores.draws}</span>
+
+            <div className="flex justify-between items-center gap-3">
+              <span className="text-[11px] sm:text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
+                Nuls
+              </span>
+              <span className="text-xl sm:text-2xl leading-none font-semibold text-gray-900 dark:text-zinc-100 tabular-nums">
+                {scores.draws}
+              </span>
             </div>
+
             {mode && (
-              <div className="mt-4 pt-3 border-t border-gray-700">
-                <span className="text-xs uppercase tracking-widest text-gray-500">Mode</span>
-                <p className={`text-sm font-semibold mt-1 ${mode === "hard" ? "text-rose-400" : "text-gray-300"}`}>
+              <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-gray-300 dark:border-zinc-700">
+                <span className="text-[11px] sm:text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400">
+                  Mode
+                </span>
+
+                <p
+                  className={`text-xs sm:text-sm font-semibold mt-1 ${
+                    mode === "hard"
+                      ? "text-violet-500 dark:text-yellow-400"
+                      : "text-gray-700 dark:text-zinc-300"
+                  }`}
+                >
                   {mode === "hard" ? "Difficile" : "Facile"}
                 </p>
               </div>
@@ -274,43 +323,80 @@ function TicTacToe() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-3">
-          <div className={`text-xs uppercase tracking-widest h-5 text-center transition-colors ${
-            gameOver && status.includes("gagnez") ? "text-emerald-400 font-semibold" :
-            gameOver && status.includes("gagne") ? "text-rose-400 font-semibold" :
-            gameOver ? "text-amber-400 font-semibold" :
-            botThinking ? "text-gray-400" : "text-gray-500"
-          }`}>
+        {/* BOARD */}
+        <div className="order-1 xl:order-2 flex flex-col items-center gap-3 w-full xl:w-auto">
+          <div
+            className={`text-[10px] sm:text-xs uppercase tracking-wider sm:tracking-widest min-h-5 text-center transition-colors ${
+              gameOver && status.includes("gagnez")
+                ? "text-violet-500 dark:text-yellow-400 font-semibold"
+                : gameOver && status.includes("gagne")
+                  ? "text-violet-500 dark:text-yellow-400 font-semibold"
+                  : gameOver
+                    ? "text-gray-600 dark:text-zinc-300 font-semibold"
+                    : botThinking
+                      ? "text-gray-500 dark:text-zinc-400"
+                      : "text-gray-500 dark:text-zinc-400"
+            }`}
+          >
             {status}
           </div>
 
-          <div className="p-2.5 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl">
+          <div className="p-2 sm:p-2.5 bg-gray-100 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg shadow-2xl max-w-full overflow-x-auto">
             <div
               className="grid gap-1.5"
-              style={{ gridTemplateColumns: "repeat(3, 120px)", gridTemplateRows: "repeat(3, 120px)" }}
+              style={{
+                gridTemplateColumns: `repeat(3, ${cellSize})`,
+                gridTemplateRows: `repeat(3, ${cellSize})`,
+              }}
             >
               {board.map((cell, idx) => {
                 const isWin = winLine?.includes(idx);
                 const light = (Math.floor(idx / 3) + (idx % 3)) % 2 === 0;
-                let bgClass = light ? "bg-amber-100" : "bg-amber-900";
-                if (isWin) bgClass = light ? "bg-yellow-300" : "bg-yellow-600";
+
+                let bgClass = light
+                  ? "bg-gray-300 dark:bg-zinc-600"
+                  : "bg-gray-500 dark:bg-zinc-700";
+
+                if (isWin) {
+                  bgClass = light
+                    ? "bg-violet-300 dark:bg-yellow-500"
+                    : "bg-violet-500 dark:bg-yellow-600";
+                }
 
                 return (
                   <div
                     key={idx}
                     onClick={() => handleCellClick(idx)}
-                    className={`w-[120px] h-[120px] flex items-center justify-center select-none relative rounded-sm transition-all
-                      ${bgClass}
-                      ${cell === 0 && !gameOver && !botThinking ? "cursor-pointer hover:brightness-110" : "cursor-default"}
-                    `}
+                    className={`flex items-center justify-center select-none relative rounded-sm transition-all
+                    ${bgClass}
+                    ${
+                      cell === 0 && !gameOver && !botThinking
+                        ? "cursor-pointer hover:brightness-110"
+                        : "cursor-default"
+                    }
+                  `}
+                    style={{ width: cellSize, height: cellSize }}
                   >
                     {cell === 2 && (
-                      <span style={{ fontSize: "52px", lineHeight: 1, color: "#7c3aed", textShadow: "-1px -1px 0 #3b0764, 1px -1px 0 #3b0764, -1px 1px 0 #3b0764, 1px 1px 0 #3b0764" }}>
+                      <span
+                        className="text-violet-600 dark:text-yellow-400 font-bold"
+                        style={{
+                          fontSize: "clamp(2.5rem, 12vw, 52px)",
+                          lineHeight: 1,
+                        }}
+                      >
                         ✕
                       </span>
                     )}
+
                     {cell === 1 && (
-                      <span style={{ fontSize: "52px", lineHeight: 1, color: "#1a1a1a", textShadow: "-1px -1px 0 #aaa, 1px -1px 0 #aaa, -1px 1px 0 #aaa, 1px 1px 0 #aaa" }}>
+                      <span
+                        className="text-gray-900 dark:text-zinc-100 font-bold"
+                        style={{
+                          fontSize: "clamp(2.5rem, 12vw, 52px)",
+                          lineHeight: 1,
+                        }}
+                      >
                         ○
                       </span>
                     )}
@@ -320,29 +406,36 @@ function TicTacToe() {
             </div>
           </div>
 
-          <div className="flex gap-4 mt-1">
+          {/* BUTTONS */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-1 w-full sm:w-auto">
             <button
               onClick={() => initBoard(mode)}
-              className="px-8 py-3 text-sm uppercase tracking-widest border border-rose-700 text-rose-400 rounded-md hover:bg-rose-700/20 hover:border-rose-500 transition-all duration-200"
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 text-sm uppercase tracking-widest border border-violet-700 dark:border-yellow-700 text-violet-500 dark:text-yellow-400 rounded-md hover:bg-violet-700/20 dark:hover:bg-yellow-700/20 hover:border-violet-500 dark:hover:border-yellow-500 transition-all duration-200"
             >
               Restart
             </button>
+
             <button
               onClick={() => setShowModal(true)}
-              style={{ color: "#000000", borderColor: "#000000" }}
-              className="px-8 py-3 text-sm uppercase tracking-widest border rounded-md hover:bg-black/10 transition-all duration-200"
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 text-sm uppercase tracking-widest border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 rounded-md hover:bg-gray-300/20 dark:hover:bg-zinc-700/20 transition-all duration-200"
             >
               Mode
             </button>
           </div>
 
-          <div className="flex gap-6 text-xs uppercase tracking-widest text-gray-500 mt-1">
+          {/* LEGEND */}
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-xs uppercase tracking-widest text-gray-500 dark:text-zinc-400 mt-1">
             <span className="flex items-center gap-2">
-              <span style={{ color: "#7c3aed", textShadow: "-1px -1px 0 #3b0764, 1px -1px 0 #3b0764, -1px 1px 0 #3b0764, 1px 1px 0 #3b0764", fontSize: "16px" }}>✕</span>
+              <span className="text-violet-600 dark:text-yellow-400 text-base">
+                ✕
+              </span>
               Vous
             </span>
+
             <span className="flex items-center gap-2">
-              <span style={{ color: "#1a1a1a", textShadow: "-1px -1px 0 #aaa, 1px -1px 0 #aaa, -1px 1px 0 #aaa, 1px 1px 0 #aaa", fontSize: "16px" }}>○</span>
+              <span className="text-gray-900 dark:text-zinc-100 text-base">
+                ○
+              </span>
               Bot
             </span>
           </div>
@@ -357,8 +450,10 @@ function TicTacToe() {
 export function Puzzle() {
   return (
     <>
-      <div className="border w-full bg-white">
-        <div className="text-black"><Header title="Puzzle" /></div>
+      <div className="h-full rounded-md border border-gray-200 dark:border-zinc-700 w-full bg-white dark:bg-zinc-800 transition-colors duration-300">
+        <div className="text-black dark:text-zinc-100">
+          <Header title="Morpion" />
+        </div>
         <TicTacToe />
       </div>
     </>

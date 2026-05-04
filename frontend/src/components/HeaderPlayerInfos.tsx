@@ -69,23 +69,28 @@ export default function HeaderPlayerInfos({ userStats, setUserStats }) {
   });
 
   //affiche le status actuel du user
-  const currentUserStatus = statusData.find((st) => st.value === userStats.status);
-  const userAvatar =
-      <img
-        src={avatar}
-        alt={`${userStats.pseudo} avatar`}
-        className="w-16 h-16 rounded-full object-cover m-2 border border-violet-200"
-      />
+  const currentUserStatus = statusData.find(
+    (st) => st.value === userStats.status,
+  );
+  const userAvatar = (
+    <img
+      src={avatar}
+      alt={`${userStats.pseudo} avatar`}
+      className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover m-2 border border-violet-200"
+    />
+  );
 
   return (
-    <header className="flex justify-end items-center m-2 relative text-[#141301]">
-      <p className="flex-1 title-style">Bienvenue sur ChessWar</p>
+    <header className="flex flex-row justify-end items-start sm:items-center m-2 mt-7 relative text-[#141301] dark:text-zinc-100 gap-2">
+      <p className="flex-1 title-style text-base sm:text-2xl">
+        Bienvenue sur ChessWar
+      </p>
       <div className="flex flex-col">
-        <h3 className="text-lg self-end">
+        <h3 className="text-base sm:text-2xl lg:text-lg self-end">
           {userStats.pseudo ? userStats.pseudo : "UserName"}
         </h3>
 
-        <Level level={userStats.winCount ?? 0} />
+        <Level level={userStats.winCount ?? 0} compact />
 
         <div ref={dropDownWrapper} className="self-end">
           <button
@@ -100,7 +105,7 @@ export default function HeaderPlayerInfos({ userStats, setUserStats }) {
               className="
                                 flex flex-col gap-2 
                                 absolute right-0 top-full mt-1
-                                bg-black/5 backdrop-blur-sm border border-black/5
+                                bg-black/5 dark:bg-zinc-900/70 backdrop-blur-sm border border-black/5 dark:border-zinc-700
                                 rounded-2xl shadow-xl
                                 p-2 z-50
                             "

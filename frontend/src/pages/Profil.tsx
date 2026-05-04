@@ -9,7 +9,6 @@ import { isValidMail } from "../utils/isValidMail.ts";
 import { QRCodeSVG } from "qrcode.react";
 import { Link } from "react-router-dom";
 
-
 function Profil() {
   const { user, login: setAuthUser } = useAuth();
 
@@ -40,7 +39,9 @@ function Profil() {
   const [deleteInput, setDeleteInput] = useState<string>("");
   const CONFIRM_PHRASE = `Je confirme vouloir supprimer mon compte: ${user.pseudo}`;
   const [wantToDelete, setWantToDelete] = useState<boolean>(false);
-  const [twoFactorOverride, setTwoFactorOverride] = useState<boolean | null>(null);
+  const [twoFactorOverride, setTwoFactorOverride] = useState<boolean | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [remove2FA, setRemove2FA] = useState<boolean>(false);
   const [password, setPassword] = useState<string | null>(null);
@@ -140,7 +141,7 @@ function Profil() {
           type: "error",
         }),
       )
-      .finally(() => (setWantToDelete(false), setDeleteInput("")));
+      .finally(() => (setWantToDelete(false), setDeleteInput(""), setTimeout(() => window.location.reload(), 1000)));
   }
 
   function handleChecked(e: React.ChangeEvent<HTMLInputElement>) {
@@ -244,7 +245,7 @@ function Profil() {
   const resValidMail = isValidMail(form.email);
 
   return (
-    <div className="border rounded-md bg-white text-black h-full relative">
+    <div className="border border-gray-200 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-800 text-black dark:text-zinc-100 h-full relative transition-colors duration-300">
       <Header title="Page de profil" />
       <div className="flex flex-col items-center gap-12">
         <ProfileHeader user={user} />
@@ -256,7 +257,7 @@ function Profil() {
         />
         <div className="w-full flex justify-between items-center">
           <div className="flex justify-content-center ml-2">
-            {!user.isGoogleUser && 
+            {!user.isGoogleUser && (
               <div className="flex items-center gap-2">
                 <label htmlFor="double">
                   {`Double authentification (2FA): ${twoFactorEnabled ? "Activée" : "Desactivée"}`}
@@ -271,10 +272,10 @@ function Profil() {
                   disabled={user.isGoogleUser || isLoading}
                 />
               </div>
-            }
+            )}
           </div>
           <button
-            className="m-2 bg-red-600 text-white warning-hover hover:bg-white"
+            className="m-2 bg-red-600 text-white warning-hover hover:bg-white dark:hover:bg-zinc-800"
             onClick={() => setWantToDelete(true)}
           >
             Supprimer le compte
@@ -299,8 +300,8 @@ function Profil() {
       )}
       {otpauthUrl && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50">
-          <div className="bg-white p-6 rounded-xl shadow-xl flex flex-col items-center gap-4 w-[90%] max-w-sm">
-            <h2 className="text-lg font-semibold text-black">
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl shadow-xl flex flex-col items-center gap-4 w-[90%] max-w-sm border border-gray-200 dark:border-zinc-700">
+            <h2 className="text-lg font-semibold text-black dark:text-zinc-100">
               Scannez ce QR code
             </h2>
 
@@ -311,14 +312,28 @@ function Profil() {
               />
             </div>
 
-            <p className="text-sm text-gray-500 text-center">
-              Utilise 
-              <Link to={"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&pcampaignid=web_share"} className="underline hover:text-violet-400"> Google Authenticator </Link>
-               ou
-              <Link to={"https://www.authy.com"} className="underline hover:text-violet-400"> Authy </Link>
+            <p className="text-sm text-gray-500 dark:text-zinc-400 text-center">
+              Utilisez
+              <Link
+                to={
+                  "https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&pcampaignid=web_share"
+                }
+                className="underline hover:text-violet-400 dark:hover:text-yellow-400"
+              >
+                {" "}
+                Google Authenticator{" "}
+              </Link>
+              ou
+              <Link
+                to={"https://www.authy.com"}
+                className="underline hover:text-violet-400 dark:hover:text-yellow-400"
+              >
+                {" "}
+                Authy{" "}
+              </Link>
             </p>
 
-            <label className="text-sm text-gray-500 text-center">
+            <label className="text-sm text-gray-500 dark:text-zinc-400 text-center">
               Ensuite rentrez le code à 6 chiffres ici:
             </label>
             <div className="flex gap-3">
@@ -326,11 +341,11 @@ function Profil() {
                 type="text"
                 name="2FAcode"
                 id="2FAcode"
-                className="border rounded-md"
+                className="border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-950"
                 onChange={(e) => setCode(e.currentTarget.value)}
               />
               <button
-                className="px-1 py-2 bg-black text-white rounded-lg"
+                className="px-1 py-2 bg-black text-white rounded-lg global-hover"
                 onClick={handleActivate}
               >
                 Envoyer
@@ -338,7 +353,7 @@ function Profil() {
             </div>
 
             <button
-              className="px-4 py-2 bg-black text-white rounded-lg"
+              className="px-4 py-2 bg-black text-white rounded-lg global-hover"
               onClick={() => setOtpauthUrl(null)}
             >
               Fermer
@@ -348,42 +363,42 @@ function Profil() {
       )}
       {remove2FA && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50">
-          <div className="bg-white p-6 rounded-xl shadow-xl flex flex-col items-center gap-4 w-[90%] max-w-sm">
-            <h2 className="text-lg font-semibold text-black">
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl shadow-xl flex flex-col items-center gap-4 w-[90%] max-w-sm border border-zinc-200 dark:border-zinc-700">
+            <h2 className="text-lg font-semibold text-black dark:text-zinc-100">
               Pour désactiver la double authentification
             </h2>
 
-            <label className="text-sm text-gray-500 text-center">
+            <label className="text-sm text-gray-500 dark:text-zinc-400 text-center">
               Entrez votre mot de passe:
             </label>
             <input
               type="password"
               name="password"
               id="paswword"
-              className="border rounded-md"
+              className="border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-950"
               onChange={(e) => setPassword(e.currentTarget.value)}
             />
 
-            <label className="text-sm text-gray-500 text-center">
+            <label className="text-sm text-gray-500 dark:text-zinc-400 text-center">
               Entrez le code à 6 chiffres:
             </label>
             <input
               type="text"
               name="2FAcode"
               id="2FAcode"
-              className="border rounded-md"
+              className="border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-950"
               onChange={(e) => setCode(e.currentTarget.value)}
             />
 
             <button
-              className="px-4 py-2 bg-black text-white rounded-lg"
+              className="px-4 py-2 bg-black text-white rounded-lg global-hover"
               onClick={() => handleRemove2FA()}
             >
               Confirmer
             </button>
 
             <button
-              className="px-4 py-2 bg-black text-white rounded-lg"
+              className="px-4 py-2 bg-black text-white rounded-lg global-hover"
               onClick={() => {
                 setPassword("");
                 setCode(null);

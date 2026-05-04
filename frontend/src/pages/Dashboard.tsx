@@ -4,9 +4,9 @@ import EloGraph from "../components/EloGraph.tsx";
 import LastMatches from "../components/LastMatches.tsx";
 import DailyPuzzle from "../components/DailyPuzzle.tsx";
 import LeaderBoard from "../components/LeaderBoard.tsx";
-import { mockDashboardUserStats } from "../data/mock_data";//mock
-import type { DashboardUserStats } from "../data/mock_data";//mock
-import USE_MOCK_DATA from "../config/dataConfig";//mock
+import { mockDashboardUserStats } from "../data/mock_data"; //mock
+import type { DashboardUserStats } from "../data/mock_data"; //mock
+import USE_MOCK_DATA from "../config/dataConfig"; //mock
 import type { UserStatsResponse } from "../api/api.ts";
 
 import { useEffect, useState } from "react";
@@ -23,7 +23,6 @@ function Dashboard() {
           ? mockDashboardUserStats
           : await api.userStats();
         setUserStats(userData);
-        console.log(userData);
       }
       fetchUser();
     } catch (error) {
@@ -32,9 +31,9 @@ function Dashboard() {
   }, []);
 
   return (
-    <div className="border rounded-md bg-white text-black h-full">
+    <div className="border border-gray-200 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-800 text-black dark:text-white h-full transition-colors duration-300">
       <HeaderPlayerInfos userStats={userStats} setUserStats={setUserStats} />
-      <section className="m-4 grid grid-cols-4 gap-6">
+      <section className="m-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCards userStats={userStats} />
         <EloGraph />
         <LastMatches userStats={userStats} />

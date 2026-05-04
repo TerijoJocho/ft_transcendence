@@ -2,6 +2,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useAuth } from "../auth/useAuth";
+import {
+  extractAuthDebugMessage,
+  toAuthErrorMessage,
+} from "../utils/authErrorMessage";
 
 import * as api from "../api/api.ts";
 
@@ -52,13 +56,10 @@ function Login() {
       loginAuth(fullUser);
       navigate("/dashboard");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur serveur";
       setErrorMessage(
-        requiresTwoFactor
-          ? "Code 2FA invalide ou expiré."
-          : "Problème lors de la connexion, voir log.",
+        toAuthErrorMessage(err, requiresTwoFactor ? "twoFactor" : "login"),
       );
-      console.error(message);
+      console.error(extractAuthDebugMessage(err));
     } finally {
       setLoading(false);
     }
@@ -144,7 +145,7 @@ function Login() {
 
       <button
         onClick={api.google}
-        className="p-2 bg-white w-fit text-black rounded-lg mb-6 self-center hover:text-white hover:bg-black"
+        className="p-2 bg-white dark:bg-zinc-900 w-fit text-black dark:text-zinc-100 border border-transparent dark:border-zinc-700 rounded-lg mb-6 self-center hover:text-white hover:bg-black dark:hover:bg-zinc-800"
       >
         Se connecter avec Google
       </button>
@@ -156,9 +157,13 @@ function Login() {
         </Link>
       </p>
 
-      <div className="mt-4 flex justify-center gap-4 text-xs text-gray-200">
-        <Link to="/privacy-policy" className="hover:underline">Politique de confidentialité</Link>
-        <Link to="/terms-of-service" className="hover:underline">Conditions d'utilisation</Link>
+      <div className="mt-4 flex justify-center gap-4 text-xs text-gray-200 dark:text-zinc-300">
+        <Link to="/privacy-policy" className="hover:underline">
+          Politique de confidentialité
+        </Link>
+        <Link to="/terms-of-service" className="hover:underline">
+          Conditions d'utilisation
+        </Link>
       </div>
     </div>
   );
