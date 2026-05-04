@@ -108,7 +108,7 @@ services:
       - IPC_LOCK # Empêche la RAM d'être copiée sur le disque
     depends_on:
       init_vault:
-        condition: service_completed_successfully
+        condition: service_started
       postgres:
         condition: service_started
     secrets:
@@ -120,7 +120,6 @@ services:
       - GOOGLE_AUTH_CLIENT_ID
       - GOOGLE_AUTH_CLIENT_SECRET
       - REDIS_URL
-
     volumes:
       - vault_data:/vault/data
       - ./:/workspace:ro
@@ -163,7 +162,6 @@ services:
       - postgres
       - redis
       - backend
-      - frontend
     networks: [ internal ]
 
 volumes:
