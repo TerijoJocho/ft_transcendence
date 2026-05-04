@@ -1,3 +1,4 @@
+
 # _This project has been created as part of the 42 curriculum by aistierl, daavril, kcharbon, ychattou._
 
 # Chess War
@@ -15,9 +16,6 @@ Key features include:
 - Security-focused infrastructure with Vault, NGINX, and a WAF.
 - Dockerized local and production deployment.
 
-> [!WARNING]
-> The project also contains a Tic-Tac-Toe bot mode and a compliance section in the original documentation, but their exact scope and ownership are not fully documented in the repository. The README keeps them under features, but some implementation details remain summarized rather than exhaustively traced.
-
 ## Instructions
 
 ### Prerequisites
@@ -30,12 +28,19 @@ Key features include:
 
 ### Environment Setup
 
-1. Copy or create the root `.env` file with all required variables.
-2. Make sure the secret files under `secrets/` are present.
+1. Copy or create the root `.env` file with all required variables based on `.env.example` model provided.
+2. Copy or create the root `secrets` file with all required files inside based on `secrets.example` model provided.
+**Secrets folder file descriptions:**
+   - `POSTGRES_USER`: PostgreSQL database username
+   - `POSTGRES_PASSWORD`: PostgreSQL database password
+   - `POSTGRES_URL`: Full PostgreSQL connection URL (eg.)
+   - `REDIS_PASSWORD`: Redis password (if set)
+   - `REDIS_URL`: Redis connection URL (eg. )
+   - `GOOGLE_AUTH_CLIENT_ID`: Google OAuth client ID (from Google Cloud Console)
+   - `GOOGLE_AUTH_CLIENT_SECRET`: Google OAuth client secret (from Google Cloud Console)
+   - `JWT_ACCESS_TOKEN_SECRET`: Secret key for signing JWT access tokens
+   - `JWT_REFRESH_TOKEN_SECRET`: Secret key for signing JWT refresh tokens
 3. If you need a local-only reset, stop the stack first and clear the database volume/data according to your local setup.
-
-> [!WARNING]
-> The repository documents that `.env` and `secrets/` are required, but it does not provide a complete, versioned example file in the README itself. Exact values and any optional variables should be confirmed from the project files before deployment.
 
 ### Run
 
@@ -52,7 +57,7 @@ Key features include:
    ```
 
 3. Create an account with the registration flow, or use Google login if configured.
-4. After login, the dashboard provides access to stats, matches, friends, chat, and game features.
+4. After login, the side bar provides access to player's dashboard "home", friends, chat, and game features.
 
 ### Stop
 
@@ -79,9 +84,7 @@ Classic references used for the project:
 - Community support and tutorials from Stack Overflow, Reddit, OpenClassrooms, Scrimba, and YouTube
 
 AI usage:
-
-> [!WARNING]
-> The repository does not document a formal AI usage policy or a precise breakdown of which tasks were assisted by AI. For evaluation purposes, this README should be completed with the actual usage scope, for example: drafting documentation, refining wording, structuring sections, or helping review technical descriptions. If AI was not used, say so explicitly.
+AI was used to refine wording, structure sections, and update technical descriptions.
 
 ## Team Information
 
@@ -99,7 +102,6 @@ AI usage:
 
 - Roles: Tech Lead (Frontend Lead, DevOps coordination)
 - Responsibilities: Stack decision-making, GitHub repository setup and coordination, full frontend development, UI/UX design, Docker containerization support.
-
 
 ### Ylan:
 
@@ -158,8 +160,7 @@ Key rules enforced by the model:
 - Default avatars are assigned to new users.
 - Google accounts do not require a local password and cannot enable local 2FA.
 
-> [!WARNING]
-> The README includes the database diagrams, but the exact column-by-column type inventory is not reproduced here. Refer to the Drizzle schema and migrations for the authoritative definition of fields and SQL types.
+Refer to the Drizzle schema and migrations for the authoritative definition of fields and SQL types in `./backend/src/shared/db/schema.ts` and `backend/src/drizzle/*.sql`
 
 ## Feature List
 
@@ -286,4 +287,4 @@ Ylan developed the core chess gameplay logic, implementing piece movement, rule 
 
 ---
 
-> **Note:** Everyone took part in the testing phases and code reviews. Meetings were held on school premises at least once a week (up to three times) for code review, testing, issue identification, and task distribution. GitHub Issues and Discord were used for project management and communication.
+> **Note:** Everyone took part in the testing phases and code reviews.
