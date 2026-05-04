@@ -20,7 +20,7 @@ Key features include:
 
 ### Prerequisites
 
-- Docker and Docker Compose.
+- Podman and Podman Compose.
 - Node.js 20 or newer for local tooling and package management.
 - PostgreSQL 15 and Redis are used by the stack, but they are started through Docker Compose in the default workflow.
 - A filled `.env` file at the repository root.
@@ -47,7 +47,7 @@ Key features include:
 1. Start the stack:
 
    ```bash
-   docker compose up
+   podman compose up
    ```
 
 2. Open the application in your browser at:
