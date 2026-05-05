@@ -6,6 +6,7 @@ type DeleteAccountModalProps = {
   setDeleteInput: Dispatch<SetStateAction<string>>;
   CONFIRM_PHRASE: string;
   handleDelete: () => void;
+  isLoading: boolean;
 };
 
 export default function DeleteAccountModal({
@@ -14,6 +15,7 @@ export default function DeleteAccountModal({
   setDeleteInput,
   CONFIRM_PHRASE,
   handleDelete,
+  isLoading,
 }: DeleteAccountModalProps) {
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3">
@@ -35,17 +37,20 @@ export default function DeleteAccountModal({
           value={deleteInput}
           onChange={(e) => setDeleteInput(e.target.value)}
           className="input-style"
+          disabled={isLoading}
         />
         <div className="flex gap-2 mt-4">
           <button
             className="flex-1 p-3 bg-white dark:bg-zinc-800 text-red-500 rounded-md"
             onClick={() => (setWantToDelete(false), setDeleteInput(""))}
+            disabled={isLoading}
           >
             Annuler
           </button>
           <button
             className="flex-1 p-3 bg-green-500 text-white rounded-md"
             onClick={handleDelete}
+            disabled={isLoading}
           >
             Confirmer
           </button>

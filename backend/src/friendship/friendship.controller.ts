@@ -10,9 +10,9 @@ import {
 } from '@nestjs/common';
 import { FriendshipService } from './friendship.service';
 import { FriendshipDto } from './dto/create-friendship.dto';
-import { PassportJwtGuard } from 'src/auth/guards/passport-jwt.guard';
-import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
-import { LogoutDto } from 'src/auth/dto/logout.dto';
+import { PassportJwtGuard } from '../auth/guards/passport-jwt.guard';
+import { CurrentUser } from '../auth/decorator/current-user.decorator';
+import { LogoutDto } from '../auth/dto/logout.dto';
 
 @Controller('friendship')
 export class FriendshipController {

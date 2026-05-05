@@ -10,17 +10,18 @@ import * as api from "../api/api.ts"
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [user, setUser] = useState<User | null>(null);
-
+  
   const login = useCallback((user: User) => {
     setUser(user);
     setIsLoading(false);
   }, []);
-
+  
   const clearAuth = useCallback(async () => {
+    console.log('[AUTH] clearAuth called');
     setUser(null);
     setIsLoading(false);
   }, []);
-
+  
   const logout = useCallback(async () => {
     try {
       await api.logout();

@@ -8,14 +8,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { UpdateDoubleFactorDto } from './dto/UpdateDoubleFactorDto';
-import { UtilsService } from 'src/shared/services/utils.func.service';
-import { RedisService } from 'src/shared/services/redis.service';
+import { UtilsService } from '../shared/services/utils.func.service';
+import { RedisService } from '../shared/services/redis.service';
 import speakeasy from 'speakeasy';
+import * as bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
 import axios from 'axios';
 import https from 'https';
 import fs from 'fs';
-import { playerTable } from 'src/shared/db/schema';
+import { playerTable } from '../shared/db/schema';
 import { deleteDoubleFactorDto } from './dto/deleteDoubleFactorDto';
 
 type VaultEncryptResponse = {
@@ -96,6 +97,10 @@ export class DoubleFactorService {
   }
 
   private getVaultHttpsAgent(): https.Agent {
+    if (process.env.VAULT_TLS_SKIP_VERIFY === 'true') {
+      return new https.Agent({ rejectUnauthorized: false });
+    }
+
     const caCertPath = process.env.VAULT_CACERT;
     if (!caCertPath)
       throw new InternalServerErrorException('VAULT_CACERT is not configured');
@@ -394,7 +399,10 @@ export class DoubleFactorService {
       if (!userRows?.length)
         throw new HttpException('Player not found', HttpStatus.NOT_FOUND);
       const user = userRows[0];
-      if (!user || user.pass !== data.pwd)
+      if (!user)
+        throw new HttpException('User not authorized', HttpStatus.UNAUTHORIZED);
+      const isPasswordValid = await bcrypt.compare(data.pwd, user.pass);
+      if (!isPasswordValid)
         throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
       if (!user.twoFactorEnabled)
         throw new HttpException('2FA not active', HttpStatus.CONFLICT);

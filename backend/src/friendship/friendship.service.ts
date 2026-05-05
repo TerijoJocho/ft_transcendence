@@ -4,11 +4,11 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { UtilsService } from 'src/shared/services/utils.func.service';
+import { UtilsService } from '../shared/services/utils.func.service';
 import { eq, or, ilike, ne, and } from 'drizzle-orm';
-import { friendshipTable, playerTable } from 'src/shared/db/schema';
+import { friendshipTable, playerTable } from '../shared/db/schema';
 import { FriendResponseDto } from './dto/FriendResponseDto';
-import { RedisService } from 'src/shared/services/redis.service';
+import { RedisService } from '../shared/services/redis.service';
 
 type FriendListItem = {
   id: number;

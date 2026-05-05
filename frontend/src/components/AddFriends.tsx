@@ -18,30 +18,30 @@ export default function AddFriend() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { fetchFriends } = useFriends();
+  const { friendsList, fetchFriends } = useFriends();
 
   useEffect(() => {
-    //on recupere la valeur de l'input
     const timmedValue = searchValue.trim();
-    //s'il y avait une erreur on l'efface
     setError(null);
-    // si la recherche est vide on reset et on ne fetch pas
     if (timmedValue.length === 0) {
       setResults([]);
       setIsLoading(false);
       return;
     }
-    // on attend 300ms avant de lancer le fetch
     const timer = setTimeout(() => {
       setIsLoading(true);
       searchUser({ username: timmedValue })
-        .then((data) => setResults(data))
+        .then((data) => {
+          const res = data.filter(
+            (user) => !friendsList.some((friend) => friend.id === user.id)
+          );
+          setResults(res);
+        })
         .catch(() => setError("Impossible de trouver cet utilisateur"))
         .finally(() => setIsLoading(false));
     }, 300);
-    // si searchValue change avant 300ms, on annule le timer précédent
     return () => clearTimeout(timer);
-  }, [searchValue]);
+  }, [searchValue, friendsList]);
 
   async function handleAddFriend(userId: number) {
     await addFriend({ userId })
@@ -50,7 +50,7 @@ export default function AddFriend() {
         setSearchValue("");
         fetchFriends();
       })
-      .catch(() => setError("Impossible d'ajouter cet ami"));
+      .catch(() => setError("Une demande d'amis a déjà été envoyée à cet utilisateur"));
   }
 
   return (

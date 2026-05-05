@@ -121,13 +121,6 @@ function Friends() {
           <p className="p-2 ">Liste de demande d'amis</p>
           {
             filteredPendingList.map(f => {
-                const isOnline =
-                  typeof f.online === "boolean"
-                    ? f.online
-                    : f.status === "ONLINE";
-                const pendingStatus = statusData.find(
-                  (st) => st.value === (isOnline ? "ONLINE" : "OFFLINE"),
-                );
               const pendingAvatar = typeof f.avatarUrl === 'string'
                           ? (<img src={f.avatarUrl} alt={`${f.pseudo} avatar`} className="w-5 h-5 rounded-full object-cover"/>)
                           : (<FontAwesomeIcon icon={faCircleUser}/>)
@@ -135,10 +128,7 @@ function Friends() {
                   <div key={f.id} className="flex items-center border-b p-4">
                     <div className="flex-1">
                       <div className="text-4xl text-gray-300">{pendingAvatar}</div>
-                      <p>{f.pseudo}</p>
-                        <p className={`${pendingStatus?.style ?? statusData[4].style} w-fit border-none mt-1`}>
-                          {pendingStatus?.label ?? statusData[4].label}
-                        </p>
+                      <p>{f.pseudo}</p>                    
                     </div>
                     <div className="flex items-center gap-2">
                       <button  onClick={() => addToFriendList(f)} title="débloquer">

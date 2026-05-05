@@ -9,15 +9,15 @@ import {
 import { UtilsService } from '../shared/services/utils.func.service';
 import { NewGameDto } from './dto/new-game.dto';
 import { EndGameDto } from './dto/end-game.dto';
-import { gameTable, participationTable } from 'src/shared/db/schema';
+import { gameTable, participationTable } from '../shared/db/schema';
 import type {
   gameSelect,
   gameInsert,
   participationInsert,
   participationSelect,
-} from 'src/shared/db/schema';
+} from '../shared/db/schema';
 import { eq, ne, sql, and } from 'drizzle-orm';
-import { DatabaseService } from 'src/shared/services/db.service';
+import { DatabaseService } from '../shared/services/db.service';
 import { GiveupGameDto } from './dto/giveup-game.dto';
 
 @Injectable()
@@ -134,7 +134,7 @@ export class GameService {
     if (gameRows.length === 0)
       throw new NotFoundException('Game not found or already started.');
 
-    //check if player already joined this game
+    // check if player already joined this game
     const playerParticipationRows =
       (await this.utilsService.findParticipationsBy(
         'and',
@@ -397,7 +397,6 @@ export class GameService {
           gameMode: gameTable.gameMode,
         },
         eq(gameTable.gameId, gameId),
-        // ne(gameTable.gameStatus, "COMPLETED"),
       );
 
     if (gameRows.length === 0) throw new NotFoundException('Game not found.');

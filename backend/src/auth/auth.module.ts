@@ -8,10 +8,17 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { GoogleAuthStrategy } from './strategies/google-auth.strategy';
 import { UsersModule } from '../users/users.module';
-import { DoubleFactorModule } from 'src/double_factor/double_factor.module';
+import { DoubleFactorModule } from '../double_factor/double_factor.module';
+import { ChatModule } from '../chat/chat.module';
 
 @Module({
-  imports: [PassportModule, JwtModule, DoubleFactorModule, UsersModule],
+  imports: [
+    PassportModule,
+    JwtModule,
+    DoubleFactorModule,
+    UsersModule,
+    ChatModule,
+  ],
   providers: [
     AuthService,
     LocalStrategy,

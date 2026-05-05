@@ -1,4 +1,4 @@
-# cmd pour lancer en dev: docker compose --profile dev up -d --build
+# cmd pour lancer en dev: docker compose -f podman-compose.yml --profile dev up --build
 # cmd pour push les migrations dans la db: docker compose exec backend npx drizzle-kit migrate
 
 services:
@@ -69,6 +69,12 @@ services:
       - postgres
       - redis
       - vault
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O - http://localhost:3000/ >/dev/null 2>&1 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     networks: [ internal ]
     # Command pour le dev (hot reload)
     command: npm run start:dev
@@ -82,12 +88,10 @@ services:
       context: ./backend/vault/init_service
       dockerfile: Dockerfile
     container_name: vault_fix_perms
-    environment:
-      LOCAL_UID: ${LOCAL_UID:-1000}
-      LOCAL_GID: ${LOCAL_GID:-1000}
     networks: [ internal ]
     volumes:
       - vault_data:/vault/data
+      - ./:/workspace:ro
       - .vault-secrets/core:/vault/local-secrets
       - .vault-secrets/approle:/vault/approle
       - .vault-secrets/vault_certs:/certs
@@ -97,17 +101,14 @@ services:
       context: ./backend/vault
       dockerfile: Dockerfile
     container_name: ft_transcendence_vault
-    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     networks: [ internal ]
     expose:
       - "8200"
     cap_add:
       - IPC_LOCK # Empêche la RAM d'être copiée sur le disque
     depends_on:
-      init_vault:
-        condition: service_completed_successfully
-      postgres:
-        condition: service_started
+      # - init_vault
+      - postgres
     secrets:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
@@ -117,9 +118,14 @@ services:
       - GOOGLE_AUTH_CLIENT_ID
       - GOOGLE_AUTH_CLIENT_SECRET
       - REDIS_URL
-
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     volumes:
       - vault_data:/vault/data
+      - ./:/workspace:ro
       - .vault-secrets/core:/vault/local-secrets:rw
       - .vault-secrets/approle:/vault/approle:rw
       - .vault-secrets/vault_certs:/etc/vault/certs:ro
@@ -153,13 +159,12 @@ services:
       - ANOMALY_INBOUND=10
       - DISABLE_DEFAULT_CONF=1
     ports:
-      - "443:443"
-      - "81:80"
+      - "4443:4443"
+      - "1081:1081"
     depends_on:
       - postgres
       - redis
       - backend
-      - frontend
     networks: [ internal ]
 
 volumes:

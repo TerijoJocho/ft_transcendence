@@ -4,6 +4,7 @@ import { useAuth } from "./useAuth";
 
 export default function PrivateRoute({children}: {children: JSX.Element}) {
     const {user, isLoading} = useAuth();
+    console.log('[PRIVATE ROUTE] user:', user, 'isLoading:', isLoading);
 
     if (isLoading)
         return null;

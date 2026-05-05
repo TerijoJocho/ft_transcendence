@@ -132,7 +132,7 @@ export default function SideBar() {
                 <img
                   src={user.avatarUrl}
                   alt={`${user.pseudo} avatar`}
-                  className={`rounded-full object-cover ${isSmallMenu ? "w-8 h-8" : "w-12 h-12"}`}
+                  className={`rounded-full object-cover ${isSmallMenu ? "w-8 h-8" : "w-12 h-12"} border border-violet-400 dark:border-yellow-700`}
                 />
                 {!isSmallMenu && displayName}
               </div>
@@ -148,7 +148,7 @@ export default function SideBar() {
           <button
             type="button"
             onClick={toggleTheme}
-            className={`mt-4 flex items-center ${isSmallMenu ? "justify-center" : "justify-between"} gap-2 rounded-md border border-gray-400 dark:border-zinc-600 px-3 py-2 text-sm hover:bg-gray-400 dark:hover:bg-zinc-700 transition-colors`}
+            className={`mt-4 flex items-center ${isSmallMenu ? "justify-center" : "justify-between"} gap-2 rounded-md border border-gray-400 dark:border-zinc-600 px-3 py-2 text-sm hover:bg-zinc-700 dark:hover:bg-violet-300 transition-colors`}
             aria-label="Basculer le mode jour/nuit"
             title="Basculer le mode jour/nuit"
           >
