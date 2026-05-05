@@ -1,4 +1,4 @@
-# cmd pour lancer en dev: docker compose --profile dev up -d --build
+# cmd pour lancer en dev: docker compose -f podman-compose.yml --profile dev up --build
 # cmd pour push les migrations dans la db: docker compose exec backend npx drizzle-kit migrate
 
 services:
